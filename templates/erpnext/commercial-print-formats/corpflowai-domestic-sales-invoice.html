@@ -1,0 +1,43 @@
+{% set routing = namespace(has_corpflowai=false, has_business_admin_desk=false, has_unknown=false) %}
+{% for item in doc.items %}
+  {% set row = namespace(current_group=item.item_group or "", brand="") %}
+  {% for _ in range(8) %}
+    {% if row.current_group and not row.brand %}
+      {% if row.current_group == "CorpFlowAI Services" %}{% set row.brand = "corpflowai" %}
+      {% elif row.current_group == "Business Admin Desk Services" %}{% set row.brand = "business_admin_desk" %}
+      {% else %}{% set row.current_group = frappe.db.get_value("Item Group", row.current_group, "parent_item_group") or "" %}{% endif %}
+    {% endif %}
+  {% endfor %}
+  {% if row.brand == "corpflowai" %}{% set routing.has_corpflowai = true %}
+  {% elif row.brand == "business_admin_desk" %}{% set routing.has_business_admin_desk = true %}
+  {% else %}{% set routing.has_unknown = true %}{% endif %}
+{% endfor %}
+{% set brand_ready = (routing.has_corpflowai or routing.has_business_admin_desk) and not (routing.has_corpflowai and routing.has_business_admin_desk) and not routing.has_unknown %}
+{% set business_admin_desk = routing.has_business_admin_desk and not routing.has_corpflowai and not routing.has_unknown %}
+{% set brand_name = "Business Admin Desk" if business_admin_desk else "CorpFlowAI" %}
+{% set brand_accent = "#4EA7E0" if business_admin_desk else "#16A6A1" %}
+{% set brand_ink = "#0B3154" if business_admin_desk else "#10233B" %}
+{% set brand_logo_url = "https://businessadmindesk.co.za/assets/brand/business-admin-desk-mark.svg" if business_admin_desk else "https://corpflowai.com/brand/corpflowai/corpflowai-mark.png" %}
+{% set bank = namespace(count=0, record=None, blocked="Verified Mauritius MUR company bank account required") %}
+{% if frappe.get_meta("Bank Account").has_field("custom_commercial_bank_verified") %}
+  {% for candidate in frappe.get_all("Bank Account", filters={"company": doc.company, "is_company_account": 1, "custom_commercial_bank_verified": 1}, fields=["name", "bank", "bank_account_no", "account"]) %}
+    {% if frappe.db.get_value("Account", candidate.account, "account_currency") == "MUR" %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
+  {% endfor %}
+  {% if bank.count == 1 %}{% set bank.blocked = "" %}{% else %}{% set bank.blocked = "Bank-account mapping is missing or ambiguous; operator review required" %}{% endif %}
+{% endif %}
+<style>
+  .cf {color:#182536;font:10px/1.45 Arial,Helvetica,sans-serif}.cf table{border-collapse:collapse;width:100%}.cf .bar{border-bottom:3px solid {{ brand_accent }};padding-bottom:12px}.cf .logo{height:42px;width:42px;object-fit:contain;vertical-align:middle}.cf .title{color:{{ brand_ink }};font-size:26px;font-weight:700;text-transform:uppercase}.cf .label{color:#647589;font-size:8px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}.cf .muted{color:#526275;font-size:9px}.cf th{background:{{ brand_ink }};color:#fff;padding:8px;text-align:left}.cf td{padding:8px;vertical-align:top}.cf .items,.cf .payment{border:1px solid #dbe5e9;margin-top:16px}.cf .right{text-align:right}.cf .blocked{background:#fff4e5;border:2px solid #d6a84f;color:#7a5210;font-weight:700;padding:12px}.cf .footer{border-top:1px solid #dbe5e9;color:#647589;font-size:8px;margin-top:18px;padding-top:7px;text-align:center}
+</style>
+<div class="cf">
+{% if not brand_ready %}<div class="blocked">BRAND CLASSIFICATION ERROR / NOT CLIENT-READY</div>
+{% elif bank.blocked %}<div class="blocked">{{ bank.blocked }}</div>
+{% else %}
+  <table class="bar"><tr><td><img class="logo" src="{{ brand_logo_url }}" alt="{{ brand_name }}"> <strong>{{ brand_name }}</strong><br><span class="muted">{% if business_admin_desk %}A CorpFlowAI LTD trading identity{% else %}CorpFlowAI LTD · Mauritius{% endif %}</span></td><td class="right">{% if doc.docstatus == 0 %}DRAFT{% elif doc.docstatus == 2 %}CANCELLED{% endif %}</td></tr></table>
+  <h1 class="title">{{ "Pro-forma Invoice" if doc.docstatus == 0 else "Sales Invoice" }}</h1>
+  <table><tr><td><span class="label">Sales Invoice number</span><br>{{ doc.name }}</td><td><span class="label">Date</span><br>{{ frappe.utils.format_date(doc.posting_date) }}</td><td><span class="label">Due date</span><br>{{ frappe.utils.format_date(doc.due_date) }}</td><td><span class="label">Currency</span><br>{{ doc.currency }}</td></tr></table>
+  <table class="items"><tr><th>#</th><th>Description</th><th class="right">Qty</th><th class="right">Rate</th><th class="right">Amount</th></tr>{% for item in doc.items %}<tr><td>{{ loop.index }}</td><td>{{ item.item_name }}{% if item.description %}<br><span class="muted">{{ item.description | safe }}</span>{% endif %}</td><td class="right">{{ item.get_formatted("qty", 0) }}</td><td class="right">{{ item.get_formatted("net_rate", doc) }}</td><td class="right">{{ item.get_formatted("net_amount", doc) }}</td></tr>{% endfor %}<tr><td colspan="4" class="right"><strong>Grand total</strong></td><td class="right"><strong>{{ doc.get_formatted("grand_total", doc) }}</strong></td></tr></table>
+  <table class="payment"><tr><td colspan="2"><span class="label">Domestic payment instructions — MUR only</span></td></tr><tr><td>Bank</td><td>{{ bank.record.bank }}</td></tr><tr><td>Account holder</td><td>CorpFlowAI LTD</td></tr><tr><td>Account number</td><td>{{ bank.record.bank_account_no }}</td></tr><tr><td>Payment reference</td><td>{{ doc.name }}</td></tr></table>
+  {% if doc.terms %}<div class="payment">{{ doc.terms | safe }}</div>{% endif %}
+  <div class="footer">CorpFlowAI LTD · Commercial document</div>
+{% endif %}
+</div>

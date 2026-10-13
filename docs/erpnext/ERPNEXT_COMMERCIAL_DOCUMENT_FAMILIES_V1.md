@@ -14,6 +14,14 @@ It defines these eight exact Print Format names:
 | Payment Request | CorpFlowAI Domestic Deposit Request | CorpFlowAI International Deposit Request |
 | Sales Invoice | CorpFlowAI Domestic Sales Invoice | CorpFlowAI International Sales Invoice |
 
+The actual Jinja sources and guarded operator-application manifest are:
+
+- `config/erpnext-commercial-print-formats.v1.json`
+- `templates/erpnext/commercial-print-formats/`
+
+The manifest is deliberately declarative. It neither calls ERPNext nor grants
+permission to create, update, delete, or enable a live Print Format.
+
 ## Selection and banking controls
 
 Domestic is selected only when the company is `CorpFlowAI LTD`, currency is
@@ -28,6 +36,15 @@ for operator review. Account number is read from `bank_account_no`; it is never
 reconstructed from IBAN and never sourced from email, phone, address, contact,
 or free text.
 
+Before a guarded operator application, the operator must confirm that the live
+`Bank Account` DocType has the explicit verification field
+`custom_commercial_bank_verified`, that it is true only for approved company
+accounts, and that its linked Account has the expected `account_currency`.
+International formats also require the three explicitly mapped Bank Account
+fields named in the apply manifest. A missing field, zero account matches, or
+more than one currency match renders the operator-review block instead of
+payment instructions.
+
 Domestic formats show only bank, account holder, account number, and payment
 reference. IBAN and SWIFT are omitted. International formats may show the
 currency-matched bank, account, IBAN, and SWIFT fields.
@@ -38,6 +55,12 @@ currency-matched bank, account, IBAN, and SWIFT fields.
 currency matching, fail-closed behavior, and forbidden field sources using
 synthetic redacted values. It does not mutate ERPNext and does not create
 Sales Invoices, Payment Entries, or GL Entries.
+
+`node-tests/erpnext-commercial-print-format-package.test.mjs` verifies all
+eight checked-in Jinja sources, their DocType/family manifest mapping, the
+strict verified/currency-matched Bank Account lookup, domestic IBAN/SWIFT
+omission, and absence of email-derived banking sources. Tests contain no bank
+values and do not call ERPNext.
 
 Live ERPNext verification still requires an authenticated operator read-back of
 the eight Print Formats and synthetic, non-submitted render checks. No real

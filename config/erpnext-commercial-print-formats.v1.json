@@ -1,0 +1,65 @@
+{
+  "schema": "corpflow.erpnext.commercial_print_formats.v1",
+  "issue": 1435,
+  "apply_mode": "operator_controlled_readback_required",
+  "verification_field": "custom_commercial_bank_verified",
+  "international_fields": {
+    "account_holder": "custom_commercial_account_holder",
+    "iban": "custom_commercial_iban",
+    "swift": "custom_commercial_swift"
+  },
+  "formats": [
+    {
+      "name": "CorpFlowAI Domestic Quotation",
+      "doctype": "Quotation",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-quotation.html"
+    },
+    {
+      "name": "CorpFlowAI International Quotation",
+      "doctype": "Quotation",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-quotation.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Sales Order",
+      "doctype": "Sales Order",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-sales-order.html"
+    },
+    {
+      "name": "CorpFlowAI International Sales Order",
+      "doctype": "Sales Order",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-sales-order.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Deposit Request",
+      "doctype": "Payment Request",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-deposit-request.html"
+    },
+    {
+      "name": "CorpFlowAI International Deposit Request",
+      "doctype": "Payment Request",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-deposit-request.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Sales Invoice",
+      "doctype": "Sales Invoice",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-sales-invoice.html"
+    },
+    {
+      "name": "CorpFlowAI International Sales Invoice",
+      "doctype": "Sales Invoice",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-sales-invoice.html"
+    }
+  ],
+  "non_actions": [
+    "This manifest does not apply, modify, or delete ERPNext Print Format records.",
+    "No bank-account values, credentials, or client data are stored in this repository."
+  ]
+}

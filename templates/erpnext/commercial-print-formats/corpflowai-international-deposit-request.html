@@ -1,0 +1,17 @@
+{% set bank = namespace(count=0, record=None, blocked="Verified currency-matched company bank account required") %}
+{% if frappe.get_meta("Bank Account").has_field("custom_commercial_bank_verified") and frappe.get_meta("Bank Account").has_field("custom_commercial_account_holder") and frappe.get_meta("Bank Account").has_field("custom_commercial_iban") and frappe.get_meta("Bank Account").has_field("custom_commercial_swift") %}
+  {% for candidate in frappe.get_all("Bank Account", filters={"company": doc.company, "is_company_account": 1, "custom_commercial_bank_verified": 1}, fields=["name", "bank", "bank_account_no", "account", "custom_commercial_account_holder", "custom_commercial_iban", "custom_commercial_swift"]) %}
+    {% if frappe.db.get_value("Account", candidate.account, "account_currency") == doc.currency %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
+  {% endfor %}
+  {% if bank.count == 1 %}{% set bank.blocked = "" %}{% else %}{% set bank.blocked = "Bank-account mapping is missing or ambiguous; operator review required" %}{% endif %}
+{% endif %}
+<style>.cfp{font:10px/1.45 Arial,sans-serif;color:#182536}.cfp table{border-collapse:collapse;width:100%}.cfp td{padding:8px;vertical-align:top}.cfp .bar{border-bottom:3px solid #16A6A1}.cfp .title{color:#10233B;font-size:26px;font-weight:700;text-transform:uppercase}.cfp .label{color:#647589;font-size:8px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}.cfp .payment{border:1px solid #dbe5e9;margin-top:16px}.cfp .blocked{background:#fff4e5;border:2px solid #d6a84f;color:#7a5210;font-weight:700;padding:12px}</style>
+<div class="cfp">
+{% if bank.blocked %}<div class="blocked">{{ bank.blocked }}</div>
+{% else %}
+<table class="bar"><tr><td><strong>CorpFlowAI</strong><br><span class="label">CorpFlowAI LTD · Mauritius</span></td><td style="text-align:right">{% if doc.docstatus == 0 %}DRAFT{% elif doc.docstatus == 2 %}CANCELLED{% endif %}</td></tr></table>
+<h1 class="title">Deposit Request</h1>
+<table><tr><td><span class="label">Request number</span><br>{{ doc.name }}</td><td><span class="label">Reference document</span><br>{{ doc.reference_name or "" }}</td><td><span class="label">Currency</span><br>{{ doc.currency }}</td><td><span class="label">Requested amount</span><br>{{ doc.get_formatted("grand_total", doc) }}</td></tr></table>
+<table class="payment"><tr><td colspan="2"><span class="label">International transfer instructions</span></td></tr><tr><td>Bank</td><td>{{ bank.record.bank }}</td></tr><tr><td>Account holder</td><td>{{ bank.record.custom_commercial_account_holder }}</td></tr><tr><td>Account number</td><td>{{ bank.record.bank_account_no }}</td></tr><tr><td>IBAN</td><td>{{ bank.record.custom_commercial_iban }}</td></tr><tr><td>SWIFT</td><td>{{ bank.record.custom_commercial_swift }}</td></tr><tr><td>Payment reference</td><td>{{ doc.name }}</td></tr></table>
+{% endif %}
+</div>
