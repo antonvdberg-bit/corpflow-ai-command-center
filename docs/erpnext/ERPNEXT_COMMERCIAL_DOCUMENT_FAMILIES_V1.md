@@ -36,14 +36,17 @@ for operator review. Account number is read from `bank_account_no`; it is never
 reconstructed from IBAN and never sourced from email, phone, address, contact,
 or free text.
 
-Before a guarded operator application, the operator must confirm that the live
-`Bank Account` DocType has the explicit verification field
-`custom_commercial_bank_verified`, that it is true only for approved company
-accounts, and that its linked Account has the expected `account_currency`.
-International formats also require the three explicitly mapped Bank Account
-fields named in the apply manifest. A missing field, zero account matches, or
-more than one currency match renders the operator-review block instead of
-payment instructions.
+Before a guarded operator application, the operator must populate and validate
+the unresolved `operator_field_map` in
+`config/erpnext-commercial-print-formats.v1.json`. It maps the established
+canonical semantics (`company`, `currency`, `is_verified`, and
+`bank_account_no`) to fields that already exist in the target ERPNext instance;
+this package does not assume or create a new custom field. The live mapping
+must prove the explicit `is_verified` state and the currency-bearing source
+before application. International transfer fields stay blocked until their
+existing live sources are mapped too. A missing field, zero account matches,
+more than one currency match, blank account number, or unproven map renders
+the operator-review block instead of payment instructions.
 
 Domestic formats show only bank, account holder, account number, and payment
 reference. IBAN and SWIFT are omitted. International formats may show the

@@ -50,20 +50,36 @@ test('selects Domestic only for CorpFlowAI LTD, MUR, Mauritius', () => {
 
 test('selects exactly one verified currency-matched company account', () => {
   const accounts = [
-    { company: 'CorpFlowAI LTD', currency: 'MUR', is_verified: true, bank_account_no: 'redacted-mur' },
-    { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'redacted-usd' },
+    { company: 'CorpFlowAI LTD', currency: 'MUR', is_verified: true, bank_account_no: 'synthetic-mur-token' },
+    { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'synthetic-usd-token' },
   ];
-  assert.equal(
-    selectVerifiedBankAccount({ currency: 'USD' }, accounts).account.bank_account_no,
-    'redacted-usd',
-  );
+  const result = selectVerifiedBankAccount({ currency: 'USD' }, accounts);
+  assert.equal(result.ok, true);
+  assert.equal(result.account, accounts[1]);
   assert.equal(selectVerifiedBankAccount({ currency: 'EUR' }, accounts).ok, false);
   assert.equal(
     selectVerifiedBankAccount({ currency: 'USD' }, [
       ...accounts,
-      { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'another-redacted' },
+      { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'synthetic-second-token' },
     ]).reason,
     'AMBIGUOUS_VERIFIED_CURRENCY_ACCOUNT',
+  );
+});
+
+test('fails closed for unverified or blank account-number candidates', () => {
+  assert.equal(
+    selectVerifiedBankAccount(
+      { currency: 'USD' },
+      [{ company: 'CorpFlowAI LTD', currency: 'USD', is_verified: false, bank_account_no: 'synthetic-token' }],
+    ).ok,
+    false,
+  );
+  assert.equal(
+    selectVerifiedBankAccount(
+      { currency: 'USD' },
+      [{ company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: '   ' }],
+    ).reason,
+    'MISSING_VERIFIED_CURRENCY_ACCOUNT',
   );
 });
 

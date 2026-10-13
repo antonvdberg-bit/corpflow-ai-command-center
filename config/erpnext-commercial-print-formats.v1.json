@@ -2,11 +2,31 @@
   "schema": "corpflow.erpnext.commercial_print_formats.v1",
   "issue": 1435,
   "apply_mode": "operator_controlled_readback_required",
-  "verification_field": "custom_commercial_bank_verified",
+  "canonical_bank_contract": {
+    "company": "company",
+    "currency": "currency",
+    "is_verified": "is_verified",
+    "bank_account_no": "bank_account_no"
+  },
+  "operator_field_map": {
+    "status": "UNRESOLVED_OPERATOR_PROOF_REQUIRED",
+    "required_before_apply": true,
+    "purpose": "Map each canonical Bank Account semantic to an already-existing live field before any template is applied.",
+    "forbid_new_custom_fields": true,
+    "map": {
+      "company": null,
+      "currency": null,
+      "is_verified": null,
+      "bank_account_no": null,
+      "account_holder": null,
+      "iban": null,
+      "swift": null
+    }
+  },
   "international_fields": {
-    "account_holder": "custom_commercial_account_holder",
-    "iban": "custom_commercial_iban",
-    "swift": "custom_commercial_swift"
+    "account_holder": "operator-mapped-existing-field",
+    "iban": "operator-mapped-existing-field",
+    "swift": "operator-mapped-existing-field"
   },
   "formats": [
     {
