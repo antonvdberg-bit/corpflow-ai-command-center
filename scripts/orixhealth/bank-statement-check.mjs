@@ -25,6 +25,7 @@ const decimalSeparator = option('--decimal-separator');
 const twoDigitYearCentury = option('--two-digit-year-century');
 const outputPath = option('--output');
 const zohoCsvOutputPath = option('--zoho-csv-output');
+const createdOutputs = [];
 
 try {
   if (!csvPath || !mappingText || !dateFormat || !decimalSeparator) throw new Error(usage());
@@ -39,6 +40,9 @@ try {
   }
   for (const output of resolvedOutputs) {
     if (fs.existsSync(output)) throw new Error(`Output file already exists: ${output}`);
+    const parent = path.dirname(output);
+    const parentStat = fs.statSync(parent);
+    if (!parentStat.isDirectory()) throw new Error(`Output parent is not a directory: ${parent}`);
   }
   const report = checkBankStatementFile({
     csvPath,
@@ -49,10 +53,23 @@ try {
   });
   const output = `${JSON.stringify(report, null, 2)}\n`;
   const zohoOutput = zohoCsvOutputPath ? zohoCsvFromReport(report) : undefined;
-  if (outputPath) fs.writeFileSync(outputPath, output, { encoding: 'utf8', flag: 'wx' });
-  if (zohoCsvOutputPath) fs.writeFileSync(zohoCsvOutputPath, zohoOutput, { encoding: 'utf8', flag: 'wx' });
+  if (outputPath) {
+    fs.writeFileSync(outputPath, output, { encoding: 'utf8', flag: 'wx' });
+    createdOutputs.push(path.resolve(outputPath));
+  }
+  if (zohoCsvOutputPath) {
+    fs.writeFileSync(zohoCsvOutputPath, zohoOutput, { encoding: 'utf8', flag: 'wx' });
+    createdOutputs.push(path.resolve(zohoCsvOutputPath));
+  }
   if (!outputPath) process.stdout.write(output);
 } catch (error) {
+  for (const createdOutput of createdOutputs) {
+    try {
+      fs.unlinkSync(createdOutput);
+    } catch {
+      // Preserve the original failure if cleanup is no longer possible.
+    }
+  }
   process.stderr.write(`${error.message}\n`);
   process.exitCode = 2;
 }

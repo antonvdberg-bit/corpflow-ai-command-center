@@ -156,7 +156,14 @@ test('CLI writes a validated CSV and rejects collisions without changing destina
     '--zoho-csv-output', output,
   ];
   execFileSync(process.execPath, args, { cwd: process.cwd(), stdio: 'pipe' });
-  assert.equal(fs.readFileSync(output, 'utf8'), 'Date,Description,Reference,Debit,Credit\n2026-01-01,"A, B",,1.25,\n');
+  const exportedCsv = fs.readFileSync(output, 'utf8');
+  assert.equal(exportedCsv, 'Date,Description,Reference,Debit,Credit\n2026-01-01,"A, B",,1.25,\n');
+  const roundTrip = parseBankStatementCsv(exportedCsv, {
+    mapping: { date: 'Date', description: 'Description', debit: 'Debit', credit: 'Credit' },
+    dateFormat: 'YYYY-MM-DD',
+    decimalSeparator: '.',
+  });
+  assert.deepEqual(roundTrip.totals, { credits: '0.00', debits: '1.25', net: '-1.25' });
   const original = 'untouched\n';
   fs.writeFileSync(output, original);
   assert.throws(() => execFileSync(process.execPath, args, { cwd: process.cwd(), stdio: 'pipe' }));
@@ -174,13 +181,13 @@ test('CLI writes a validated CSV and rejects collisions without changing destina
   assert.equal(fs.existsSync(invalidOutput), false);
 });
 
-test('header-only and empty CSV input fail closed', () => {
+test('blank-only and empty CSV input fail closed', () => {
   assert.throws(
-    () => parseBankStatementCsv('Date,Description,Amount\n', {
+    () => parseBankStatementCsv('Date,Description,Amount\n\n,,\n', {
       mapping: { date: 'Date', description: 'Description', amount: 'Amount' },
       dateFormat: 'YYYY-MM-DD',
     }),
-    /at least one valid data row/,
+    /at least one non-blank data row/,
   );
   assert.throws(
     () => parseBankStatementCsv('', {
@@ -189,4 +196,23 @@ test('header-only and empty CSV input fail closed', () => {
     }),
     /header row/,
   );
+});
+
+test('CLI preflights both output parents before writing JSON or CSV', () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'orixhealth-output-preflight-'));
+  const input = path.join(directory, 'input.csv');
+  const jsonOutput = path.join(directory, 'report.json');
+  const csvOutput = path.join(directory, 'missing', 'statement.csv');
+  fs.writeFileSync(input, 'Date,Description,Amount\n2026-01-01,Item,1.00\n');
+  assert.throws(() => execFileSync(process.execPath, [
+    'scripts/orixhealth/bank-statement-check.mjs',
+    '--csv', input,
+    '--mapping', '{"date":"Date","description":"Description","amount":"Amount"}',
+    '--date-format', 'YYYY-MM-DD',
+    '--decimal-separator', '.',
+    '--output', jsonOutput,
+    '--zoho-csv-output', csvOutput,
+  ], { cwd: process.cwd(), stdio: 'pipe' }));
+  assert.equal(fs.existsSync(jsonOutput), false);
+  assert.equal(fs.existsSync(csvOutput), false);
 });
