@@ -49,8 +49,10 @@
   },
   "bank_source": {
     "doctype": "Bank Account",
-    "required": ["company", "currency", "is_verified"],
+    "required": ["company", "account", "linked_account.account_currency", "explicit_operator_allowlist"],
     "account_number_field": "bank_account_no",
+    "currency_source": "Account.account_currency via Bank Account.account",
+    "approval_source": "explicit_operator_allowlist",
     "forbidden_sources": [
       "email",
       "phone",

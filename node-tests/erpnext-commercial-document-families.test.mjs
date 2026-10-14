@@ -3,7 +3,7 @@ import test from 'node:test';
 import {
   loadCommercialDocumentFamilies,
   selectCommercialDocumentFamily,
-  selectVerifiedBankAccount,
+  selectApprovedBankAccount,
   validateBankFieldSources,
 } from '../lib/erpnext/commercial-document-families.js';
 
@@ -48,38 +48,40 @@ test('selects Domestic only for CorpFlowAI LTD, MUR, Mauritius', () => {
   );
 });
 
-test('selects exactly one verified currency-matched company account', () => {
+test('selects exactly one explicitly approved currency-matched company account', () => {
   const accounts = [
-    { company: 'CorpFlowAI LTD', currency: 'MUR', is_verified: true, bank_account_no: 'synthetic-mur-token' },
-    { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'synthetic-usd-token' },
+    { name: 'BA-MUR-SYNTHETIC', company: 'CorpFlowAI LTD', account_currency: 'MUR', bank_account_no: 'synthetic-mur-token' },
+    { name: 'BA-USD-SYNTHETIC', company: 'CorpFlowAI LTD', account_currency: 'USD', bank_account_no: 'synthetic-usd-token' },
   ];
-  const result = selectVerifiedBankAccount({ currency: 'USD' }, accounts);
+  const result = selectApprovedBankAccount({ currency: 'USD' }, accounts, ['BA-USD-SYNTHETIC']);
   assert.equal(result.ok, true);
   assert.equal(result.account, accounts[1]);
-  assert.equal(selectVerifiedBankAccount({ currency: 'EUR' }, accounts).ok, false);
+  assert.equal(selectApprovedBankAccount({ currency: 'EUR' }, accounts, ['BA-USD-SYNTHETIC']).ok, false);
   assert.equal(
-    selectVerifiedBankAccount({ currency: 'USD' }, [
+    selectApprovedBankAccount({ currency: 'USD' }, [
       ...accounts,
-      { company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: 'synthetic-second-token' },
-    ]).reason,
-    'AMBIGUOUS_VERIFIED_CURRENCY_ACCOUNT',
+      { name: 'BA-USD-SECOND', company: 'CorpFlowAI LTD', account_currency: 'USD', bank_account_no: 'synthetic-second-token' },
+    ], ['BA-USD-SYNTHETIC', 'BA-USD-SECOND']).reason,
+    'AMBIGUOUS_APPROVED_CURRENCY_ACCOUNT',
   );
 });
 
-test('fails closed for unverified or blank account-number candidates', () => {
+test('fails closed for unapproved or blank account-number candidates', () => {
   assert.equal(
-    selectVerifiedBankAccount(
+    selectApprovedBankAccount(
       { currency: 'USD' },
-      [{ company: 'CorpFlowAI LTD', currency: 'USD', is_verified: false, bank_account_no: 'synthetic-token' }],
+      [{ name: 'BA-USD-SYNTHETIC', company: 'CorpFlowAI LTD', account_currency: 'USD', bank_account_no: 'synthetic-token' }],
+      [],
     ).ok,
     false,
   );
   assert.equal(
-    selectVerifiedBankAccount(
+    selectApprovedBankAccount(
       { currency: 'USD' },
-      [{ company: 'CorpFlowAI LTD', currency: 'USD', is_verified: true, bank_account_no: '   ' }],
+      [{ name: 'BA-USD-SYNTHETIC', company: 'CorpFlowAI LTD', account_currency: 'USD', bank_account_no: '   ' }],
+      ['BA-USD-SYNTHETIC'],
     ).reason,
-    'MISSING_VERIFIED_CURRENCY_ACCOUNT',
+    'MISSING_APPROVED_CURRENCY_ACCOUNT',
   );
 });
 

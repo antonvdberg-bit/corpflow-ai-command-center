@@ -17,7 +17,7 @@ Anton supplied UI evidence on 14 Oct 2026, without an authenticated read API, of
 - `Account` record corresponding to the Bank Account's **Company Account** (`1205050`, SBM MUR transaction account) showed company `CorpFlowAI LTD`, account type `Bank`, currency `MUR`, enabled.
 - A distinct USD bank ledger account is visible in the chart of accounts; existence of a fully configured, verified USD **Bank Account** record and its international transfer fields is **not proven**.
 
-**Field mapping conclusion:** The merged templates access Bank Account fields `currency` and `is_verified` directly. Those are not demonstrated by the actual ERPNext UI. Currency is proven on the linked **Account** record, but no compliant explicit bank-account **approval/verification marker** has yet been established. `is_default`, `is_company_account`, and `disabled == false` are **not substitutes for an explicit bank-payment-details verification decision**.
+**Field mapping conclusion:** The corrected source templates no longer access unproven Bank Account fields `currency` or `is_verified`. Currency is read from the linked **Account** record. No compliant explicit bank-account **approval/verification marker** has yet been established, so the source package requires an operator allowlist and remains fail-closed. `is_default`, `is_company_account`, and `disabled == false` are **not substitutes for an explicit bank-payment-details verification decision**.
 
 ## Eight exact formats
 

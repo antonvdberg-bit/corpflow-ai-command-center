@@ -30,23 +30,25 @@ International. ERPNext automatic Print Format selection is not assumed; the
 visible operator control is `custom_commercial_document_family` with only
 `DOMESTIC` and `INTERNATIONAL` values.
 
-Bank details must come from exactly one verified `Bank Account` record matching
-the company and transaction currency. Missing or ambiguous matches fail closed
-for operator review. Account number is read from `bank_account_no`; it is never
-reconstructed from IBAN and never sourced from email, phone, address, contact,
-or free text.
+Bank details must come from exactly one explicitly operator-approved `Bank
+Account` record matching the company and the currency on its linked `Account`
+(`Account.account_currency`). Missing, ambiguous, or unapproved matches fail
+closed for operator review. Account number is read from `bank_account_no`; it
+is never reconstructed from IBAN and never sourced from email, phone, address,
+contact, or free text. An enabled/default/company-account flag is not treated
+as payment-detail approval.
 
 Before a guarded operator application, the operator must populate and validate
 the unresolved `operator_field_map` in
 `config/erpnext-commercial-print-formats.v1.json`. It maps the established
-canonical semantics (`company`, `currency`, `is_verified`, and
-`bank_account_no`) to fields that already exist in the target ERPNext instance;
-this package does not assume or create a new custom field. The live mapping
-must prove the explicit `is_verified` state and the currency-bearing source
-before application. International transfer fields stay blocked until their
-existing live sources are mapped too. A missing field, zero account matches,
-more than one currency match, blank account number, or unproven map renders
-the operator-review block instead of payment instructions.
+canonical semantics (`company`, `account`, linked `account_currency`,
+explicit operator approval, and `bank_account_no`) to fields and an approval
+control that already exist in the target ERPNext instance; this package does
+not assume or create a new custom field. International transfer fields stay
+blocked until their existing live sources are mapped too. A missing field, no
+approved account, zero account matches, more than one currency match, blank
+account number, or unproven map renders the operator-review block instead of
+payment instructions.
 
 Domestic formats show only bank, account holder, account number, and payment
 reference. IBAN and SWIFT are omitted. International formats may show the

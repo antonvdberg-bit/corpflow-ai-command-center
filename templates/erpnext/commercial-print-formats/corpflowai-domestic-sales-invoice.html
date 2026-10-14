@@ -23,11 +23,14 @@
 {% set billing_address = branding_doc.get("customer_address") or branding_doc.get("address_name") or "" %}
 {% set billing_country = frappe.db.get_value("Address", billing_address, "country") if billing_address else "" %}
 {% set selected_family = "DOMESTIC" if commercial_company == "CorpFlowAI LTD" and commercial_currency == "MUR" and billing_country == "Mauritius" else "INTERNATIONAL" %}
-{% set bank = namespace(count=0, record=None, blocked="Verified currency-matched company bank account required") %}
+{# Currency is authoritative on the linked Account; approval is an explicit operator allowlist. #}
+{% set approved_bank_account_names = [] %}
+{% set bank = namespace(count=0, record=None, blocked="Approved currency-matched company bank account required") %}
 {% set bank_meta = frappe.get_meta("Bank Account") %}
-{% if bank_meta.has_field("company") and bank_meta.has_field("currency") and bank_meta.has_field("is_verified") and bank_meta.has_field("bank_account_no") %}
-  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD", "currency": commercial_currency, "is_verified": 1}, fields=["name", "bank", "bank_account_no", "currency", "company", "is_verified"]) %}
-    {% if candidate.company == "CorpFlowAI LTD" and candidate.currency == commercial_currency and candidate.is_verified and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
+{% if bank_meta.has_field("company") and bank_meta.has_field("account") and bank_meta.has_field("bank_account_no") %}
+  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD"}, fields=["name", "bank", "bank_account_no", "account", "company"]) %}
+    {% set linked_currency = frappe.db.get_value("Account", candidate.account, "account_currency") if candidate.account else "" %}
+    {% if candidate.company == "CorpFlowAI LTD" and linked_currency == commercial_currency and candidate.name in approved_bank_account_names and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
   {% endfor %}
   {% if bank.count == 1 %}{% set bank.blocked = "" %}{% else %}{% set bank.blocked = "Bank-account mapping is missing or ambiguous; operator review required" %}{% endif %}
 {% endif %}

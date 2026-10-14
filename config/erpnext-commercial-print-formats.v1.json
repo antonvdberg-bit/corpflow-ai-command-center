@@ -4,8 +4,9 @@
   "apply_mode": "operator_controlled_readback_required",
   "canonical_bank_contract": {
     "company": "company",
-    "currency": "currency",
-    "is_verified": "is_verified",
+    "currency": "linked_account.account_currency",
+    "bank_account_link": "account",
+    "operator_approval": "explicit_operator_allowlist",
     "bank_account_no": "bank_account_no"
   },
   "operator_field_map": {
@@ -15,14 +16,16 @@
     "forbid_new_custom_fields": true,
     "map": {
       "company": null,
-      "currency": null,
-      "is_verified": null,
+      "account": null,
+      "account_currency": null,
+      "operator_approval": null,
       "bank_account_no": null,
       "account_holder": null,
       "iban": null,
       "swift": null
     }
   },
+  "approved_bank_account_names": [],
   "international_fields": {
     "account_holder": "operator-mapped-existing-field",
     "iban": "operator-mapped-existing-field",
