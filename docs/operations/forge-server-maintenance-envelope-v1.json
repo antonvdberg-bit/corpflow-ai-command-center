@@ -1,0 +1,37 @@
+{
+  "contract": "FORGE_PARSE_LOG",
+  "workItem": "antonvdberg-bit/corpflow-ai-command-center#1423",
+  "allowedFiles": [
+    "artifacts/server-maintenance/current/sanitized-evidence.json",
+    "artifacts/server-maintenance/current/forge-analysis.json"
+  ],
+  "verifier": "Existing contract validation plus deterministic source-ID, timestamp, due-task completeness and threshold comparison required; registry-only PASS is insufficient",
+  "requestedActions": ["read_sanitized_evidence", "classify", "write_bounded_analysis"],
+  "allowSecrets": false,
+  "allowProductionMutation": false,
+  "allowExternalNetwork": false,
+  "timeoutSeconds": 60,
+  "maxAttempts": 2,
+  "inputStatus": "PREPARED_TEMPLATE_NO_RUNTIME_EVIDENCE_ATTACHED",
+  "outputRequirements": ["source_ids", "observed_at_utc", "due_task_results", "missing_evidence", "failure_classes", "escalation_owner", "elapsed_and_resource_metrics_if_available"],
+  "acceptanceFollowupContract": "FORGE_VALIDATE_PACKET",
+  "acceptanceTimeoutSeconds": 30,
+  "schedule": {
+    "timezone": "Indian/Mauritius",
+    "oversight": "daily around 22:00; hosted flexible start within an hour",
+    "weeklyWindow": "Sunday 23:00-23:45; UTC Sunday 19:00-19:45",
+    "monthlyWindow": "First Sunday; replaces weekly bundle",
+    "quarterlyWindow": "First Sunday Jan/Apr/Jul/Oct; replaces monthly/weekly bundle",
+    "windowStatus": "RESERVED_NOT_SERVER_EXECUTION_ACTIVATED",
+    "activityBasis": "PROVISIONAL_UNTIL_AGGREGATE_TRAFFIC_AND_JOB_EVIDENCE_VERIFIED",
+    "preserveExistingJobs": true
+  },
+  "stopConditions": [
+    "Missing or stale sanitized input",
+    "Secrets or raw client data in input",
+    "Requested production or privileged action",
+    "Verifier ambiguity or two failed attempts",
+    "Resource pressure or client-critical incident",
+    "Duplicate executor claim or maintenance/backup lock conflict"
+  ]
+}

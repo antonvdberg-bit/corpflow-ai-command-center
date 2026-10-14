@@ -380,3 +380,10 @@ The boundary in `docs/EXECUTION_BRAIN_VS_HANDS.md` § "Security note" applies in
 ---
 
 *This doc is the single source of truth for the monitoring component map. Component-level details live in their own canonical docs (linked above). When the system gains a new component, this doc gains a row in § 2 in the same PR.*
+
+
+## 2026-10-08 maintenance receipt extension to Monitor #14
+
+The existing backup-health checker also reads root-owned sanitized /var/lib/corpflowai-maintenance/status.json. Named authorization and exact installed surface are documented in docs/decisions/20261008-forge-maintenance-read-only-activation.md and docs/operations/FORGE_SERVER_MAINTENANCE_WORKLOAD_V1.md (#1423). A fixed read-only collector with unprivileged Forge review is scheduled daily at 18:00 UTC / 22:00 Mauritius, no catch-up/jitter. Missing/failed/>36h receipt and >48h resource deferral use the existing failure-only notifier. No new monitor/bot. No production mutation/upgrade/restore is delegated to Forge. Runtime activation requires the runbook's actual install and live receipts; these configuration sources alone are not execution evidence.
+
+Historical Monitor #14 install-pending wording above is superseded by live October user-timer and ERP/laptop backup evidence in PR #1420. Existing restic remains a small ops heartbeat, not full-estate DR.

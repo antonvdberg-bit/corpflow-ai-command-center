@@ -160,6 +160,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 
 | Topic | Doc |
 |--------|-----|
+| Forge recurring server maintenance | `docs/operations/FORGE_SERVER_MAINTENANCE_WORKLOAD_V1.md`; named activation ADR `docs/decisions/20261008-forge-maintenance-read-only-activation.md` |
 | Priorities & checklist | `docs/CORPFLOW_SHARED_TODO.md` |
 | **Autonomous execution — work packet structure** | **`docs/execution/CORPFLOW_EXECUTION_PACKET_STANDARD.md`** |
 | **Autonomous execution — what may run without further approval, what must stop and ask** | **`docs/execution/CORPFLOW_AUTONOMOUS_ACTIONS_POLICY.md`** |
