@@ -139,6 +139,7 @@ test('Zoho CSV fails closed when any row is invalid', () => {
     { mapping: { date: 'Date', description: 'Description', amount: 'Amount' }, dateFormat: 'YYYY-MM-DD' },
   );
   assert.throws(() => zohoCsvFromReport(report), /validation exceptions/);
+  assert.throws(() => zohoCsvFromReport({ exceptions: [], rows: [] }), /without validated rows/);
 });
 
 test('CLI writes a validated CSV and rejects collisions without changing destinations', () => {
