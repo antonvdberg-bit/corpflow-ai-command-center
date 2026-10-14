@@ -50,8 +50,8 @@ export default function PrivacyPage() {
         <h2 style={ps.h2}>Subprocessors</h2>
         <p style={ps.p}>
           We use infrastructure providers to host and operate the website (for example Vercel for hosting and Neon for
-          database storage). Payment acquiring, when live, is processed by State Bank of Mauritius through the MPGS
-          gateway; card data stays on the bank-hosted page. We do not sell personal data.
+          database storage). If a payment provider is approved and activated, card data stays on that provider&apos;s
+          hosted page. We do not sell personal data.
         </p>
       </section>
       <section style={ps.section}>

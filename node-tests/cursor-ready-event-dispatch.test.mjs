@@ -233,6 +233,7 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     };
     const claimed = [
       liveClaimedIssue(801, 'live-a', 'run-aaaaaaa1-aaaa-aaaa-aaaa-aaaaaaaaaaa1'),
+      liveClaimedIssue(802, 'live-b', 'run-bbbbbbb2-bbbb-bbbb-bbbb-bbbbbbbbbbb2'),
     ];
     const scan = planCursorIssueClaims({
       readyIssues: [ready],
@@ -255,7 +256,7 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
     assert.equal(resolved.targetSource, 'event_label_held');
   });
 
-  it('one verified run blocks event-driven catch-up under the single-lane cap', () => {
+  it('one verified run leaves the second event-driven slot available', () => {
     const ready = {
       number: 9003,
       title: 'Docs-only synthetic event dispatch proof',
@@ -272,18 +273,15 @@ describe('cursor-ready event-driven dispatch (Phase A)', () => {
       preferIssueNumbers: [9003],
     });
     assert.equal(scan.verifiedActiveCount, 1);
-    assert.equal(scan.availableSlots, 0);
-    assert.equal(scan.activationTargetIssue, null);
-    const held = scan.decisions.find((d) => d.issue.number === 9003);
-    assert.equal(held?.eligibleToClaim, true);
-    assert.match(String(held?.reason || ''), /WIP cap/i);
+    assert.equal(scan.availableSlots, 1);
+    assert.equal(scan.activationTargetIssue, 9003);
 
     const resolved = resolveEffectiveActivationTarget({
       eventIssueNumber: 9003,
       scannedActivationTargetIssue: scan.activationTargetIssue,
     });
-    assert.equal(resolved.activate, false);
-    assert.equal(resolved.targetSource, 'event_label_held');
+    assert.equal(resolved.activate, true);
+    assert.equal(resolved.targetSource, 'event_label');
   });
 
   it('empty execution lane allows event-driven catch-up activation', () => {
@@ -607,15 +605,15 @@ describe('eligibility wake (#891) — approval and capacity changes', () => {
         },
       ],
     };
-    // After one terminal release, one remaining live run still occupies the only lane.
+    // After one terminal release, one remaining live run leaves the second lane free.
     const heldByLiveLane = planCursorIssueClaims({
       readyIssues: [waiting],
       claimedIssues: [stillActive],
       trackedIssues: [stillActive, waiting],
     });
-    assert.equal(heldByLiveLane.activationTargetIssue, null);
-    assert.equal(heldByLiveLane.availableSlots, 0);
-    assert.match(String(heldByLiveLane.decisions[0]?.reason || ''), /WIP cap/i);
+    assert.equal(heldByLiveLane.activationTargetIssue, 9102);
+    assert.equal(heldByLiveLane.availableSlots, 1);
+    assert.match(String(heldByLiveLane.decisions[0]?.reason || ''), /eligible under segregation/i);
 
     const scan = planCursorIssueClaims({
       readyIssues: [waiting],

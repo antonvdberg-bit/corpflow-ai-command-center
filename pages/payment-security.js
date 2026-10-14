@@ -15,8 +15,7 @@ export default function PaymentSecurityPage() {
         <p style={ps.p}>
           {MERCHANT_LEGAL_NAME} does not capture, transmit, or store payment card numbers, CVV codes, or magnetic-
           stripe data on CorpFlowAI servers or in this website&apos;s intake forms. Card entry, when offered, takes
-          place on the payment gateway&apos;s hosted page operated by our acquiring bank (State Bank of Mauritius /
-          MPGS) over TLS.
+          place on an approved payment provider&apos;s hosted page over TLS.
         </p>
         <p style={ps.p}>
           CorpFlowAI receives only the gateway&apos;s confirmation message (for example transaction reference,
@@ -27,18 +26,16 @@ export default function PaymentSecurityPage() {
         <h2 style={ps.h2}>Current payment posture on this website</h2>
         <p style={ps.p}>
           The public marketing pages collect intake only. Payment instructions or a hosted payment link are issued
-          after intake review. Live card acceptance through SBM MPGS is being onboarded; this website does not yet
-          offer a live checkout until merchant approval is complete.
+          after intake review. This website does not offer a live checkout until the relevant merchant and provider
+          approvals are complete.
         </p>
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>Visa, Mastercard, and UPI</h2>
         <p style={ps.p}>
-          When SBM e-Commerce merchant approval is complete, we intend to accept Visa and Mastercard through the
-          bank&apos;s hosted payment page. UPI may be offered only if SBM confirms it for our merchant profile and
-          publishes the applicable acceptance rules. Card scheme logos are not displayed on this website until live
-          acceptance begins and usage guidelines are confirmed with the bank. No logo or acceptance line on this site
-          should be read as live acceptance before that point.
+          Supported payment methods, card schemes and any hosted payment provider are disclosed only after approval
+          and activation. No payment method or acceptance line on this site should be read as live acceptance before
+          that point.
         </p>
       </section>
       <section style={ps.section}>

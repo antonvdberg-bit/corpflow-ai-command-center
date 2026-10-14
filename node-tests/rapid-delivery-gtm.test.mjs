@@ -99,14 +99,13 @@ describe('rapid-delivery operator helpers', () => {
     assert.equal(summary.ok, true);
     assert.match(summary.markdown, /CF-/);
     assert.match(summary.markdown, /Lead Rescue/);
-    assert.match(summary.markdown, /MUR 85/);
+    assert.match(summary.markdown, /MUR 12,900/);
     assert.match(summary.markdown, /Anton approval/);
     assert.match(summary.markdown, /Delivery proof/);
     assert.match(summary.markdown, /corpflowai\.com\/offers\/ai-lead-rescue/);
     assert.ok(!summary.markdown.includes('/offers/lead-rescue'));
     assert.match(summary.markdown, /MUR/);
-    assert.match(summary.markdown, /Mauritius delivery-sprint clients pay deposits and balances in MUR/);
-    assert.match(summary.markdown, /USD banking for this sprint path is still being obtained/);
+    assert.match(summary.markdown, /Payment timing and any staged release terms are confirmed in the written quote/);
     assert.ok(!summary.markdown.includes('Recent Mauritius operators'));
     assert.ok(!summary.markdown.includes('within 48 hours of deposit'));
     assert.ok(summary.sections?.prospect);
@@ -217,7 +216,7 @@ describe('rapid-delivery revenue desk UX', () => {
         'CorpFlowAI is Mauritius-based and works with selected owner-led businesses',
       ),
     );
-    assert.ok(offers.includes('Currency and payment instructions are confirmed on the invoice before you pay'));
+    assert.ok(offers.includes('Currency and payment instructions are confirmed in writing before you pay'));
     assert.ok(!offers.includes('USD banking for this path is not yet available'));
   });
 

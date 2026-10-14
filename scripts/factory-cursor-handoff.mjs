@@ -371,10 +371,10 @@ async function main() {
     readyIssues,
     claimedIssues,
     trackedIssues,
-    wipLimits: { maxActiveCursorImplementationIssues: 1 },
     preferIssueNumbers,
     wakeReason: wakePlan.wakeReason,
     activationLane: wakePlan.wakeReason,
+    validateExecutionPackets: true,
   });
 
   const resolvedTarget = resolveEffectiveActivationTarget({
@@ -448,6 +448,7 @@ async function main() {
         decision: entry.decision,
         eligibleToClaim: entry.eligibleToClaim,
         reason: entry.reason,
+        reason_code: entry.reasonCode,
         protectedGate: entry.classification?.protectedGate || 'none',
         protectedSubjectsMentioned: entry.classification?.protectedSubjectsMentioned || [],
         environment: entry.classification?.environment || null,

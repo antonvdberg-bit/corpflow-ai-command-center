@@ -24,6 +24,7 @@ import {
   textContainsProductionApprovalPrerequisite,
   textForbidsProduction,
 } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
+import { validateCurrentCursorExecutionPacket } from '../lib/server/cursor-execution-packet.js';
 import { resolveCursorRunId } from '../scripts/cursor-issue-dispatch-finalize.mjs';
 
 const ISSUE_950_LIST_FORM = JSON.parse(
@@ -102,7 +103,210 @@ Do not deploy production. Return one bounded PR with focused tests and CI.`,
   labels: ['priority:P0', 'dispatch:cursor-ready'],
 };
 
+const VALID_CURSOR_PACKET = `## CURRENT CURSOR PACKET
+execution_kind: CODE_CHANGE
+value_class: revenue_enablement
+expected_outcome: Implement the bounded change.
+context_budget: S
+execution_budget: max_runs=1; max_retries=0; max_follow_ups=0
+stop_condition: Stop after focused verification.`;
+
+// Exact event identity and packet shape from failed handoff run 38377031247.
+// The packet intentionally retains its CODEX_PACKET_V1 compatibility declaration
+// under the canonical CURRENT CURSOR PACKET wrapper.
+const ISSUE_1466_HANDOFF_EVENT = {
+  eventName: 'issues',
+  action: 'labeled',
+  labelName: 'dispatch:cursor-ready',
+  issueState: 'open',
+  issueNumber: 1466,
+  issueLabelNames: ['dispatch:cursor-ready', 'approved', 'priority:P1'],
+};
+
+const ISSUE_1466_PACKET = `## CURRENT CURSOR PACKET
+CODEX_PACKET_V1
+execution_kind: CODE_CHANGE
+value_class: client_delivery
+expected_outcome: existing offline bank validator also prepares an explicitly mapped statement CSV suitable for native import review
+context_budget: S
+execution_budget: one bounded LOW implementation attempt; no automatic retries or escalation
+stop_condition: one reviewable PR with focused regression/CLI checks and exact SHA, or exact blocker
+tier: LOW
+WORK CLASSIFICATION: generic offline source-code helper; protected consequential gate: none.`;
+
 describe('cursor-issue-dispatch-lifecycle', () => {
+  it('accepts only one legacy compatibility declaration inside the canonical packet', () => {
+    assert.equal(validateCurrentCursorExecutionPacket({ body: ISSUE_1466_PACKET }).ok, true);
+
+    const externalLegacyMarker = `${ISSUE_1466_PACKET}
+## Historical references
+CODEX_PACKET_V1`;
+    assert.equal(
+      validateCurrentCursorExecutionPacket({ body: externalLegacyMarker }).reason,
+      'current_packet_ambiguous',
+    );
+
+    const duplicateInternalLegacyMarkers = ISSUE_1466_PACKET.replace(
+      'CODEX_PACKET_V1',
+      'CODEX_PACKET_V1\nCODEX_PACKET_V1',
+    );
+    assert.equal(
+      validateCurrentCursorExecutionPacket({ body: duplicateInternalLegacyMarkers }).reason,
+      'current_packet_ambiguous',
+    );
+  });
+
+  it('admits #1466 from handoff 38377031247 while retaining protected, invalid, and claimed denials', () => {
+    const issue1466 = {
+      number: ISSUE_1466_HANDOFF_EVENT.issueNumber,
+      title: 'Complete offline statement CSV conversion using existing validator',
+      body: ISSUE_1466_PACKET,
+      labels: ISSUE_1466_HANDOFF_EVENT.issueLabelNames,
+    };
+    const protectedIssue = {
+      number: 1467,
+      title: 'Synthetic client-production cutover',
+      body: `${VALID_CURSOR_PACKET}\nDeploy to client_production on the client-owned target.`,
+      labels: ['dispatch:cursor-ready', 'approved', 'priority:P1'],
+    };
+    const invalidPacket = {
+      number: 1468,
+      title: 'Synthetic malformed packet',
+      body: `## CURRENT CURSOR PACKET
+execution_kind: CODE_CHANGE`,
+      labels: ['dispatch:cursor-ready', 'approved', 'priority:P1'],
+    };
+    const claimedIssue = {
+      number: 1469,
+      title: 'Synthetic existing claim',
+      body: VALID_CURSOR_PACKET,
+      labels: ['dispatch:cursor-ready', 'dispatch:cursor-claimed', 'approved', 'priority:P1'],
+    };
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [issue1466, protectedIssue, invalidPacket, claimedIssue],
+      claimedIssues: [claimedIssue],
+      trackedIssues: [claimedIssue],
+      preferIssueNumbers: [ISSUE_1466_HANDOFF_EVENT.issueNumber],
+      validateExecutionPackets: true,
+    });
+
+    assert.equal(plan.verifiedActiveCount, 0);
+    assert.equal(plan.availableSlots, 2);
+    assert.equal(plan.activationTargetIssue, 1466);
+    assert.deepEqual(plan.claimIssueNumbers, [1466]);
+    assert.equal(
+      plan.decisions.find((entry) => entry.issue.number === 1466)?.reasonCode,
+      'eligible',
+    );
+    assert.equal(
+      plan.decisions.find((entry) => entry.issue.number === 1467)?.reasonCode,
+      'protected_gate_production_authorization_missing',
+    );
+    assert.equal(
+      plan.decisions.find((entry) => entry.issue.number === 1468)?.reasonCode,
+      'execution_packet_frugal_metadata_missing:value_class,expected_outcome,context_budget,execution_budget,stop_condition',
+    );
+    assert.equal(
+      plan.decisions.find((entry) => entry.issue.number === 1469)?.reasonCode,
+      'already_claimed',
+    );
+  });
+
+  it('admits #1461-style pricing work when no merge or production deploy is an explicit prohibition', () => {
+    const issue = {
+      number: 1461,
+      title: 'Paddle pricing — improve product navigation and assessment journey',
+      body: `CODEX_PACKET_V1
+execution_kind: CODE_CHANGE
+value_class: revenue_enablement
+expected_outcome: Improve the existing pricing selectors.
+context_budget: S
+execution_budget: one bounded LOW implementation; no automatic retry
+stop_condition: reviewable PR or exact blocker
+
+No code merge or production deploy without separate Anton approval; no payment or Paddle submission.`,
+      labels: ['delivery', 'dispatch:cursor-ready', 'approved', 'priority:P1'],
+    };
+    const classification = inferIssueClassification(issue);
+    assert.equal(classification.protectedGate, 'none');
+    assert.notEqual(classification.environment, 'production');
+
+    const plan = planCursorIssueClaims({
+      readyIssues: [issue],
+      claimedIssues: [],
+      trackedIssues: [],
+      preferIssueNumbers: [1461],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.activationTargetIssue, 1461);
+    assert.equal(plan.decisions[0]?.reasonCode, 'eligible');
+  });
+
+  it('returns a machine-readable packet rejection before executable admission', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [{
+        number: 1463,
+        title: 'Routing repair',
+        body: 'Implementation requested without a bounded packet.',
+        labels: ['dispatch:cursor-ready', 'priority:P0'],
+      }],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.activationTargetIssue, null);
+    assert.equal(plan.decisions[0]?.reasonCode, 'execution_packet_current_packet_missing');
+  });
+
+  it('claims two isolated eligible packets in the CEO-authorised capacity', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [
+        {
+          number: 1461,
+          title: 'Pricing navigation',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'priority:P1'],
+        },
+        {
+          number: 772,
+          title: 'Application navigation shell',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'priority:P1'],
+        },
+      ],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.equal(plan.wipLimits.maxActiveCursorImplementationIssues, 2);
+    assert.deepEqual(plan.claimIssueNumbers, [772, 1461]);
+  });
+
+  it('keeps overlapping tenant work out of the second slot', () => {
+    const plan = planCursorIssueClaims({
+      readyIssues: [
+        {
+          number: 2001,
+          title: 'Lux navigation A',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'lux', 'priority:P1'],
+        },
+        {
+          number: 2002,
+          title: 'Lux navigation B',
+          body: VALID_CURSOR_PACKET,
+          labels: ['dispatch:cursor-ready', 'lux', 'priority:P1'],
+        },
+      ],
+      claimedIssues: [],
+      trackedIssues: [],
+      validateExecutionPackets: true,
+    });
+    assert.deepEqual(plan.claimIssueNumbers, [2001]);
+    assert.equal(plan.decisions.find((entry) => entry.issue.number === 2002)?.reasonCode, 'tenant_wip_conflict');
+  });
+
   it('classifies Lead Rescue #653 as CorpFlowAI business system product stream', () => {
     const c = inferIssueClassification(ISSUE_653);
     assert.equal(c.systemBoundary, 'corpflowai_business_system');
@@ -268,11 +472,11 @@ Anton approval is required before production deploy.`,
     assert.equal(d654?.decision, 'discover_only');
     assert.equal(d654?.eligibleToClaim, false);
     assert.match(String(d654?.reason || ''), /sibling products/i);
-    assert.equal(d658?.decision, 'discover_only');
+    assert.equal(d658?.decision, 'claim');
     assert.equal(d658?.eligibleToClaim, true);
-    assert.match(String(d658?.reason || ''), /WIP cap reached/);
+    assert.match(String(d658?.reason || ''), /eligible under segregation/);
 
-    assert.deepEqual(plan.claimIssueNumbers, [653]);
+    assert.deepEqual(plan.claimIssueNumbers, [653, 658]);
     assert.deepEqual(plan.eligibleIssueNumbers, [653, 658]);
     assert.equal(plan.activationTargetIssue, 653);
   });
@@ -309,7 +513,7 @@ Anton approval is required before production deploy.`,
       ],
     });
     assert.equal(plan.verifiedActiveCount, 0);
-    assert.equal(plan.availableSlots, 1);
+    assert.equal(plan.availableSlots, 2);
     assert.equal(plan.decisions[0].decision, 'claim');
     assert.ok((plan.reconcileActions || []).length >= 2);
   });
@@ -634,6 +838,22 @@ Test publishing does not trigger a false approval:production gate.`,
     });
     assert.notEqual(c.environment, 'production');
     assert.equal(c.protectedGate, 'none');
+  });
+
+  it('treats slash-separated no-deploy boundaries as prohibitions', () => {
+    const issue = {
+      number: 714,
+      title: 'Prepare pricing review evidence',
+      body: 'Prepare the review evidence. No merge/production deploy.',
+      labels: ['dispatch:cursor-ready'],
+    };
+    const c = inferIssueClassification(issue);
+    assert.equal(textForbidsProduction(issue.body), true);
+    assert.equal(c.protectedGate, 'none');
+    assert.notEqual(c.environment, 'production');
+    const plan = planCursorIssueClaims({ readyIssues: [issue], claimedIssues: [] });
+    assert.equal(plan.activationTargetIssue, 714);
+    assert.equal(plan.decisions[0]?.eligibleToClaim, true);
   });
 
   it('explicit client_production deploy sets production gate', () => {
