@@ -1,6 +1,6 @@
 # Server agent access & execution boundary (v1)
 
-**Status:** v1.2 — canonical, updated 2026-10-02.
+**Status:** v1.3 — read-only inspection authorization recorded 2026-10-08; pending documentation merge.
 **Owner:** Anton (operator) for the hard rules and any rule changes; Cursor for keeping this doc in sync with `MONITORING_ARCHITECTURE.md` § 11.3 and `EXECUTION_BRAIN_VS_HANDS.md`.
 **Scope:** Single source of truth for **where work actually executes** in CorpFlow — which layer runs which class of work, what does **not** exist as an execution layer (and is forbidden), and how `HOST_MISMATCH` is decided.
 
@@ -35,6 +35,16 @@
 If any of those conflict with this doc, **those docs win** — this doc is a synthesis, not a new policy.
 
 ---
+
+
+## Read-only SSH authorization — 2026-10-08
+
+Anton explicitly authorized: “bounded, read-only server inspections through your laptop’s existing SSH access, while keeping server changes separately controlled.” This operator decision supersedes the operator-only SSH wording below only for that inspection scope. ChatGPT/Codex may use the connected laptop and existing SSH authentication to inspect corpflow-exec-01-u69678 (10.240.0.1), verify hostname before inspection, and collect bounded, sanitized configuration/status evidence. Reuse existing authentication without copying private keys or exposing secrets. Preserve strict host-key verification. Do not execute inspected scripts, initiate backups/restores, change files/configuration/data, restart services, install software, open ports, create schedules, or install an agent/server extension under this permission. Stop when an inspection requires mutation or broader access. No new server service or credential is introduced. Evidence is recorded in the ERP recovery document; revocation means ceasing these inspection calls. This is an explicit user authorization effective in the originating session; the documentation PR remains unmerged.
+
+
+## Bounded ERP backup operation authorization — 2026-10-08
+
+At 03:18 Mauritius Anton approved installation and verification of the specific daily recovered-ERP backup and existing failure-alert extension documented in docs/erpnext/ERPNEXT_SERVER_OPERATIONAL_READINESS_2026_10_08.md. This authorization permits the controller to use the laptop's existing SSH access for that wrapper, its status/artifact directories, the single existing root cron replacement, the existing health-check extension, guarded rollback copies, one live cycle and one labelled operator alert test. Installation/live verification completed. This supersedes operator-only mutation wording below only for this named task. It does not authorize general shell administration, another runtime, new credentials/paid service, changes to ERP business data/schema, worker activation, hosted retirement or unrelated server changes. The durable read-only inspection authorization above continues separately. Documentation remains on the unmerged review branch.
 
 ## 1. Why this doc exists
 
@@ -367,3 +377,17 @@ If a future packet proposes lifting any § 5.3 hard rule (e.g. installing Cursor
 - **v1, 2026-06-04** — initial canonical version. Triggered by bridge [#249 issuecomment-4617928519](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/249#issuecomment-4617928519). Synthesises rules already in `EXECUTION_BRAIN_VS_HANDS.md`, `MONITORING_ARCHITECTURE.md` § 11.3, `DELIVERY_ACCELERATION_V1.md` § 4.3, `MIGRATION_TO_SERVER_CHECKLIST.md`, `ERPNEXT_SANDBOX_INSTALL.md` § 10. Recorded as `JE-2026-06-04-2`.
 - **v1.2, 2026-10-02** — reconciled the later #1367 Forge/Ollama authorization and #1372 routing doctrine. The three location layers remain; Forge is a named bounded L3 worker exception, not a fourth layer or general agent/server authorization. Added Forge runtime evidence, task boundary, and supersession of obsolete blanket “No Ollama / operator-only” wording for that named runtime only. No production/runtime mutation in this documentation change.
 - **v1.1, 2026-06-15** — added § 5.5 *Authorized exceptions to § 5.3 hard rules (named, narrow, packet-gated)* and listed **Uptime Kuma** on `corpflow-exec-01-u69678` as the **first and only** named carve-out, authorized by `docs/decisions/20260615-uptime-kuma-on-exec01.md` + `docs/execution/UPTIME_KUMA_ON_EXEC01_AUTHORIZATION_PACKET.md` (`JE-2026-06-15-1`). § 5.3's two affected rules ("No Docker / Ollama / Postgres beyond ERPNext sandbox + production-shell" and "No scheduled jobs") gained parenthetical pointers at § 5.5; rule wording itself unchanged. § 6 absence-list "Persistent daemon / systemd / cron / `at`" row gained an in-line clarifier; a new "Exception clarifier" paragraph was added under § 6 explaining that the only authorized lifting of any row is the Uptime Kuma carve-out, narrow and named. The carve-out is **not** a category-level lift: any further exception requires its own ADR + authorization packet + § 10 gate. No § 5.3 hard rule is removed by this version.
+
+
+### Authorized laptop ERP recovery extension — 2026-10-08
+
+Anton approved the recommended extension at 03:49 Mauritius and resumed execution at 04:12 after the laptop connection was recovered. The controller may use the existing Desktop Commander → laptop PowerShell → authenticated Git SSH route for this concrete packet:
+
+- Install a bounded ERP package builder on the named server; encrypt the complete package before any laptop transfer, including the sensitive site configuration.
+- Install the operator-owned laptop copy script and background Windows task; retain at most four distinct verified packages with latest/previous/weekly/monthly slots and preserve pre-existing manual backups.
+- Record sanitized successful laptop acknowledgements and extend the existing failure-only health checker with missing/invalid/seven-day-stale acknowledgement checks.
+- Upload the exact laptop-held encrypted package for a disposable restore using a new Docker project, new volumes, an internal network, no public ports and no ERP scheduler/workers. Clean up those test volumes after the test.
+- Retrieve only the existing named Infisical backup-encryption key privately when required to prove independent package decryption; no key values in logs, task arguments, source control or chat.
+- Inspect Core/n8n recovery documentation and current accessible configuration read-only. No Neon production restore, n8n workflow trigger, unrelated service change, paid destination, hosted cancellation, production overwrite or automatic PR merge is included.
+
+This scope supersedes earlier operator-command-only guidance solely for this approved recovery packet. Server backup jobs continue independently of laptop availability. Windows interactive-user copy tasks do not run while that user is signed out; catch-up is configured at login.
