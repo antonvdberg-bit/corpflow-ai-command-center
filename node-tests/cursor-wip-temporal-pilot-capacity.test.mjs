@@ -1,6 +1,4 @@
-/**
- * The CEO-authorised two-lane policy supersedes the former one-lane cap.
- */
+/** The CEO-authorised four-slot exception falls back automatically to two. */
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 
@@ -11,6 +9,7 @@ import {
 import { planCursorIssueClaims } from '../lib/server/cursor-issue-dispatch-lifecycle.js';
 import {
   CURSOR_WIP_MAX_SLOTS,
+  CURSOR_WIP_TEMPORARY_CAPACITY_EXPIRES_AT,
   CURSOR_WIP_TEMPORAL_EXTRA_SLOTS,
   CURSOR_WIP_TEMPORAL_PILOT_MAX_SLOTS,
   evaluateCursorWipCapacity,
@@ -52,23 +51,54 @@ function readyIssue(number) {
 }
 
 describe('Cursor spend control capacity (#1249)', () => {
-  it('keeps exactly two active implementation lanes even when Temporal is marked active', () => {
+  it('allows four active implementation lanes while the temporary pilot is active', () => {
     assert.equal(CURSOR_WIP_MAX_SLOTS, 2);
-    assert.equal(CURSOR_WIP_TEMPORAL_EXTRA_SLOTS, 0);
-    assert.equal(CURSOR_WIP_TEMPORAL_PILOT_MAX_SLOTS, 2);
+    assert.equal(CURSOR_WIP_TEMPORAL_EXTRA_SLOTS, 2);
+    assert.equal(CURSOR_WIP_TEMPORAL_PILOT_MAX_SLOTS, 4);
     assert.equal(
       resolveEffectiveCursorWipMaxSlots({
         env: { CORPFLOW_TEMPORAL_PILOT: 'active' },
+        now: '2026-10-14T12:00:00Z',
       }),
-      2,
+      4,
     );
     const capacity = evaluateCursorWipCapacity({
       trackedIssues: [],
       readyIssues: [],
       env: { CORPFLOW_TEMPORAL_PILOT: 'active' },
       maxSlots: 5,
+      now: '2026-10-14T12:00:00Z',
     });
+    assert.equal(capacity.maxSlots, 4);
+  });
+
+  it('admits four independent tasks and rejects the fifth during the exception', () => {
+    const active = Array.from({ length: 4 }, (_, index) =>
+      liveRun(12480 + index, `run-${String(index + 1).repeat(8)}-1249-1249-1249-124912491249`),
+    );
+    const fifth = readyIssue(12484);
+    const capacity = evaluateCursorWipCapacity({
+      trackedIssues: active,
+      readyIssues: [fifth],
+      pilotActive: true,
+      now: '2026-10-14T12:00:00Z',
+    });
+    assert.equal(capacity.used, 4);
+    assert.equal(capacity.availableSlots, 0);
+    assert.equal(capacity.nextEligible, 12484);
+    assert.equal(capacity.capacityFull, true);
+  });
+
+  it('falls back to two at the Mauritius cutoff', () => {
+    const capacity = evaluateCursorWipCapacity({
+      trackedIssues: [],
+      readyIssues: [],
+      pilotActive: true,
+      now: CURSOR_WIP_TEMPORARY_CAPACITY_EXPIRES_AT,
+    });
+    assert.equal(capacity.pilotActive, false);
     assert.equal(capacity.maxSlots, 2);
+    assert.equal(capacity.availableSlots, 2);
   });
 
   it('one live run leaves the second isolated slot available', () => {
