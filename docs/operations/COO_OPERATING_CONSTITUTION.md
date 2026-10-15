@@ -252,3 +252,29 @@ This decision does not authorize fundraising, debt, purchases, new capacity, run
 Inspired by the user-supplied talk transcript describing Code, Content, Capital and Collaboration. The transcript appears to identify Martell Media and recount advice attributed to Naval; speaker identity, original URL and attribution have not been independently verified. The adaptation above is CorpFlowAI's operating decision. The talk's company valuations, growth examples and funding claims are not adopted as evidence or promises.
 
 Related doctrine: [Above-the-Line Strategy Doctrine](../strategy/ABOVE_THE_LINE_STRATEGY_DOCTRINE.md), [organisational memory and agent bootstrap](./ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md), and [current delivery reality](./CORPFLOWAI_CURRENT_DELIVERY_REALITY.md).
+
+
+## CEO-approved autonomous execution default — 15 October 2026
+
+**Decision authority:** Anton explicitly approved: "autonomous execution by default, with executive intervention only at explicitly protected gates." This supersedes any interpretation of earlier process text that requires Anton to courier, dispatch, reauthorise or approve routine preparation within an already authorised outcome and scope. It does **not** override protected actions or any provider/tool enforcement.
+
+### Default operating contract
+
+1. **Outcome authorisation persists within scope.** Once Anton authorises a bounded business outcome, the controller evaluates current proof, owns routing and advances every permitted preparation, issue/branch/PR work, read-only investigation, synthetic test, isolated verification, correction and evidence capture without asking again for each ordinary step.
+2. **Deliver, not administrate.** An issue, packet, label, claim, ready state or test plan is not an outcome. Advance to an independently verified deliverable or the next genuine protected-action gate; avoid new infrastructure or repetitive governance artifacts when an existing path suffices.
+3. **A failed dispatch is a recoverable exception, not a stopping ritual.** Record exact reason and current claim/capacity, diagnose once, and use a *permitted* established alternative where available. Never bypass a platform safety block, fabricate an agent run, loop retries or duplicate a live owner. Escalate only an actual unavailable capability, unresolved risk or protected decision.
+4. **Use the smallest competent executor.** Deterministic automation for deterministic tasks; authorised Forge contracts for bounded verified transformations; Cursor for software implementation/integrations; controller for evidence, documentation, routing and bounded documentation-only PR work. Reserve executive time for material choices.
+5. **Protect active client/revenue delivery.** Parallel tasks must be independent, isolate code/data/tenant ownership, respect verified capacity and included-budget gates, and produce reviewable results. A temporary capacity exception expires at its operator-defined end; no paid escalation follows by implication.
+6. **Evidence and learning stay durable.** For material work, record what changed, verification, failures, no-material-learning if applicable, superseded assumptions, remaining gates, next owner and Anton's exact required decision in existing GitHub/repo and authorised learning systems. Never claim persistence, merge, deployment or runtime completion merely from intent.
+
+### Explicit protected gates — unchanged
+
+Obtain Anton's exact-action approval before **merge**, **production deployment**, **secrets/environment/access changes**, **production database/schema/data mutations**, **financial/payment actions**, **live external messages/outreach**, **purchase/paid-capacity escalation**, **public launch**, or irreversible retirement/destruction. A previous approval remains effective only inside its exact recorded scope; do not ask twice for that same action. Runtime delivery follows build -> preview -> verify -> callback -> approve -> deploy -> validate. Documentation changes stop at a verified reviewable PR until merge approval.
+
+### Immediate interpretation
+
+- Correcting a reproducible laptop-backup script defect on a safe branch and testing it does not require new Anton permission; installing it on the production server and merging the PR remain separately protected.
+- Reusing an already-authorised agent/issue and preparing evidence do not require CEO attention, but actual claim/agent creation and successful verification must be proven.
+- If a tool explicitly denies a write or access, do not circumvent the denial; record the precise blocked gate and continue unrelated permitted work.
+
+**Governance:** This CEO decision becomes durable doctrine only after the documentation PR is reviewed and merged with Anton's approval. Until then, it is the explicit operator instruction for this workstream, bounded by existing protected-action rules.
