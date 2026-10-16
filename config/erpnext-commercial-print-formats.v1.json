@@ -4,20 +4,24 @@
   "apply_mode": "operator_controlled_readback_required",
   "canonical_bank_contract": {
     "company": "company",
-    "currency": "currency",
-    "is_verified": "is_verified",
+    "bank": "bank",
+    "is_company_account": "is_company_account",
+    "account": "account",
+    "currency": "Account.account_currency",
     "bank_account_no": "bank_account_no"
   },
   "operator_field_map": {
-    "status": "UNRESOLVED_OPERATOR_PROOF_REQUIRED",
+    "status": "LIVE_METADATA_CONFIRMED_2026_10_16",
     "required_before_apply": true,
     "purpose": "Map each canonical Bank Account semantic to an already-existing live field before any template is applied.",
     "forbid_new_custom_fields": true,
     "map": {
-      "company": null,
-      "currency": null,
-      "is_verified": null,
-      "bank_account_no": null,
+      "company": "company",
+      "bank": "bank",
+      "is_company_account": "is_company_account",
+      "account": "account",
+      "currency": "Account.account_currency",
+      "bank_account_no": "bank_account_no",
       "account_holder": null,
       "iban": null,
       "swift": null
