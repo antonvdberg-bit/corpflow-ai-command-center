@@ -69,6 +69,13 @@ test('uses the exact Gmail filter and accepts octet-stream PDF bytes', async () 
 
 test('routes parser period first, filename second, email date with review, and unknown without filing', () => {
   assert.deepEqual(routeStatement({ payload: { accounts: [{ statement_period: '2026-08' }] }, filename: '2026-09.pdf' }).source, 'statement_parser');
+  assert.equal(
+    routeStatement({
+      payload: { accounts: [{ statement_period: '2026-07-01/2026-09-30' }, { statement_period: '2026-09-01/2026-09-30' }] },
+      filename: 'statement_2026-10.pdf',
+    }).period,
+    null,
+  );
   assert.deepEqual(routeStatement({ filename: 'statement_2026-09.pdf' }).period, '2026-09');
   assert.equal(routeStatement({ filename: 'statement.pdf', emailDate: '2026-09-03T00:00:00Z' }).reviewRequired, true);
   assert.equal(routeStatement({ filename: 'statement.pdf' }).period, null);
