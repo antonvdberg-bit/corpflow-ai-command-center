@@ -72,19 +72,26 @@ test('requires a complete operator-supplied existing-field map before guarded ap
   );
 });
 
-test('every template resolves only one explicit verified company Bank Account or fails closed', () => {
+test('every template resolves only one explicit company Bank Account or fails closed', () => {
   for (const { name, source } of sources) {
     assert.match(source, /bank_meta\.has_field\("company"\)/, name);
-    assert.match(source, /bank_meta\.has_field\("currency"\)/, name);
-    assert.match(source, /bank_meta\.has_field\("is_verified"\)/, name);
     assert.match(source, /bank_meta\.has_field\("bank_account_no"\)/, name);
     assert.match(source, /"company": "CorpFlowAI LTD"/, name);
-    assert.match(source, /"currency": commercial_currency/, name);
-    assert.match(source, /"is_verified": 1/, name);
     assert.match(source, /candidate\.bank_account_no/, name);
     assert.match(source, /bank\.count == 1/, name);
-    assert.match(source, /missing or ambiguous; operator review required/, name);
+    assert.match(source, /Approved bank-account mapping is missing or ambiguous; operator review required|missing or ambiguous; operator review required/, name);
     assert.doesNotMatch(source, /custom_commercial_|contact_email|company_email|email_id|iban_fallback/i, name);
+  }
+});
+
+test('Domestic templates use the live SBM bank master and linked Account currency', () => {
+  for (const { family, name, source } of sources.filter(({ family }) => family === 'DOMESTIC')) {
+    assert.match(source, /has_field\("account"\)/, name);
+    assert.match(source, /has_field\("is_company_account"\)/, name);
+    assert.match(source, /"is_company_account": 1/, name);
+    assert.match(source, /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/, name);
+    assert.match(source, /frappe\.db\.get_value\("Account", candidate\.account, "account_currency"\)/, name);
+    assert.doesNotMatch(source, /candidate\.bank == "SBM Bank"/, name);
   }
 });
 
