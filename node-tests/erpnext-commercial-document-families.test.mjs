@@ -51,8 +51,8 @@ test('selects Domestic only for CorpFlowAI LTD, MUR, Mauritius', () => {
 
 test('selects exactly one approved linked-Account-currency SBM company account', () => {
   const accounts = [
-    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'MUR', is_company_account: true, bank_account_no: 'synthetic-mur-token' },
-    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-usd-token' },
+    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'MUR', is_company_account: true, is_verified: true, bank_account_no: 'synthetic-mur-token' },
+    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, is_verified: true, bank_account_no: 'synthetic-usd-token' },
   ];
   const result = selectVerifiedBankAccount({ currency: 'USD' }, accounts);
   assert.equal(result.ok, true);
@@ -61,7 +61,7 @@ test('selects exactly one approved linked-Account-currency SBM company account',
   assert.equal(
     selectVerifiedBankAccount({ currency: 'USD' }, [
       ...accounts,
-      { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-second-token' },
+      { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, is_verified: true, bank_account_no: 'synthetic-second-token' },
     ]).reason,
     'AMBIGUOUS_APPROVED_CURRENCY_ACCOUNT',
   );
@@ -73,6 +73,7 @@ test('accepts one valid MUR company account for the domestic payment-instruction
     bank: SBM_BANK_NAME,
     account_currency: 'MUR',
     is_company_account: true,
+    is_verified: true,
     bank_account_no: 'synthetic-mur-token',
   };
   assert.deepEqual(selectVerifiedBankAccount({ currency: 'MUR' }, [account]), { ok: true, account });
@@ -82,15 +83,30 @@ test('fails closed for non-company, wrong-bank, or blank account-number candidat
   assert.equal(
     selectVerifiedBankAccount(
       { currency: 'USD' },
-      [{ company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: false, bank_account_no: 'synthetic-token' }],
+      [{ company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: false, is_verified: true, bank_account_no: 'synthetic-token' }],
     ).ok,
     false,
   );
   assert.equal(
     selectVerifiedBankAccount(
       { currency: 'USD' },
-      [{ company: 'CorpFlowAI LTD', bank: 'Other Bank', account_currency: 'USD', is_company_account: true, bank_account_no: '   ' }],
+      [{ company: 'CorpFlowAI LTD', bank: 'Other Bank', account_currency: 'USD', is_company_account: true, is_verified: true, bank_account_no: '   ' }],
     ).reason,
+    'MISSING_APPROVED_CURRENCY_ACCOUNT',
+  );
+});
+
+test('fails closed when the explicit verification control is absent or false', () => {
+  const account = {
+    company: 'CorpFlowAI LTD',
+    bank: SBM_BANK_NAME,
+    account_currency: 'USD',
+    is_company_account: true,
+    bank_account_no: 'synthetic-usd-token',
+  };
+  assert.equal(selectVerifiedBankAccount({ currency: 'USD' }, [account]).ok, false);
+  assert.equal(
+    selectVerifiedBankAccount({ currency: 'USD' }, [{ ...account, is_verified: false }]).reason,
     'MISSING_APPROVED_CURRENCY_ACCOUNT',
   );
 });

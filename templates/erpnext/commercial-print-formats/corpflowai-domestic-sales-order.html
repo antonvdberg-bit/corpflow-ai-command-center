@@ -25,10 +25,10 @@
 {% set selected_family = "DOMESTIC" if commercial_company == "CorpFlowAI LTD" and commercial_currency == "MUR" and billing_country == "Mauritius" else "INTERNATIONAL" %}
 {% set bank = namespace(count=0, record=None, blocked="Approved currency-matched SBM company bank account required") %}
 {% set bank_meta = frappe.get_meta("Bank Account") %}
-{% if bank_meta.has_field("company") and bank_meta.has_field("account") and bank_meta.has_field("bank") and bank_meta.has_field("is_company_account") and bank_meta.has_field("bank_account_no") %}
-  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD", "is_company_account": 1}, fields=["name", "bank", "bank_account_no", "account", "company", "is_company_account"]) %}
+{% if bank_meta.has_field("company") and bank_meta.has_field("account") and bank_meta.has_field("bank") and bank_meta.has_field("is_company_account") and bank_meta.has_field("is_verified") and bank_meta.has_field("bank_account_no") %}
+  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD", "is_company_account": 1, "is_verified": 1}, fields=["name", "bank", "bank_account_no", "account", "company", "is_company_account", "is_verified"]) %}
     {% set candidate_currency = frappe.db.get_value("Account", candidate.account, "account_currency") if candidate.account else "" %}
-    {% if candidate.company == "CorpFlowAI LTD" and candidate.is_company_account and candidate.bank == "SBM Bank (Mauritius) Ltd" and candidate_currency == commercial_currency and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
+    {% if candidate.company == "CorpFlowAI LTD" and candidate.is_company_account and candidate.is_verified and candidate.bank == "SBM Bank (Mauritius) Ltd" and candidate_currency == commercial_currency and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
   {% endfor %}
   {% if bank.count == 1 %}{% set bank.blocked = "" %}{% else %}{% set bank.blocked = "Approved bank-account mapping is missing or ambiguous; operator review required" %}{% endif %}
 {% endif %}

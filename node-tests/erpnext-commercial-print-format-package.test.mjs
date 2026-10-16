@@ -13,7 +13,7 @@ const sources = readCommercialPrintFormatSources(formatPackage);
 
 test('defines all eight source-controlled Domestic and International Print Formats', () => {
   assert.equal(formatPackage.apply_mode, 'operator_controlled_readback_required');
-  assert.equal(formatPackage.operator_field_map.status, 'LIVE_METADATA_CONFIRMED_2026_10_16');
+  assert.equal(formatPackage.operator_field_map.status, 'PENDING_OPERATOR_READBACK_EXPLICIT_VERIFICATION');
   assert.equal(formatPackage.operator_field_map.forbid_new_custom_fields, true);
   assert.equal(formatPackage.canonical_bank_contract.currency, 'Account.account_currency');
   assert.deepEqual(
@@ -51,6 +51,7 @@ test('requires a complete operator-supplied existing-field map before guarded ap
       company: 'company',
       bank: 'bank',
       is_company_account: 'is_company_account',
+    is_verified: 'is_verified',
       account: 'account',
       currency: 'Account.account_currency',
       bank_account_no: 'bank_account_no',
@@ -76,9 +77,10 @@ test('every template resolves only one approved linked-Account-currency company 
     assert.match(source, /bank_meta\.has_field\("account"\)/, name);
     assert.match(source, /bank_meta\.has_field\("bank"\)/, name);
     assert.match(source, /bank_meta\.has_field\("is_company_account"\)/, name);
+    assert.match(source, /bank_meta\.has_field\("is_verified"\)/, name);
     assert.match(source, /bank_meta\.has_field\("bank_account_no"\)/, name);
     assert.match(source, /"company": "CorpFlowAI LTD"/, name);
-    assert.match(source, /"is_company_account": 1/, name);
+    assert.match(source, /"is_company_account": 1, "is_verified": 1/, name);
     assert.match(source, /frappe\.db\.get_value\("Account", candidate\.account, "account_currency"\)/, name);
     assert.match(source, /candidate_currency == commercial_currency/, name);
     assert.match(source, /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/, name);
@@ -117,7 +119,8 @@ test('Domestic MUR templates omit IBAN and SWIFT while international templates g
     } else {
       assert.match(source, /bank_meta\.has_field\("iban"\)/, name);
       assert.match(source, /bank\.record\.get\("iban"\) or ""/, name);
-      assert.match(source, /Verified international IBAN is missing; operator review required/, name);
+      assert.match(source, /bank\.record\.get\("swift"\) or ""/, name);
+      assert.match(source, /Verified international transfer details are missing; operator review required/, name);
       assert.match(source, /bank\.record\.bank_account_no/, name);
       assert.match(source, /transfer\.iban/, name);
       assert.doesNotMatch(source, /INTERNATIONAL TRANSFER FIELD MAP UNRESOLVED \/ NOT CLIENT-READY/, name);

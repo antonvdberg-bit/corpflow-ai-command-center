@@ -26,15 +26,16 @@
 {% set bank = namespace(count=0, record=None, blocked="Approved currency-matched SBM company bank account required") %}
 {% set transfer = namespace(iban="") %}
 {% set bank_meta = frappe.get_meta("Bank Account") %}
-{% if bank_meta.has_field("company") and bank_meta.has_field("account") and bank_meta.has_field("bank") and bank_meta.has_field("is_company_account") and bank_meta.has_field("bank_account_no") %}
-  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD", "is_company_account": 1}, fields=["name", "bank", "bank_account_no", "account", "company", "is_company_account"]) %}
+{% if bank_meta.has_field("company") and bank_meta.has_field("account") and bank_meta.has_field("bank") and bank_meta.has_field("is_company_account") and bank_meta.has_field("is_verified") and bank_meta.has_field("iban") and bank_meta.has_field("swift") and bank_meta.has_field("bank_account_no") %}
+  {% for candidate in frappe.get_all("Bank Account", filters={"company": "CorpFlowAI LTD", "is_company_account": 1, "is_verified": 1}, fields=["name", "bank", "bank_account_no", "account", "company", "is_company_account", "is_verified", "iban", "swift"]) %}
     {% set candidate_currency = frappe.db.get_value("Account", candidate.account, "account_currency") if candidate.account else "" %}
-    {% if candidate.company == "CorpFlowAI LTD" and candidate.is_company_account and candidate.bank == "SBM Bank (Mauritius) Ltd" and candidate_currency == commercial_currency and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
+    {% if candidate.company == "CorpFlowAI LTD" and candidate.is_company_account and candidate.is_verified and candidate.bank == "SBM Bank (Mauritius) Ltd" and candidate_currency == commercial_currency and candidate.bank_account_no %}{% set bank.count = bank.count + 1 %}{% set bank.record = candidate %}{% endif %}
   {% endfor %}
   {% if bank.count == 1 %}
     {% set bank.blocked = "" %}
-    {% if bank_meta.has_field("iban") %}{% set transfer.iban = bank.record.get("iban") or "" %}{% endif %}
-    {% if not transfer.iban %}{% set bank.blocked = "Verified international IBAN is missing; operator review required" %}{% endif %}
+    {% set transfer.iban = bank.record.get("iban") or "" %}
+    {% set transfer.swift = bank.record.get("swift") or "" %}
+    {% if not transfer.iban or not transfer.swift %}{% set bank.blocked = "Verified international transfer details are missing; operator review required" %}{% endif %}
   {% else %}{% set bank.blocked = "Approved bank-account mapping is missing or ambiguous; operator review required" %}{% endif %}
 {% endif %}
 <style>.cf{font:10px/1.45 Arial,sans-serif;color:#182536}.cf table{border-collapse:collapse;width:100%}.cf td{padding:8px;vertical-align:top}.cf .bar{border-bottom:3px solid #16A6A1}.cf .title{color:#10233B;font-size:26px;font-weight:700;text-transform:uppercase}.cf .label{color:#647589;font-size:8px;font-weight:700;letter-spacing:.8px;text-transform:uppercase}.cf .muted{color:#526275;font-size:9px}.cf th{background:#10233B;color:#fff;padding:8px;text-align:left}.cf .items,.cf .payment{border:1px solid #dbe5e9;margin-top:16px}.cf .right{text-align:right}.cf .blocked{background:#fff4e5;border:2px solid #d6a84f;color:#7a5210;font-weight:700;padding:12px}</style>
@@ -47,6 +48,6 @@
 <h1 class="title">Sales Order</h1>
 <table><tr><td><span class="label">Sales Order number</span><br>{{ doc.name }}</td><td><span class="label">Date</span><br>{{ frappe.utils.format_date(doc.transaction_date) }}</td><td><span class="label">Delivery date</span><br>{{ frappe.utils.format_date(doc.delivery_date) if doc.delivery_date else "—" }}</td><td><span class="label">Currency</span><br>{{ commercial_currency }}</td></tr></table>
 <table class="items"><tr><th>#</th><th>Description</th><th class="right">Qty</th><th class="right">Rate</th><th class="right">Amount</th></tr>{% for item in branding_doc.get("items") or [] %}<tr><td>{{ loop.index }}</td><td>{{ item.item_name }}{% if item.description %}<br><span class="muted">{{ item.description | safe }}</span>{% endif %}</td><td class="right">{{ item.get_formatted("qty", 0) }}</td><td class="right">{{ item.get_formatted("rate", branding_doc) }}</td><td class="right">{{ item.get_formatted("amount", branding_doc) }}</td></tr>{% endfor %}<tr><td colspan="4" class="right"><strong>Grand total</strong></td><td class="right"><strong>{{ branding_doc.get_formatted("grand_total", branding_doc) }}</strong></td></tr></table>
-<table class="payment"><tr><td><span class="label">Bank</span><br>{{ bank.record.bank }}</td><td><span class="label">Account number</span><br>{{ bank.record.bank_account_no }}</td><td><span class="label">IBAN</span><br>{{ transfer.iban }}</td><td><span class="label">Payment reference</span><br>{{ doc.name }}</td><td><span class="label">Currency</span><br>{{ commercial_currency }}</td></tr></table>
+<table class="payment"><tr><td><span class="label">Bank</span><br>{{ bank.record.bank }}</td><td><span class="label">Account number</span><br>{{ bank.record.bank_account_no }}</td><td><span class="label">IBAN</span><br>{{ transfer.iban }}</td><td><span class="label">SWIFT/BIC</span><br>{{ transfer.swift }}</td><td><span class="label">Payment reference</span><br>{{ doc.name }}</td><td><span class="label">Currency</span><br>{{ commercial_currency }}</td></tr></table>
 {% endif %}
 </div>
