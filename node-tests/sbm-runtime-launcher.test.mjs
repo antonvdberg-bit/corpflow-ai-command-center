@@ -30,7 +30,7 @@ test('systemd launcher uses protected credentials and does not place client secr
   assert.match(launcher, /infisical-client-secret/);
   assert.ok(launcher.includes('export INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET="$(<"${credential_path}")"'));
   assert.match(launcher, /login --method=universal-auth --plain --silent/);
-  assert.match(launcher, /infisical run --projectId="\$\{INFISICAL_PROJECT_ID\}" --env="\$\{INFISICAL_ENVIRONMENT\}"/);
+  assert.ok(launcher.includes('run --projectId="${INFISICAL_PROJECT_ID}" --env="${INFISICAL_ENVIRONMENT}"'));
   assert.match(launcher, /--verify-secrets\|--accept-one\|--process-batch/);
   assert.doesNotMatch(launcher, /--client-secret=/);
   assert.doesNotMatch(launcher, /--token=/);
