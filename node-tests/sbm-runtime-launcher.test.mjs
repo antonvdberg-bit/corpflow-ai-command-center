@@ -28,8 +28,12 @@ test('runtime secret availability check never serializes a secret value', () => 
 test('systemd launcher uses protected credentials and does not place client secret or token in arguments', () => {
   assert.match(launcher, /CREDENTIALS_DIRECTORY/);
   assert.match(launcher, /infisical-client-secret/);
+  assert.ok(launcher.includes('readonly INFISICAL_BIN="${RUNTIME_ROOT}/infisical/node_modules/.bin/infisical"'));
   assert.ok(launcher.includes('export INFISICAL_UNIVERSAL_AUTH_CLIENT_SECRET="$(<"${credential_path}")"'));
   assert.match(launcher, /login --method=universal-auth --plain --silent/);
+  assert.match(launcher, /export INFISICAL_TOKEN=/);
+  assert.match(launcher, /require INFISICAL_PROJECT_ID/);
+  assert.match(launcher, /require INFISICAL_ENVIRONMENT/);
   assert.ok(launcher.includes('run --projectId="${INFISICAL_PROJECT_ID}" --env="${INFISICAL_ENVIRONMENT}"'));
   assert.match(launcher, /--verify-secrets\|--accept-one\|--process-batch/);
   assert.doesNotMatch(launcher, /--client-secret=/);
