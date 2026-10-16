@@ -13,9 +13,9 @@ const sources = readCommercialPrintFormatSources(formatPackage);
 
 test('defines all eight source-controlled Domestic and International Print Formats', () => {
   assert.equal(formatPackage.apply_mode, 'operator_controlled_readback_required');
-  assert.equal(formatPackage.operator_field_map.status, 'UNRESOLVED_OPERATOR_PROOF_REQUIRED');
+  assert.equal(formatPackage.operator_field_map.status, 'LIVE_METADATA_CONFIRMED_2026_10_16');
   assert.equal(formatPackage.operator_field_map.forbid_new_custom_fields, true);
-  assert.equal(formatPackage.canonical_bank_contract.is_verified, 'is_verified');
+  assert.equal(formatPackage.canonical_bank_contract.currency, 'Account.account_currency');
   assert.deepEqual(
     sources.map(({ name }) => name).sort(),
     [
@@ -49,38 +49,39 @@ test('requires a complete operator-supplied existing-field map before guarded ap
   assert.equal(
     validateOperatorBankFieldMap({
       company: 'company',
-      currency: 'currency',
-      is_verified: 'is_verified',
+      bank: 'bank',
+      is_company_account: 'is_company_account',
+      account: 'account',
+      currency: 'Account.account_currency',
       bank_account_no: 'bank_account_no',
-      account_holder: 'account_holder',
-      iban: 'iban',
-      swift: 'swift',
     }).ok,
     true,
   );
   assert.equal(
     validateOperatorBankFieldMap({
       company: 'company',
-      currency: 'currency',
-      is_verified: 'custom_verified',
+      bank: 'bank',
+      is_company_account: 'is_company_account',
+      account: 'account',
+      currency: 'Bank Account.currency',
       bank_account_no: 'bank_account_no',
-      account_holder: 'email',
-      iban: 'iban',
-      swift: 'swift',
     }).ok,
     false,
   );
 });
 
-test('every template resolves only one explicit verified company Bank Account or fails closed', () => {
+test('every template resolves only one approved linked-Account-currency company Bank Account or fails closed', () => {
   for (const { name, source } of sources) {
     assert.match(source, /bank_meta\.has_field\("company"\)/, name);
-    assert.match(source, /bank_meta\.has_field\("currency"\)/, name);
-    assert.match(source, /bank_meta\.has_field\("is_verified"\)/, name);
+    assert.match(source, /bank_meta\.has_field\("account"\)/, name);
+    assert.match(source, /bank_meta\.has_field\("bank"\)/, name);
+    assert.match(source, /bank_meta\.has_field\("is_company_account"\)/, name);
     assert.match(source, /bank_meta\.has_field\("bank_account_no"\)/, name);
     assert.match(source, /"company": "CorpFlowAI LTD"/, name);
-    assert.match(source, /"currency": commercial_currency/, name);
-    assert.match(source, /"is_verified": 1/, name);
+    assert.match(source, /"is_company_account": 1/, name);
+    assert.match(source, /frappe\.db\.get_value\("Account", candidate\.account, "account_currency"\)/, name);
+    assert.match(source, /candidate_currency == commercial_currency/, name);
+    assert.match(source, /candidate\.bank == "SBM Bank"/, name);
     assert.match(source, /candidate\.bank_account_no/, name);
     assert.match(source, /bank\.count == 1/, name);
     assert.match(source, /missing or ambiguous; operator review required/, name);
