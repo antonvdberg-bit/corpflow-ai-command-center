@@ -67,6 +67,17 @@ test('selects exactly one approved linked-Account-currency SBM company account',
   );
 });
 
+test('accepts one valid MUR company account for the domestic payment-instruction source', () => {
+  const account = {
+    company: 'CorpFlowAI LTD',
+    bank: SBM_BANK_NAME,
+    account_currency: 'MUR',
+    is_company_account: true,
+    bank_account_no: 'synthetic-mur-token',
+  };
+  assert.deepEqual(selectVerifiedBankAccount({ currency: 'MUR' }, [account]), { ok: true, account });
+});
+
 test('fails closed for non-company, wrong-bank, or blank account-number candidates', () => {
   assert.equal(
     selectVerifiedBankAccount(

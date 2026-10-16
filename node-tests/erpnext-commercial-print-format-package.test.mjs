@@ -81,15 +81,22 @@ test('every template resolves only one approved linked-Account-currency company 
     assert.match(source, /"is_company_account": 1/, name);
     assert.match(source, /frappe\.db\.get_value\("Account", candidate\.account, "account_currency"\)/, name);
     assert.match(source, /candidate_currency == commercial_currency/, name);
-    assert.match(
-      source,
-      family === 'INTERNATIONAL' ? /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/ : /candidate\.bank == "SBM Bank"/,
-      name,
-    );
+    assert.match(source, /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/, name);
     assert.match(source, /candidate\.bank_account_no/, name);
     assert.match(source, /bank\.count == 1/, name);
     assert.match(source, /missing or ambiguous; operator review required/, name);
     assert.doesNotMatch(source, /custom_commercial_|contact_email|company_email|email_id|iban_fallback/i, name);
+  }
+});
+
+test('every domestic template selects the verified SBM master and preserves only domestic payment fields', () => {
+  for (const { name, source } of sources.filter(({ family }) => family === 'DOMESTIC')) {
+    assert.match(source, /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/, name);
+    assert.doesNotMatch(source, /candidate\.bank == "SBM Bank"/, name);
+    assert.match(source, /Domestic payment instructions — MUR only/, name);
+    assert.match(source, /bank\.record\.bank_account_no/, name);
+    assert.match(source, /Payment reference/, name);
+    assert.doesNotMatch(source, /\bIBAN\b|\bSWIFT\b/, name);
   }
 });
 
