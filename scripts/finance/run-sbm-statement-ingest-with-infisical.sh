@@ -5,7 +5,7 @@ umask 077
 readonly RUNTIME_ROOT="/home/anton/corpflow-finance-runtime"
 readonly FINANCE_CODE_ROOT="${RUNTIME_ROOT}/code"
 readonly FINANCE_DATA_ROOT="${RUNTIME_ROOT}/data"
-readonly INFISICAL_BIN="${RUNTIME_ROOT}/infisical"
+readonly INFISICAL_BIN="${RUNTIME_ROOT}/infisical/node_modules/.bin/infisical"
 readonly CREDENTIAL_NAME="infisical-client-secret"
 
 usage() {
