@@ -71,7 +71,7 @@ test('requires a complete operator-supplied existing-field map before guarded ap
 });
 
 test('every template resolves only one approved linked-Account-currency company Bank Account or fails closed', () => {
-  for (const { name, source } of sources) {
+  for (const { family, name, source } of sources) {
     assert.match(source, /bank_meta\.has_field\("company"\)/, name);
     assert.match(source, /bank_meta\.has_field\("account"\)/, name);
     assert.match(source, /bank_meta\.has_field\("bank"\)/, name);
@@ -81,7 +81,11 @@ test('every template resolves only one approved linked-Account-currency company 
     assert.match(source, /"is_company_account": 1/, name);
     assert.match(source, /frappe\.db\.get_value\("Account", candidate\.account, "account_currency"\)/, name);
     assert.match(source, /candidate_currency == commercial_currency/, name);
-    assert.match(source, /candidate\.bank == "SBM Bank"/, name);
+    assert.match(
+      source,
+      family === 'INTERNATIONAL' ? /candidate\.bank == "SBM Bank \(Mauritius\) Ltd"/ : /candidate\.bank == "SBM Bank"/,
+      name,
+    );
     assert.match(source, /candidate\.bank_account_no/, name);
     assert.match(source, /bank\.count == 1/, name);
     assert.match(source, /missing or ambiguous; operator review required/, name);
@@ -97,15 +101,19 @@ test('every template rejects a mismatched family before any payment instruction 
   }
 });
 
-test('Domestic MUR templates omit IBAN and SWIFT while international templates fail closed until fields are operator-mapped', () => {
+test('Domestic MUR templates omit IBAN and SWIFT while international templates guard the verified IBAN', () => {
   for (const { family, name, source } of sources) {
     if (family === 'DOMESTIC') {
       assert.match(source, /"MUR"/, name);
       assert.match(source, /Domestic payment instructions/, name);
       assert.doesNotMatch(source, /\bIBAN\b|\bSWIFT\b/, name);
     } else {
-      assert.match(source, /INTERNATIONAL TRANSFER FIELD MAP UNRESOLVED \/ NOT CLIENT-READY/, name);
-      assert.doesNotMatch(source, /bank\.record\.bank_account_no/, name);
+      assert.match(source, /bank_meta\.has_field\("iban"\)/, name);
+      assert.match(source, /bank\.record\.get\("iban"\) or ""/, name);
+      assert.match(source, /Verified international IBAN is missing; operator review required/, name);
+      assert.match(source, /bank\.record\.bank_account_no/, name);
+      assert.match(source, /transfer\.iban/, name);
+      assert.doesNotMatch(source, /INTERNATIONAL TRANSFER FIELD MAP UNRESOLVED \/ NOT CLIENT-READY/, name);
     }
   }
 });

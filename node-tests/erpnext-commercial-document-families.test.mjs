@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
   loadCommercialDocumentFamilies,
+  SBM_BANK_NAME,
   selectCommercialDocumentFamily,
   selectVerifiedBankAccount,
   validateBankFieldSources,
@@ -50,8 +51,8 @@ test('selects Domestic only for CorpFlowAI LTD, MUR, Mauritius', () => {
 
 test('selects exactly one approved linked-Account-currency SBM company account', () => {
   const accounts = [
-    { company: 'CorpFlowAI LTD', bank: 'SBM Bank', account_currency: 'MUR', is_company_account: true, bank_account_no: 'synthetic-mur-token' },
-    { company: 'CorpFlowAI LTD', bank: 'SBM Bank', account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-usd-token' },
+    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'MUR', is_company_account: true, bank_account_no: 'synthetic-mur-token' },
+    { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-usd-token' },
   ];
   const result = selectVerifiedBankAccount({ currency: 'USD' }, accounts);
   assert.equal(result.ok, true);
@@ -60,7 +61,7 @@ test('selects exactly one approved linked-Account-currency SBM company account',
   assert.equal(
     selectVerifiedBankAccount({ currency: 'USD' }, [
       ...accounts,
-      { company: 'CorpFlowAI LTD', bank: 'SBM Bank', account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-second-token' },
+      { company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: true, bank_account_no: 'synthetic-second-token' },
     ]).reason,
     'AMBIGUOUS_APPROVED_CURRENCY_ACCOUNT',
   );
@@ -70,7 +71,7 @@ test('fails closed for non-company, wrong-bank, or blank account-number candidat
   assert.equal(
     selectVerifiedBankAccount(
       { currency: 'USD' },
-      [{ company: 'CorpFlowAI LTD', bank: 'SBM Bank', account_currency: 'USD', is_company_account: false, bank_account_no: 'synthetic-token' }],
+      [{ company: 'CorpFlowAI LTD', bank: SBM_BANK_NAME, account_currency: 'USD', is_company_account: false, bank_account_no: 'synthetic-token' }],
     ).ok,
     false,
   );
