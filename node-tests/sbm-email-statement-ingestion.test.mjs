@@ -7,7 +7,9 @@ import test from 'node:test';
 import fixture from '../fixtures/erpnext-bank-reconciliation-readiness/sbm-combined-statement-redacted.v1.json' with { type: 'json' };
 import {
   SBM_GMAIL_QUERY,
+  createRefreshingGmailClient,
   downloadAttachment,
+  ingestSbmLocalPdf,
   ingestSbmAttachment,
   listPdfAttachments,
   routeStatement,
@@ -65,6 +67,35 @@ test('uses the exact Gmail filter and accepts octet-stream PDF bytes', async () 
   const rejected = await downloadAttachment({ gmail, attachment: listed[1] });
   assert.equal(pdf.status, 'ACCEPTED');
   assert.equal(rejected.status, 'REJECTED_NOT_PDF');
+});
+
+test('refreshes an expired Gmail access token without persisting the bearer', async () => {
+  const calls = [];
+  const gmail = createRefreshingGmailClient({
+    accessToken: 'expired-token',
+    refreshToken: 'refresh-token',
+    clientId: 'client-id',
+    clientSecret: 'client-secret',
+    tokenEndpoint: 'https://oauth.test/token',
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      if (url === 'https://oauth.test/token') {
+        return { ok: true, status: 200, async json() { return { access_token: 'fresh-token' }; } };
+      }
+      if (url.startsWith('https://gmail.test') && calls.length === 1) {
+        return { ok: false, status: 401, async json() { return {}; } };
+      }
+      return { ok: true, status: 200, async json() { return { messages: [] }; } };
+    },
+    gmailBaseUrl: 'https://gmail.test',
+  });
+
+  await gmail.listMessages();
+  assert.equal(calls[0].url, 'https://gmail.test/messages?q=from%3ASBM.EStatement%40sbmgroup.mu%20subject%3A%22Account%20e-statement%22%20has%3Aattachment&maxResults=100');
+  assert.equal(calls[0].options.headers.authorization, 'Bearer expired-token');
+  assert.equal(calls[1].url, 'https://oauth.test/token');
+  assert.match(calls[1].options.body.toString(), /grant_type=refresh_token/);
+  assert.equal(calls[2].options.headers.authorization, 'Bearer fresh-token');
 });
 
 test('routes parser period first, filename second, email date with review, and unknown without filing', () => {
@@ -176,4 +207,25 @@ test('unknown period stops before month filing and dry-run does not stage bytes'
   assert.equal(unknown.status, 'REVIEW_REQUIRED');
   assert.match(unknown.reason, /UNKNOWN_PERIOD/);
   assert.equal((await readdir(path.join(root, 'Processed', 'SBM', 'Unrouted'))).length, 1);
+});
+
+test('offline local PDF input uses the same protected staging and preview path', async () => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'sbm-ingestion-'));
+  const sourceDir = await mkdtemp(path.join(os.tmpdir(), 'sbm-source-'));
+  const inputPath = path.join(sourceDir, 'sbm_2026-09.pdf');
+  await writeFile(inputPath, PDF);
+  const qpdf = await qpdfStub(root);
+  const result = await ingestSbmLocalPdf({
+    inputPath,
+    financeRoot: root,
+    password: 'fixture-password',
+    qpdfBin: qpdf,
+    extractStatement: async () => fixture,
+  });
+
+  assert.equal(result.status, 'PREVIEW_READY');
+  assert.equal(result.route.period, '2026-09');
+  assert.equal(result.preview.length, 8);
+  assert.equal(result.routedPath.startsWith(root), true);
+  assert.equal(result.receiptPath.startsWith(root), true);
 });
