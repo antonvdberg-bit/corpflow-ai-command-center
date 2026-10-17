@@ -59,3 +59,16 @@
 - Anton approves only exact merge, deploy, DNS/mail routing, provider submission and live-payment gates.
 
 Current verdict: NOT YET SUBMISSION READY. Existing code is significantly complete but customer-facing and cross-system evidence incomplete. Context/Agent Learning not written.
+
+## 17 October — direct laptop endpoint smoke checks
+
+Executed from connected `2024-LTPAvdBerg` through Desktop Commander, using unauthenticated HTTPS GET, no secrets and no data writes:
+
+| Endpoint | HTTP | What it proves |
+| --- | --- | --- |
+| `https://erp.corpflowai.com/api/method/ping` | 200 | ERPNext public API routing is reachable from operator laptop; **not authenticated access** |
+| `https://erp.corpflowai.com/login` | 200 | Login UI route responds; **not logged-in session** |
+| `https://cipc.corpflowai.com/pricing` | 200 | BAD review pricing route responds; **not live checkout** |
+| `https://corpflowai.com/pricing` | 200 | CorpFlowAI price route responds; **not verified buyer-order journey** |
+
+Next acceptance: use existing least-privilege ERPNext integration worker to read back approved document metadata; render existing documents without posting financial entries. Browser login remains fallback. BAD customer charge currency is ZAR only. Current provider documentation does not establish Paddle direct MUR payout; verify payment/bank conversion route before making payout claims.
