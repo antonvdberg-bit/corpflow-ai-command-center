@@ -11,6 +11,10 @@ const launcher = readFileSync(path.join(repoRoot, 'scripts/finance/run-sbm-state
 
 test('SBM CLI emits redacted processing receipts and can bound supervised acceptance to one statement', () => {
   assert.match(ingestCli, /--max-statements/);
+  assert.match(ingestCli, /--input/);
+  assert.match(ingestCli, /ingestSbmLocalPdf/);
+  assert.match(ingestCli, /createRefreshingGmailClient/);
+  assert.match(ingestCli, /SBM_GMAIL_REFRESH_TOKEN/);
   assert.match(ingestCli, /selectedAttachments = maxStatementsArg/);
   assert.match(ingestCli, /extracted_transaction_count/);
   assert.match(ingestCli, /validated_transaction_count/);
@@ -34,6 +38,10 @@ test('systemd launcher uses protected credentials and does not place client secr
   assert.match(launcher, /export INFISICAL_TOKEN=/);
   assert.match(launcher, /require INFISICAL_PROJECT_ID/);
   assert.match(launcher, /require INFISICAL_ENVIRONMENT/);
+  assert.match(launcher, /DEFAULT_RUNTIME_CONFIG/);
+  assert.match(launcher, /load_non_secret_config/);
+  assert.match(launcher, /INFISICAL_UNIVERSAL_AUTH_CLIENT_ID/);
+  assert.doesNotMatch(launcher, /\bsource\s+"\$\{config_path\}"/);
   assert.ok(launcher.includes('run --projectId="${INFISICAL_PROJECT_ID}" --env="${INFISICAL_ENVIRONMENT}"'));
   assert.match(launcher, /--verify-secrets\|--accept-one\|--process-batch/);
   assert.doesNotMatch(launcher, /--client-secret=/);

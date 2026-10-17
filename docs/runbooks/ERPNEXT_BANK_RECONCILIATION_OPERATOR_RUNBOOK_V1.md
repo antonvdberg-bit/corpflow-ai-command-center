@@ -92,11 +92,15 @@ query:
 from:SBM.EStatement@sbmgroup.mu subject:"Account e-statement" has:attachment
 ```
 
-Set `FINANCE_ROOT`, `SBM_GMAIL_ACCESS_TOKEN`, and (only while processing encrypted
-PDFs) `SBM_STATEMENT_PASSWORD` outside the repository. The worker preserves the
-encrypted original, records its SHA-256 receipt, and writes a password-free
-derivative only after `qpdf` succeeds. It accepts PDF magic bytes even when Gmail
-reports `application/octet-stream`; non-PDF bytes are rejected.
+Set `FINANCE_ROOT` and (only while processing encrypted PDFs)
+`SBM_STATEMENT_PASSWORD` outside the repository. Gmail intake may use a
+short-lived `SBM_GMAIL_ACCESS_TOKEN` for supervised work, or the preferred
+read-only OAuth set (`SBM_GMAIL_REFRESH_TOKEN`, `SBM_GMAIL_CLIENT_ID`, and
+`SBM_GMAIL_CLIENT_SECRET`). Refreshes remain in memory; no short-lived bearer
+is persisted. The worker preserves the encrypted original, records its SHA-256
+receipt, and writes a password-free derivative only after `qpdf` succeeds. It
+accepts PDF magic bytes even when Gmail reports `application/octet-stream`;
+non-PDF bytes are rejected.
 
 `qpdf` must be installed on the execution host and available on `PATH` (or the
 worker adapter must provide an explicit binary path). The password is supplied
@@ -124,6 +128,30 @@ npm run finance:sbm-statement-ingest -- --list-only
 
 The token and password above are placeholders only; never paste real values into
 the repository, issue, logs, or test fixtures.
+
+For an operator-approved local PDF already held under the protected finance
+root, Gmail is not required:
+
+```bash
+FINANCE_ROOT=/home/anton/corpflow-finance-runtime/data \
+SBM_STATEMENT_PASSWORD='<operator-secret>' \
+npm run finance:sbm-statement-ingest -- --input /home/anton/corpflow-finance-runtime/data/sbm_apr_2026_transfer.pdf
+```
+
+The output is a sanitised period/count/preview receipt. The input is copied
+into the protected `Incoming/SBM/Original` area and all decrypted derivatives
+and receipts remain below `FINANCE_ROOT`; the command never writes ERPNext
+records. Do not run this command with a real password until the protected
+systemd credential path is available.
+
+For the transient systemd launcher, place only the approved non-secret
+`INFISICAL_PROJECT_ID`, `INFISICAL_ENVIRONMENT`, and
+`INFISICAL_UNIVERSAL_AUTH_CLIENT_ID` values in
+`/home/anton/corpflow-finance-runtime/config/infisical-runtime.env` (or set
+`INFISICAL_RUNTIME_CONFIG` to an operator-owned equivalent). The launcher
+parses only those three keys and does not source arbitrary shell code. Creating
+or changing that host file, and provisioning the systemd credential, remain
+operator-controlled access/configuration actions.
 
 ### 7. Reconciliation (operator + accountant review)
 

@@ -5,8 +5,10 @@ import process from 'node:process';
 import {
   SBM_GMAIL_QUERY,
   createGmailClient,
+  createRefreshingGmailClient,
   downloadAttachment,
   ingestSbmAttachment,
+  ingestSbmLocalPdf,
   listPdfAttachments,
 } from '../../lib/finance/sbm-email-statement-ingestion.js';
 
@@ -40,15 +42,34 @@ const financeRoot = process.env.FINANCE_ROOT;
 const lookbackDays = Number(arg('--lookback-days', '45'));
 const listOnly = process.argv.includes('--list-only') || process.argv.includes('--dry-run');
 const maxStatementsArg = arg('--max-statements');
+const inputPath = arg('--input');
 
 if (!financeRoot) {
   console.error('FINANCE_ROOT is required');
   process.exitCode = 2;
-} else if (!process.env.SBM_GMAIL_ACCESS_TOKEN) {
-  console.error('SBM_GMAIL_ACCESS_TOKEN is required');
+} else if (inputPath) {
+  const payloadPath = arg('--payload');
+  const payload = payloadPath ? JSON.parse(await fs.readFile(path.resolve(payloadPath), 'utf8')) : undefined;
+  const result = await ingestSbmLocalPdf({
+    inputPath: path.resolve(inputPath),
+    financeRoot,
+    password: process.env.SBM_STATEMENT_PASSWORD,
+    extractStatement: payload ? async () => payload : undefined,
+    dryRun: listOnly,
+  });
+  console.log(JSON.stringify({ result: redactedResult(result) }, null, 2));
+} else if (!process.env.SBM_GMAIL_ACCESS_TOKEN && !process.env.SBM_GMAIL_REFRESH_TOKEN) {
+  console.error('SBM_GMAIL_ACCESS_TOKEN or SBM_GMAIL_REFRESH_TOKEN is required');
   process.exitCode = 2;
 } else {
-  const gmail = createGmailClient({ accessToken: process.env.SBM_GMAIL_ACCESS_TOKEN });
+  const gmail = process.env.SBM_GMAIL_REFRESH_TOKEN
+    ? createRefreshingGmailClient({
+      accessToken: process.env.SBM_GMAIL_ACCESS_TOKEN,
+      refreshToken: process.env.SBM_GMAIL_REFRESH_TOKEN,
+      clientId: process.env.SBM_GMAIL_CLIENT_ID,
+      clientSecret: process.env.SBM_GMAIL_CLIENT_SECRET,
+    })
+    : createGmailClient({ accessToken: process.env.SBM_GMAIL_ACCESS_TOKEN });
   const attachments = await listPdfAttachments({ gmail, lookbackDays });
   const selectedAttachments = maxStatementsArg
     ? attachments.slice(0, positiveInteger(maxStatementsArg, 'MAX_STATEMENTS'))
