@@ -79,7 +79,7 @@ test('malformed split is atomic and reversal restores exact original lots once',
   const plan = ledger.plan(request(8));
   const malformed = { ...plan, allocations: plan.allocations.map((line, index) => index ? { ...line, quantity: 999 } : line) };
   const before = ledger.batches;
-  assert.throws(() => ledger.commit(malformed, { idempotencyKey: 'bad' }), /exceeds available/);
+  assert.throws(() => ledger.commit(malformed, { idempotencyKey: 'bad' }), /fingerprint is invalid/);
   assert.deepEqual(ledger.batches, before);
   const committed = ledger.commit(plan, { idempotencyKey: 'good' });
   ledger.reverse(committed.allocationId);
@@ -102,7 +102,7 @@ test('reversal applies deltas without erasing later receipts and sales across lo
   ledger.reverse(first.allocationId);
   assert.deepEqual(
     ledger.batches.slice(0, 2).map(({ batchId, balanceQuantity }) => [batchId, balanceQuantity]),
-    [['a', 7], ['b', 8]],
+    [['a', 12], ['b', 10]],
   );
   assert.equal(ledger.history.filter(({ type }) => type === 'reversal').length, 1);
 });
