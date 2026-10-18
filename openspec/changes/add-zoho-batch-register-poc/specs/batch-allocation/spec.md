@@ -32,8 +32,8 @@ conflicting payloads.
 #### Scenario: Reversal
 
 - **WHEN** a committed allocation is reversed for the first time
-- **THEN** the exact original lot balances are restored and a second reversal is
-  rejected
+- **THEN** the allocation quantities are returned to the current lot balances,
+  later receipts and sales are preserved, and a second reversal is rejected
 
 ### Requirement: Honest offline demonstration
 
