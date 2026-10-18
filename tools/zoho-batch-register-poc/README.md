@@ -38,16 +38,23 @@ OAuth, POST, PUT, commit, receipt, or reversal writes.
 
 The explicit mapping must name fictional register and movement modules and
 fields for IDs, organization, item, lot, unit, status, expiry, received date,
-verified opening quantity, movement key/type/quantity/date/sequence, and
-optional reversal reference. Lookup normalization is deliberately narrow:
+verified opening quantity, verified `baselineDate` and nonnegative
+`baselineSequence` watermark, movement key/type/quantity/date/sequence, and
+optional reversal reference. A movement must be strictly after its lot's
+verified opening boundary by date and sequence; missing or contradictory
+boundary evidence fails closed. Lookup normalization is deliberately narrow:
 only the documented synthetic fields and units (`each`, `kg`, `g`, `l`, `ml`,
 `box`) are accepted; no Zoho response shape or conversion is guessed. See
 `fixtures/books-records.synthetic.json` for a fully fictional example.
 
-Every requested lot needs an explicit verified opening baseline. A verified
-zero is valid; absent or unverified baseline blocks the preview. The pure
+Every requested lot needs an explicit verified opening baseline and boundary. A
+verified zero is valid; absent or unverified baseline blocks the preview. The
+adapter parses quantities directly into six-place `BigInt` units and keeps
+baseline, reservations, movements, reversals, intermediate balances, and
+aggregates exact until the final displayed totals are converted once. The pure
 replay is `opening + receipts - allocations + full reversal of the original
-allocation delta`; reversal preserves later receipts. Only `available` stock
+allocation delta`; reversal preserves later receipts. Blank status is excluded
+as quarantine, while absent expiry is excluded without being date-parsed. Only `available` stock
 with a future expiry is eligible. The result is marked `synthetic`,
 `connected: false`, and `readOnly: true`, and includes physical/available
 quantities, exclusions, proposed split, shortage, and blockers.
