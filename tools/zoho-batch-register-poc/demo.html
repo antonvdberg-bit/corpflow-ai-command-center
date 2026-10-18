@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Batch register · synthetic Zoho Books proof</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #17211b; background: #eef2ed; }
+    * { box-sizing: border-box; } body { margin: 0; } main { max-width: 980px; margin: auto; padding: 32px 18px 64px; }
+    .hero { padding: 22px 0 28px; } h1, h2, h3, p { margin-top: 0; } h1 { font-size: clamp(2.4rem, 8vw, 5rem); line-height: .95; margin-bottom: 18px; letter-spacing: -.06em; } h2 { margin-bottom: 8px; } h3 { margin-top: 20px; }
+    .lede { max-width: 560px; font-size: 1.15rem; color: #526057; } .eyebrow { color: #277052; font-size: .75rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
+    .banner, .announcement { padding: 11px 14px; border-radius: 10px; font-weight: 650; } .banner { color: #664f05; background: #fff1b5; display: inline-block; } .announcement { min-height: 44px; } .announcement:empty { visibility: hidden; } .success { color: #135c36; background: #d9f2df; } .error { color: #8c2727; background: #ffe0e0; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 18px 0; } .card { background: #fff; border: 1px solid #d9e2d9; border-radius: 18px; padding: 22px; box-shadow: 0 8px 30px #243a2b0b; }
+    .summary { display: flex; justify-content: space-between; gap: 20px; align-items: center; } .summary dl { display: flex; gap: 22px; margin: 0; } dt { color: #647168; font-size: .8rem; } dd { font-size: 1.5rem; font-weight: 750; margin: 4px 0 0; } .muted { color: #647168; }
+    label { display: block; font-size: .85rem; font-weight: 700; margin: 15px 0 6px; } input, select, button { width: 100%; border: 1px solid #b9c8ba; border-radius: 9px; font: inherit; padding: 11px 12px; background: #fff; } button { color: #fff; background: #277052; border-color: #277052; cursor: pointer; font-weight: 700; margin-top: 18px; } button:disabled { cursor: not-allowed; opacity: .45; } button.secondary { width: auto; color: #277052; background: transparent; border-color: #b9c8ba; margin: 0 0 0 8px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: start; gap: 12px; } .history { padding-left: 22px; line-height: 1.8; } .history li { border-bottom: 1px solid #edf1ed; }
+    @media (max-width: 680px) { .grid, .summary { display: block; } .summary dl { margin-top: 22px; } .section-heading { display: block; } button.secondary { margin: 8px 8px 0 0; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header class="hero">
+      <p class="eyebrow">CorpFlowAI inventory proof</p>
+      <h1>Batch register</h1>
+      <p class="lede">FEFO allocation for one product, with receipts, shortages, and reversible history.</p>
+      <p class="banner" role="status">Synthetic data · not connected to Zoho</p>
+    </header>
+    <section class="card summary" aria-labelledby="stock-title">
+      <div>
+        <p class="eyebrow">Synthetic item</p>
+        <h2 id="stock-title">Herbal face serum</h2>
+        <p>SKU CF-SERUM-01 · unit: each</p>
+      </div>
+      <dl>
+        <div><dt>Physical stock</dt><dd id="physical-stock">—</dd></div>
+        <div><dt>Available stock</dt><dd id="available-stock">—</dd></div>
+      </dl>
+    </section>
+    <p id="announcement" class="announcement" role="status" aria-live="polite"></p>
+    <div class="grid">
+      <section class="card" aria-labelledby="receive-title">
+        <p class="eyebrow">Task 01</p>
+        <h2 id="receive-title">Receive stock</h2>
+        <p class="muted">Add units to an existing lot without changing its identity or expiry.</p>
+        <form id="receive-form">
+          <label for="receive-lot">Lot</label>
+          <select id="receive-lot"></select>
+          <label for="receive-quantity">Quantity</label>
+          <input id="receive-quantity" type="number" min="0.000001" step="0.000001" value="2" required>
+          <button type="submit">Record receipt</button>
+        </form>
+      </section>
+      <section class="card" aria-labelledby="allocate-title">
+        <p class="eyebrow">Task 02</p>
+        <h2 id="allocate-title">Allocate stock</h2>
+        <p class="muted">The earliest eligible expiry is suggested first.</p>
+        <form id="allocate-form">
+          <label for="allocate-quantity">Quantity</label>
+          <input id="allocate-quantity" type="number" min="0.000001" step="0.000001" value="8" required>
+          <label for="as-of-date">As-of date</label>
+          <input id="as-of-date" type="date" value="2026-10-18" required>
+          <button type="submit">Review suggested split</button>
+        </form>
+        <div id="allocation-review" hidden>
+          <h3>Suggested split</h3>
+          <ul id="allocation-lines"></ul>
+          <button id="confirm-allocation" type="button">Confirm allocation</button>
+        </div>
+      </section>
+    </div>
+    <section class="card" aria-labelledby="history-title">
+      <div class="section-heading">
+        <div><p class="eyebrow">Audit trail</p><h2 id="history-title">History</h2></div>
+        <div><button id="undo" type="button" class="secondary" disabled>Undo last allocation</button><button id="reset" type="button" class="secondary">Reset demo</button></div>
+      </div>
+      <ol id="history-list" class="history"></ol>
+    </section>
+  </main>
+  <script type="module" src="demo.mjs"></script>
+</body>
+</html>
