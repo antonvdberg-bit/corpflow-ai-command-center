@@ -1,0 +1,19 @@
+Third-party provenance
+======================
+
+This prototype adapts the allocation ordering and split concept from
+InvenTree's SalesOrder.auto_allocate_stock implementation:
+
+  Repository: https://github.com/inventree/InvenTree
+  Commit: 8d496ae3890cc7bad07028950c98220d038ee395
+  Source file: src/backend/InvenTree/order/models.py
+  Source blob: edd84a6a4f0f1660a6d8601f9f9445ec218df188
+
+Only the concept and ordering approach were adapted. No InvenTree source
+code is vendored in this directory. The full MIT notice for the referenced
+project is in vendor/inventree/LICENSE. New ledger validation, version checks,
+idempotency, reversal, and UI code are original prototype code.
+
+Zoho documentation was consulted as integration guidance only:
+https://www.zoho.com/finance/developer/widget-sdk-documentation/books/v1/client-library/events/on_pre_save/
+https://www.zoho.com/books/api/v3/custom-modules/
