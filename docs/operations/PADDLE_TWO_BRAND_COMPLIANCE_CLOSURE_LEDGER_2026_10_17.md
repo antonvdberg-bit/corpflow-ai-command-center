@@ -72,3 +72,28 @@ Executed from connected `2024-LTPAvdBerg` through Desktop Commander, using unaut
 | `https://corpflowai.com/pricing` | 200 | CorpFlowAI price route responds; **not verified buyer-order journey** |
 
 Next acceptance: use existing least-privilege ERPNext integration worker to read back approved document metadata; render existing documents without posting financial entries. Browser login remains fallback. BAD customer charge currency is ZAR only. Current provider documentation does not establish Paddle direct MUR payout; verify payment/bank conversion route before making payout claims.
+
+
+## 18 October — authenticated ERPNext proof and CEO approved BAD direct price baseline
+
+**Supersedes the 17 October unauthenticated-only ERPNext limitation and the prior "BAD rates not approved" blanket statement.** On 17 October local Cursor's existing Playwright Chrome extension succeeded in authenticated ERPNext Desk read-only verification (GitHub #1390 comment 6233536329). After explicit CEO approval, local Cursor created, enabled and read back three existing ERPNext configuration records: `Business Admin Desk ZAR Sales Order` (Print Format), `Business Admin Desk ZAR Sales Invoice` (Print Format), and `ZAR Selling` (Price List); see #1432 comment 6233731427. Existing company default remains MUR, Mauritian legal seller unchanged. No client-ready ZAR print was achieved: there was no BAD Item, ZAR Item Price or ZAR transaction. Do not claim full document acceptance.
+
+**CEO commercial decision 18 October** — recovered 8 October direct-SME schedule adopted, and Annual Return range resolved to **R99**, see #1432 comments 6245413750 and 6245440999. Customer-facing service fees, all **ZAR**, statutory/government fees excluded and separately disclosed:
+
+| Direct BAD service item | Approved ZAR fee |
+| --- | ---: |
+| Simple existing-company entity onboarding | 199 |
+| New standard-company registration plus onboarding, as one bundle | 299 |
+| Annual Return — BO already current, clean case | 99 |
+| Simple Beneficial Ownership filing | 249 |
+| Ordinary director appointment or resignation | 199 |
+| Registered address change | 69 |
+| Share certificate from verified register | 99 |
+| Name reservation | 99 |
+| Financial year-end change | 199 |
+
+Scope/condition: these are fees for ordinary cases only, not a government charge or promise of successful/expedited filings. No extra onboarding charge on top of the new-company combined bundle. Original standalone registration R129 is still only a *historical test candidate*, not an approved SKU. Partner PAYG 20–35% is a *tested pricing architecture*, NOT a universal or approved live partner price list. Monthly capacity/portfolio fees are negotiated, unpriced. Tax/VAT and Paddle processing FX settlement remain finance/provider gates. The 8 October Serah written response approved the measured pilot and approach while flagging final service-time/cost verification; do not misstate that as final independent cost validation. CEO's later exact rates are the current commercial price instruction.
+
+**Immediate ERPNext execution gate:** local Cursor must be explicitly invoked; GitHub handoff does not summon an authenticated laptop agent. Search-before-create nine Item masters under `Business Admin Desk Services`, set only nine approved Item Prices in existing `ZAR Selling`, verify name/item group/price list/currency/amount via authenticated read-back and detect duplicate or inconsistent mapping. This instruction has explicit CEO authorisation in #1432 comment 6245440999, but **no local Cursor pickup or completed write/read-back is yet evidenced**. No customer/order/invoice/payment entry, public publishing, live Paddle onboarding, new secrets or bank mapping is authorised by this record. Subsequent acceptance: safe brand-ZAR Print Format rendering without posting production finance truth, and independently verify public website/policy/merchant-of-record terms and B2B onboarding integration.
+
+**Source preservation:** canonical ERPNext Jinja templates still require export/versioned source. Latest observed source remains live ERPNext plus local evidence, not GitHub. Keep implementation and source recovery together; no claim of repo persistence until verified.
