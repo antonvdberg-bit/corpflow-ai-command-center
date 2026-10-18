@@ -1,0 +1,90 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { previewBooksRecords } from '../tools/zoho-batch-register-poc/books-preview-adapter.mjs';
+
+const map = {
+  register: { module: 'SyntheticLotRegister', fields: {
+    id: 'id', orgId: 'org', itemId: 'item', lotNumber: 'lot', unit: 'unit', status: 'status',
+    expiryDate: 'expiry', baselineQuantity: 'opening', baselineVerified: 'verified', receivedDate: 'received',
+  } },
+  movement: { module: 'SyntheticLotMovement', fields: {
+    id: 'id', orgId: 'org', movementKey: 'key', itemId: 'item', lotNumber: 'lot', unit: 'unit',
+    type: 'type', quantity: 'quantity', date: 'date', sequence: 'sequence', reversalOf: 'reversalOf',
+  } },
+};
+
+const lots = [
+  { id: 'a', org: 'synthetic-org', item: 'synthetic-item', lot: 'A', unit: 'each', status: 'available', expiry: '2026-12-01', opening: 6, verified: true, received: '2026-09-01' },
+  { id: 'b', org: 'synthetic-org', item: 'synthetic-item', lot: 'B', unit: 'each', status: 'available', expiry: '2027-03-01', opening: 10, verified: true, received: '2026-10-01' },
+];
+
+function transport(records = lots, movements = []) {
+  const calls = [];
+  return {
+    calls,
+    async fetchPage(request) {
+      calls.push(request);
+      const source = request.source;
+      const pages = source === 'register' ? [records] : [movements];
+      const index = request.cursor ? 1 : 0;
+      return { records: pages[index] ?? [], hasMore: index === 0 && pages.length > 1, ...(index === 0 && pages.length > 1 ? { nextCursor: 'next' } : {}) };
+    },
+  };
+}
+
+const request = (overrides = {}) => ({
+  transport: transport(), orgId: 'synthetic-org', asOfDate: '2026-10-18',
+  itemId: 'synthetic-item', unit: 'each', quantity: 8, map, ...overrides,
+});
+
+test('adapts paginated synthetic records into an earliest-expiry split', async () => {
+  const result = await previewBooksRecords(request());
+  assert.equal(result.synthetic, true);
+  assert.deepEqual(result.proposedSplit.map(({ lotNumber, quantity }) => [lotNumber, quantity]), [['A', 6], ['B', 2]]);
+  assert.equal(result.physicalQuantity, 16);
+});
+
+test('fetches every page and makes no write call', async () => {
+  const twoPageTransport = transport(lots, []);
+  const original = twoPageTransport.fetchPage;
+  twoPageTransport.fetchPage = async (requestValue) => {
+    if (requestValue.source === 'register' && !requestValue.cursor) {
+      const first = await original(requestValue);
+      return { ...first, records: [lots[0]], hasMore: true, nextCursor: 'register-2' };
+    }
+    if (requestValue.source === 'register') return { records: [lots[1]], hasMore: false };
+    return original(requestValue);
+  };
+  const result = await previewBooksRecords(request({ transport: twoPageTransport }));
+  assert.equal(result.proposedSplit.length, 2);
+  assert.equal(twoPageTransport.calls?.some(({ method }) => method), false);
+});
+
+test('blocks missing baseline, identity mismatch, expired and incompatible stock', async () => {
+  await assert.rejects(() => previewBooksRecords(request({ transport: transport([{ ...lots[0], verified: false }]) })), /opening baseline/);
+  await assert.rejects(() => previewBooksRecords(request({ transport: transport([{ ...lots[0], org: 'other-org' }]) })), /organization mismatch/);
+  await assert.rejects(() => previewBooksRecords(request({ unit: 'pint' })), /unknown or incompatible/);
+  const excluded = await previewBooksRecords(request({ transport: transport([{ ...lots[0], status: 'quarantine', expiry: '2026-10-01' }]), quantity: 1 }));
+  assert.equal(excluded.shortage, 1);
+  assert.equal(excluded.exclusions.length, 1);
+});
+
+test('replays receipt and allocation reversal without mutating input records', async () => {
+  const movements = [
+    { id: 'm1', org: 'synthetic-org', key: 'receipt-1', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'receipt', quantity: 5, date: '2026-10-02', sequence: 1 },
+    { id: 'm2', org: 'synthetic-org', key: 'allocation-1', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'allocation', quantity: 2, date: '2026-10-03', sequence: 2 },
+    { id: 'm3', org: 'synthetic-org', key: 'reversal-1', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'reversal', quantity: 2, date: '2026-10-04', sequence: 3, reversalOf: 'm2' },
+  ];
+  const input = structuredClone(movements);
+  const result = await previewBooksRecords(request({ transport: transport(lots, movements), quantity: 15 }));
+  assert.equal(result.physicalQuantity, 21);
+  assert.deepEqual(movements, input);
+});
+
+test('rejects malformed, future, duplicate-key, dangling and non-allocation reversals', async () => {
+  await assert.rejects(() => previewBooksRecords(request({ transport: { fetchPage: async () => ({ records: [], hasMore: true }) } })), /nextCursor/);
+  const future = [{ id: 'm', org: 'synthetic-org', key: 'k', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'receipt', quantity: 1, date: '2027-01-01', sequence: 1 }];
+  await assert.rejects(() => previewBooksRecords(request({ transport: transport(lots, future) })), /future/);
+  const dangling = [{ id: 'r', org: 'synthetic-org', key: 'r', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'reversal', quantity: 1, date: '2026-10-01', sequence: 1, reversalOf: 'missing' }];
+  await assert.rejects(() => previewBooksRecords(request({ transport: transport(lots, dangling) })), /dangling/);
+});

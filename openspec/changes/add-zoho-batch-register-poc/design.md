@@ -16,11 +16,17 @@ enforcement or locking behavior.
   analytics.
 - Adapt only the FEFO/split idea from the pinned MIT-licensed InvenTree source;
   do not vendor its implementation.
+- Keep the Books-shaped adapter transport-injected and mapping-driven. It
+  normalizes only the synthetic contract, replays immutable fetched records
+  from an explicit verified opening baseline, and delegates final splitting to
+  `core.mjs`.
 
 ## Non-goals
 
 This change does not add Zoho authentication, API calls, persistence, schema,
 reservations outside memory, expiry alerts, or production stock enforcement.
+The adapter does not prove live Zoho response fields, API readback, durable
+concurrency/recovery, or enforcement across alternate write channels.
 
 ## Rollback
 

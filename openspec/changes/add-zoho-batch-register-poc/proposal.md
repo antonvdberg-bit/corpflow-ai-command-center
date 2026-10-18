@@ -12,10 +12,14 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
   reversal flows.
 - Add deterministic Node tests and licensed provenance for the adapted
   allocation concept.
+- Add a dependency-free, read-only adapter for paginated synthetic register
+  and movement records using an explicit mapping and verified opening baseline.
 
 ## Impact
 
 - Affected capability: synthetic batch allocation.
 - Affected code: `tools/zoho-batch-register-poc/` and its focused test.
 - No runtime, dependency, database, environment, deployment, or live Zoho
-  behavior changes.
+  behavior changes. This stage remains synthetic and unconnected; live
+  response mapping, posting authority, durable concurrency/recovery, and
+  all-channel enforcement are not accepted.

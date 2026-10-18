@@ -46,3 +46,35 @@ integration paths and local-only rollback.
 - **WHEN** an operator opens the local demo
 - **THEN** they can receive stock, review and confirm a suggested split, see
   history, undo the last allocation, and reset the in-memory state
+
+### Requirement: Synthetic read-only register adapter
+
+The prototype SHALL adapt fully synthetic paginated register and movement
+records through an injected read-only transport and explicit field map. It
+MUST require verified opening baselines, preserve core quantity precision,
+replay receipts, allocations and supported allocation reversals
+deterministically, and return synthetic physical/available quantities,
+exclusions, proposed splits, shortages, and blockers. It MUST reject
+malformed pagination, duplicate/conflicting identities or keys, invalid
+dates/sequences, incompatible units, dangling or unsupported reversals, and
+negative balances without mutating fetched records.
+
+#### Scenario: Paginated synthetic preview
+
+- **WHEN** a mapped synthetic register has two lots with six and ten units
+  and the request is eight units
+- **THEN** all pages are read and the result proposes six from the earliest
+  expiry and two from the next lot without any write operation
+
+#### Scenario: Missing baseline
+
+- **WHEN** a requested lot has no explicitly verified opening baseline
+- **THEN** the adapter blocks the preview rather than resetting or guessing
+  the opening quantity
+
+#### Scenario: Reversal replay
+
+- **WHEN** an allocation of two follows an opening ten and later receipt of
+  five, then its valid full reversal is read
+- **THEN** the derived balance is fifteen and the later receipt remains
+  represented

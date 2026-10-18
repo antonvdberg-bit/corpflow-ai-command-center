@@ -26,6 +26,38 @@ The planner is also directly usable:
 import { BatchLedger, planAllocation } from './core.mjs';
 ```
 
+## Synthetic Books-record adapter
+
+`previewBooksRecords({ transport, orgId, asOfDate, itemId, unit, quantity, map })`
+is a read-only adapter around `core.mjs`. The caller injects a transport with
+only `fetchPage({ source, module, orgId, page, cursor })`, returning
+`{ records, hasMore, nextCursor }`. The adapter fetches every page, rejects
+loops, duplicate IDs, malformed envelopes, organization/item/unit mismatches,
+future dates, and ambiguous movement sequences. It never performs HTTP,
+OAuth, POST, PUT, commit, receipt, or reversal writes.
+
+The explicit mapping must name fictional register and movement modules and
+fields for IDs, organization, item, lot, unit, status, expiry, received date,
+verified opening quantity, movement key/type/quantity/date/sequence, and
+optional reversal reference. Lookup normalization is deliberately narrow:
+only the documented synthetic fields and units (`each`, `kg`, `g`, `l`, `ml`,
+`box`) are accepted; no Zoho response shape or conversion is guessed. See
+`fixtures/books-records.synthetic.json` for a fully fictional example.
+
+Every requested lot needs an explicit verified opening baseline. A verified
+zero is valid; absent or unverified baseline blocks the preview. The pure
+replay is `opening + receipts - allocations + full reversal of the original
+allocation delta`; reversal preserves later receipts. Only `available` stock
+with a future expiry is eligible. The result is marked `synthetic`,
+`connected: false`, and `readOnly: true`, and includes physical/available
+quantities, exclusions, proposed split, shortage, and blockers.
+
+Status: configured synthetic mapping and mock-verified adapter only; live API
+readback, durable concurrency/recovery, and all-channel enforcement remain
+unverified. This adapter is not operational stock control and has no posting
+authority. Do not describe native record locking, uniqueness, or a re-read
+before write as an atomic multi-lot allocation guarantee.
+
 ## Contract and safety limits
 
 `planAllocation({ itemId, quantity, unit, asOfDate, batches })` validates real

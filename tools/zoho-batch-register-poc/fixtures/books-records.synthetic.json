@@ -1,0 +1,72 @@
+{
+  "map": {
+    "register": {
+      "module": "SyntheticLotRegister",
+      "fields": {
+        "id": "record_id",
+        "orgId": "organization_id",
+        "itemId": "item_code",
+        "lotNumber": "lot_code",
+        "unit": "stock_unit",
+        "status": "availability",
+        "expiryDate": "expires_on",
+        "baselineQuantity": "verified_opening",
+        "baselineVerified": "opening_verified",
+        "receivedDate": "received_on"
+      }
+    },
+    "movement": {
+      "module": "SyntheticLotMovement",
+      "fields": {
+        "id": "record_id",
+        "orgId": "organization_id",
+        "movementKey": "movement_key",
+        "itemId": "item_code",
+        "lotNumber": "lot_code",
+        "unit": "stock_unit",
+        "type": "movement_type",
+        "quantity": "quantity",
+        "date": "movement_date",
+        "sequence": "sequence",
+        "reversalOf": "reverses_record_id"
+      }
+    }
+  },
+  "registerPages": [
+    {
+      "records": [
+        {
+          "record_id": "lot-a",
+          "organization_id": "synthetic-org",
+          "item_code": "synthetic-item",
+          "lot_code": "A",
+          "stock_unit": "each",
+          "availability": "available",
+          "expires_on": "2026-12-01",
+          "verified_opening": 6,
+          "opening_verified": true,
+          "received_on": "2026-09-01"
+        },
+        {
+          "record_id": "lot-b",
+          "organization_id": "synthetic-org",
+          "item_code": "synthetic-item",
+          "lot_code": "B",
+          "stock_unit": "each",
+          "availability": "available",
+          "expires_on": "2027-03-01",
+          "verified_opening": 10,
+          "opening_verified": true,
+          "received_on": "2026-10-01"
+        }
+      ],
+      "hasMore": false
+    }
+  ],
+  "movementPages": [
+    {
+      "records": [],
+      "hasMore": false
+    }
+  ]
+}

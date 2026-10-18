@@ -9,6 +9,10 @@
   forged-plan atomicity, later-movement-preserving reversal, and concurrency
   simulation.
 - [x] 1.5 Record InvenTree provenance and the complete MIT license.
+- [x] 1.6 Add a generic, transport-injected, read-only synthetic Books-record
+  adapter with pagination, mapping, baseline, replay, and blocker checks.
+- [x] 1.7 Add synthetic fixture and adapter regression tests; document the
+  unverified live integration and concurrency boundaries.
 
 ## 2. Verification
 
@@ -16,3 +20,4 @@
 - [ ] 2.2 Run strict OpenSpec validation (OpenSpec CLI unavailable in the
   execution environment).
 - [x] 2.3 Run `git diff --check`.
+- [ ] 2.4 Run strict OpenSpec validation (CLI unavailable in this environment).
