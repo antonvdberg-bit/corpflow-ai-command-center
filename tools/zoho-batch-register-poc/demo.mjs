@@ -32,14 +32,27 @@ function invalidateReview() {
   $('#allocation-review').hidden = true;
 }
 
+function isValidDate(value) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year
+    && date.getUTCMonth() === month - 1
+    && date.getUTCDate() === day;
+}
+
 function render() {
   const batches = ledger.batches;
   const asOfDate = $('#as-of-date').value;
   $('#physical-stock').textContent = `${batches.filter((batch) => batch.itemId === 'serum').reduce((sum, batch) => sum + batch.balanceQuantity, 0)} each`;
-  $('#available-stock').textContent = `${batches
-    .filter((batch) => batch.itemId === 'serum' && batch.status === 'available' && batch.expiryDate && batch.expiryDate > asOfDate)
-    .reduce((sum, batch) => sum + batch.balanceQuantity - batch.reservedQuantity, 0)} each`;
+  $('#available-stock').textContent = isValidDate(asOfDate)
+    ? `${batches
+      .filter((batch) => batch.itemId === 'serum' && batch.status === 'available' && batch.expiryDate && batch.expiryDate > asOfDate)
+      .reduce((sum, batch) => sum + batch.balanceQuantity - batch.reservedQuantity, 0)} each`
+    : '—';
+  const selectedLot = $('#receive-lot').value;
   $('#receive-lot').innerHTML = batches.filter((batch) => batch.itemId === 'serum').map((batch) => `<option value="${batch.batchId}">${batch.lotNumber} · expires ${batch.expiryDate}</option>`).join('');
+  if (batches.some((batch) => batch.batchId === selectedLot)) $('#receive-lot').value = selectedLot;
   const events = ledger.history;
   $('#history-list').innerHTML = events.length
     ? events.map((event) => `<li><strong>${event.type}</strong> — ${event.message || event.allocationId}</li>`).join('')
@@ -91,9 +104,13 @@ $('#allocate-form').addEventListener('submit', (event) => {
   }
 });
 
-for (const selector of ['#allocate-quantity', '#as-of-date']) {
-  $(selector).addEventListener('input', invalidateReview);
-  $(selector).addEventListener('change', invalidateReview);
+$('#allocate-quantity').addEventListener('input', invalidateReview);
+
+for (const eventName of ['input', 'change']) {
+  $('#as-of-date').addEventListener(eventName, () => {
+    invalidateReview();
+    render();
+  });
 }
 
 $('#confirm-allocation').addEventListener('click', () => {
