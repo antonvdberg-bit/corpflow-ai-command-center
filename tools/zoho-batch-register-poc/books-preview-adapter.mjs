@@ -189,7 +189,6 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
       baseline: quantity(read(record, map.register.fields.baselineQuantity, 'register.baselineQuantity'), 'baselineQuantity'),
       reserved: quantity(read(record, map.register.fields.reservedQuantity, 'register.reservedQuantity'), 'reservedQuantity'),
     });
-    if (lots.get(id).reserved > lots.get(id).baseline) fail(`reservedQuantity cannot exceed baselineQuantity for ${identityValue.lotNumber}`);
   }
   const movements = rawMovements.map((record) => normalizeMovement(record, map.movement.fields, asOfDate));
   const keys = new Map();
@@ -206,8 +205,7 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     const lot = [...lots.values()].find((candidate) => candidate.itemId === movement.itemId && candidate.lotNumber === movement.lotNumber);
     if (!lot) fail(`movement does not match requested register identity: ${movement.movementId}`);
     if (movement.unit !== lot.unit) fail(`movement unit mismatch: ${movement.movementId}`);
-    if (movement.date < lot.baselineDate ||
-      (movement.date === lot.baselineDate && movement.sequence <= lot.baselineSequence)) {
+    if (movement.date < lot.baselineDate || movement.sequence <= lot.baselineSequence) {
       fail(`movement is before opening baseline boundary: ${movement.movementId}`);
     }
   }
@@ -217,8 +215,7 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     if (!original) fail(`dangling reversal: ${movement.movementId}`);
     if (original.type !== 'allocation') fail('only allocation reversals are supported');
     if (original.reversalOf) fail('reversal of reversal is not supported');
-    if (movement.date < original.date ||
-      (movement.date === original.date && movement.sequence <= original.sequence)) {
+    if (movement.date < original.date || movement.sequence <= original.sequence) {
       fail('reversal sequence must follow its original movement');
     }
     if (original.itemId !== movement.itemId || original.lotNumber !== movement.lotNumber ||
@@ -243,6 +240,7 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
       if (movement.type === 'reversal') balance += movementsById.get(movement.reversalOf).quantity;
       if (balance < 0n) fail(`negative intermediate balance for ${lot.lotNumber}`);
     }
+    if (lot.reserved > balance) fail(`reservedQuantity cannot exceed current balance for ${lot.lotNumber}`);
     lot.balance = balance;
   }
   const batches = [...lots.values()].map((lot) => ({
@@ -264,3 +262,4 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     blockers: plan.ok ? [] : [plan.message], request: plan.request,
   });
 }
+

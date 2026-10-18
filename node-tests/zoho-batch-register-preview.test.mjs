@@ -2,6 +2,52 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { previewBooksRecords } from '../tools/zoho-batch-register-poc/books-preview-adapter.mjs';
 
+test('rejects old movement sequences even when their dates follow the opening cutoff', async () => {
+  const opening = [{ ...lots[0], baselineSequence: 100 }];
+  const movements = [{
+    id: 'old-sequence', org: 'synthetic-org', key: 'old-sequence', item: 'synthetic-item',
+    lot: 'A', unit: 'each', type: 'receipt', quantity: 5, date: '2026-10-01', sequence: 1,
+  }];
+  await assert.rejects(() => previewBooksRecords(request({
+    transport: transport(opening, movements), quantity: 1,
+  })), /opening baseline boundary/);
+});
+
+test('reserves newly received stock against the replayed current balance', async () => {
+  const opening = [{ ...lots[0], opening: 0, reserved: 5 }];
+  const movements = [{
+    id: 'new-receipt', org: 'synthetic-org', key: 'new-receipt', item: 'synthetic-item',
+    lot: 'A', unit: 'each', type: 'receipt', quantity: 10, date: '2026-10-01', sequence: 1,
+  }];
+  const input = structuredClone({ opening, movements });
+  const result = await previewBooksRecords(request({ transport: transport(opening, movements), quantity: 6 }));
+  assert.equal(result.physicalQuantity, 10);
+  assert.equal(result.availableQuantity, 5);
+  assert.equal(result.shortage, 1);
+  assert.deepEqual({ opening, movements }, input);
+});
+
+test('rejects reservations exceeding the balance after all movements are replayed', async () => {
+  const opening = [{ ...lots[0], opening: 0, reserved: 11 }];
+  const movements = [{
+    id: 'new-receipt', org: 'synthetic-org', key: 'new-receipt', item: 'synthetic-item',
+    lot: 'A', unit: 'each', type: 'receipt', quantity: 10, date: '2026-10-01', sequence: 1,
+  }];
+  await assert.rejects(() => previewBooksRecords(request({
+    transport: transport(opening, movements), quantity: 1,
+  })), /current balance/);
+});
+
+test('rejects a reversal sequence preceding its original despite a later date', async () => {
+  const movements = [
+    { id: 'allocation', org: 'synthetic-org', key: 'allocation', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'allocation', quantity: 2, date: '2026-10-01', sequence: 2 },
+    { id: 'reversal', org: 'synthetic-org', key: 'reversal', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'reversal', quantity: 2, date: '2026-10-02', sequence: 1, reversalOf: 'allocation' },
+  ];
+  await assert.rejects(() => previewBooksRecords(request({
+    transport: transport([lots[0]], movements), quantity: 1,
+  })), /reversal sequence/);
+});
+
 const map = {
   register: { module: 'SyntheticLotRegister', fields: {
     id: 'id', orgId: 'org', itemId: 'item', lotNumber: 'lot', unit: 'unit', status: 'status',
@@ -226,3 +272,4 @@ test('requires explicit opening boundary evidence', async () => {
   delete missingBoundaryMap.register.fields.baselineDate;
   await assert.rejects(() => previewBooksRecords(request({ map: missingBoundaryMap })), /baselineDate/);
 });
+
