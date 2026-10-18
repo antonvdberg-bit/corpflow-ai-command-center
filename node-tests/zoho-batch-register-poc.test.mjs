@@ -89,3 +89,55 @@ test('malformed split is atomic and reversal restores exact original lots once',
   );
   assert.throws(() => ledger.reverse(committed.allocationId), /already reversed/);
 });
+
+test('reversal applies deltas without erasing later receipts and sales across lots', () => {
+  const ledger = new BatchLedger(batches.slice(0, 2).map((batch) => ({ ...batch, balanceQuantity: 10 })));
+  const first = ledger.commit(ledger.plan(request(12)), { idempotencyKey: 'sale-1' });
+  ledger.receive({
+    batchId: 'a', itemId: 'serum', lotNumber: 'A', expiryDate: '2026-12-01',
+    unit: 'each', quantity: 5, idempotencyKey: 'receipt-1',
+  });
+  const laterSale = ledger.commit(ledger.plan(request(3)), { idempotencyKey: 'sale-2' });
+  assert.equal(laterSale.ok, true);
+  ledger.reverse(first.allocationId);
+  assert.deepEqual(
+    ledger.batches.slice(0, 2).map(({ batchId, balanceQuantity }) => [batchId, balanceQuantity]),
+    [['a', 7], ['b', 8]],
+  );
+  assert.equal(ledger.history.filter(({ type }) => type === 'reversal').length, 1);
+});
+
+test('same idempotency key rejects nested payload conflicts but replays exact requests', () => {
+  const ledger = new BatchLedger(batches);
+  const plan = ledger.plan(request(2));
+  const committed = ledger.commit(plan, { idempotencyKey: 'shared-key' });
+  assert.equal(ledger.commit(plan, { idempotencyKey: 'shared-key' }).allocationId, committed.allocationId);
+  const changedQuantity = { ...plan, request: { ...plan.request, quantity: 3 } };
+  assert.throws(() => ledger.commit(changedQuantity, { idempotencyKey: 'shared-key' }), /different payload/);
+  const changedNestedBatch = { ...plan, allocations: [{ ...plan.allocations[0], batchId: 'b' }] };
+  assert.throws(() => ledger.commit(changedNestedBatch, { idempotencyKey: 'shared-key' }), /different payload/);
+  assert.equal(ledger.batches[0].balanceQuantity, 4);
+});
+
+test('forged allocations reject atomically when totals, identity, or eligibility are invalid', () => {
+  const ledger = new BatchLedger(batches);
+  const plan = ledger.plan(request(2));
+  const before = ledger.batches;
+  const forged = { ...plan, allocations: [{ ...plan.allocations[0], quantity: 7 }] };
+  assert.throws(() => ledger.commit(forged, { idempotencyKey: 'forged-total' }), /fingerprint is invalid/);
+  assert.deepEqual(ledger.batches, before);
+  const duplicate = {
+    ...plan,
+    allocations: [plan.allocations[0], { ...plan.allocations[0], quantity: 0.1 }],
+    sourceFingerprint: undefined,
+  };
+  assert.throws(() => ledger.commit(duplicate, { idempotencyKey: 'duplicate-slice' }), /fingerprint is invalid/);
+  assert.deepEqual(ledger.batches, before);
+  const wrongItem = {
+    ...plan,
+    allocations: [{ ...plan.allocations[0], itemId: 'other' }],
+    sourceFingerprint: undefined,
+  };
+  assert.throws(() => ledger.commit(wrongItem, { idempotencyKey: 'wrong-item' }), /fingerprint is invalid/);
+  assert.deepEqual(ledger.batches, before);
+});

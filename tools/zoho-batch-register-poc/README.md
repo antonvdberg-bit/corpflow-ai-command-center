@@ -14,9 +14,11 @@ python3 -m http.server 4173 --directory tools/zoho-batch-register-poc
 ```
 
 Open `http://localhost:4173/demo.html`. The demo has synthetic Lot A (6 units),
-Lot B (10 units with 2 reserved), quarantined stock, another product, and
-undated stock. It demonstrates physical versus available quantity, FEFO
-allocation, receipts, shortages, retained history, reversal, and reset.
+Lot B (10 units with 2 reserved), quarantined stock, an expired lot, an
+undated lot, and another product. Expired, undated, quarantined, reserved, and
+wrong-product quantities are intentionally excluded from the as-of available
+total and FEFO planner. It demonstrates physical versus available quantity,
+FEFO allocation, receipts, shortages, retained history, reversal, and reset.
 
 The planner is also directly usable:
 
@@ -35,10 +37,12 @@ stock. It sorts FEFO, then received date, then batch ID. Shortages do not
 mutate state.
 
 `BatchLedger` adds same-lot receipts without changing identity or expiry,
-revalidates versions and every split before an atomic commit, rejects stale
-plans, detects idempotency payload conflicts, and reverses each allocation
-once while retaining depleted/history records. This is a local atomicity
-simulation, not a claim about Books locking or recovery semantics.
+revalidates the complete request, source fingerprint, lot identity, eligibility,
+versions, and every split before an atomic commit, rejects stale or forged
+plans, detects recursive idempotency payload conflicts, and reverses each
+allocation once by applying quantity deltas to current lots while retaining
+later movements and history. This is a local atomicity simulation, not a claim
+about Books locking or recovery semantics.
 
 ## Provenance and rollback
 
