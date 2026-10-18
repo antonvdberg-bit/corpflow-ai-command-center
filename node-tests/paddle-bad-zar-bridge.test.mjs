@@ -202,3 +202,32 @@ test('non-BAD Paddle events are skipped by the BAD bridge', async () => {
   );
   assert.equal(result.outcome, 'skipped');
 });
+
+test('an unbound ERPNext adapter does not invent records', async () => {
+  const result = await processBadPaddleEvent(completedEvent(), { env: ENV });
+  assert.equal(result.outcome, 'pending_adapter_unbound');
+  assert.equal(result.error, 'ISOLATED_ERPNEXT_ADAPTER_NOT_BOUND');
+});
+
+test('completed replay after refund does not re-release onboarding', async () => {
+  const adapter = createMemoryBadErpnextAdapter();
+  await processBadPaddleEvent(completedEvent(), { adapter, env: ENV });
+  await processBadPaddleEvent(
+    {
+      eventId: 'evt_refund_replay',
+      eventType: 'adjustment.created',
+      data: {
+        id: 'adj_replay',
+        action: 'refund',
+        transactionId: 'txn_bad_1',
+        customData: { brand: 'business_admin_desk', item_code: 'BAD-ONBOARD-EXISTING', correlation_id: 'cfai-bad-corr-0001' },
+      },
+    },
+    { adapter, env: ENV },
+  );
+  const replay = await processBadPaddleEvent(completedEvent({ eventId: 'evt_after_refund' }), { adapter, env: ENV });
+  assert.equal(replay.outcome, 'ignored_after_refund');
+  assert.equal(adapter.orders.length, 1);
+  assert.equal(adapter.onboardings.length, 1);
+  assert.equal(adapter.onboardings[0].status, 'revoked');
+});
