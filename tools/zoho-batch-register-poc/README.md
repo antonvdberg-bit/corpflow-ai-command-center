@@ -60,7 +60,9 @@ before write as an atomic multi-lot allocation guarantee.
 
 ## Contract and safety limits
 
-`planAllocation({ itemId, quantity, unit, asOfDate, batches })` validates real
+The adapter requires an explicit verified opening baseline and reservation quantity,
+replays dated movements in order, and rejects ambiguous or negative intermediate
+balances before calling the core. `planAllocation({ itemId, quantity, unit, asOfDate, batches })` validates real
 Gregorian dates, positive quantities, supported units/statuses, unique batch
 IDs and product/lot identity, nonnegative six-decimal quantities, reservations
 within balance, finite values, and safe scaled-integer bounds. It excludes

@@ -25,9 +25,17 @@ function quantity(value, name) {
   if ((typeof value !== 'number' && typeof value !== 'string') || !/^(?:\d+|\d+\.\d{1,6})$/.test(String(value))) {
     fail(`${name} must be a nonnegative quantity with at most six decimals`);
   }
-  const number = Number(value);
-  if (!Number.isFinite(number)) fail(`${name} must be finite`);
-  return number;
+  const text = String(value);
+  const [whole, fraction = ''] = text.split('.');
+  const scaled = BigInt(whole) * 1000000n + BigInt(fraction.padEnd(6, '0'));
+  if (scaled > (1n << 53n) * 1000000n) fail(`${name} exceeds safe quantity limit`);
+  return Number(scaled) / 1000000;
+}
+
+function exactQuantity(value) {
+  const whole = value / 1000000n;
+  const fraction = String(value % 1000000n).padStart(6, '0').replace(/0+$/, '');
+  return fraction ? `${whole}.${fraction}` : String(whole);
 }
 
 function clone(value) {
@@ -100,7 +108,7 @@ function validateMapping(map) {
   for (const source of ['register', 'movement']) {
     const fields = map[source].fields;
     for (const field of source === 'register'
-      ? ['id', 'orgId', 'itemId', 'lotNumber', 'unit', 'status', 'expiryDate', 'baselineQuantity', 'baselineVerified', 'receivedDate']
+      ? ['id', 'orgId', 'itemId', 'lotNumber', 'unit', 'status', 'expiryDate', 'baselineQuantity', 'baselineVerified', 'receivedDate', 'reservedQuantity']
       : ['id', 'orgId', 'movementKey', 'itemId', 'lotNumber', 'unit', 'type', 'quantity', 'date', 'sequence']) {
       if (!fields?.[field]) fail(`missing required mapping: ${source}.${field}`);
     }
@@ -118,7 +126,9 @@ function normalizeMovement(record, fields, asOfDate) {
   if (result.date > asOfDate) fail('future movement date is not allowed');
   result.sequence = read(record, fields.sequence, 'movement.sequence');
   if (!Number.isInteger(result.sequence) || result.sequence < 1) fail('movement.sequence must be a positive integer');
-  result.reversalOf = fields.reversalOf ? record[fields.reversalOf] : undefined;
+  result.reversalOf = fields.reversalOf
+    ? fields.reversalOf.split('.').reduce((current, key) => current?.[key], record)
+    : undefined;
   if (result.type === 'reversal') required(result.reversalOf, 'movement.reversalOf');
   else if (result.reversalOf !== undefined) fail('reversal reference on non-reversal');
   return result;
@@ -141,7 +151,7 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     if (read(record, map.register.fields.orgId, 'register.orgId') !== orgId) fail(`register organization mismatch: ${id}`);
     const identityValue = identity(record, map.register.fields, 'register');
     if (identityValue.itemId !== itemId || identityValue.unit !== unit) continue;
-    const baselineVerified = record[map.register.fields.baselineVerified] === true;
+    const baselineVerified = read(record, map.register.fields.baselineVerified, 'register.baselineVerified') === true;
     if (!baselineVerified) fail(`missing verified opening baseline for ${identityValue.lotNumber}`);
     if (lots.has(id)) fail(`duplicate register record ID: ${id}`);
     lots.set(id, {
@@ -150,8 +160,10 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
       receivedDate: date(read(record, map.register.fields.receivedDate, 'register.receivedDate'), 'register.receivedDate'),
       status: normalizeStatus(read(record, map.register.fields.status, 'register.status')),
       baseline: quantity(read(record, map.register.fields.baselineQuantity, 'register.baselineQuantity'), 'baselineQuantity'),
+      reserved: quantity(read(record, map.register.fields.reservedQuantity, 'register.reservedQuantity'), 'reservedQuantity'),
       delta: 0,
     });
+    if (lots.get(id).reserved > lots.get(id).baseline) fail(`reservedQuantity cannot exceed baselineQuantity for ${identityValue.lotNumber}`);
   }
   const movements = rawMovements.map((record) => normalizeMovement(record, map.movement.fields, asOfDate));
   const keys = new Map();
@@ -185,19 +197,34 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     const lot = [...lots.values()].find(({ lotNumber }) => lotNumber === movement.lotNumber);
     lot.delta += original.quantity;
   }
+  for (const lot of lots.values()) {
+    let balance = lot.baseline;
+    const related = movements
+      .filter(({ lotNumber }) => lotNumber === lot.lotNumber)
+      .sort((a, b) => a.date.localeCompare(b.date) || a.sequence - b.sequence);
+    for (const movement of related) {
+      if (movement.type === 'receipt') balance += movement.quantity;
+      if (movement.type === 'allocation') balance -= movement.quantity;
+      if (movement.type === 'reversal') balance += movements.find(({ movementId }) => movementId === movement.reversalOf).quantity;
+      if (balance < 0) fail(`negative intermediate balance for ${lot.lotNumber}`);
+    }
+    lot.delta = balance - lot.baseline;
+  }
   const batches = [...lots.values()].map((lot) => ({
     batchId: lot.id, itemId: lot.itemId, lotNumber: lot.lotNumber, unit: lot.unit,
     status: lot.status, expiryDate: date(lot.expiryDate, 'register.expiryDate'),
-    receivedDate: lot.receivedDate, balanceQuantity: lot.baseline + lot.delta, reservedQuantity: 0, version: 1,
+    receivedDate: lot.receivedDate,
+    balanceQuantity: exactQuantity(BigInt(Math.round((lot.baseline + lot.delta) * 1000000))),
+    reservedQuantity: exactQuantity(BigInt(Math.round(lot.reserved * 1000000))), version: 1,
   }));
   if (batches.some(({ balanceQuantity }) => balanceQuantity < 0)) fail('negative resulting balance');
   const plan = planAllocation({ itemId, quantity: required(requestedQuantity, 'quantity'), unit, asOfDate, batches });
   const exclusions = batches.filter((batch) => batch.status !== 'available' || !batch.expiryDate || batch.expiryDate <= asOfDate)
     .map(({ batchId, status, expiryDate }) => ({ batchId, reason: status !== 'available' ? `status:${status}` : `expiry:${expiryDate ?? 'absent'}` }));
   return clone({
-    synthetic: true, connected: false, readOnly: true, physicalQuantity: batches.reduce((sum, batch) => sum + batch.balanceQuantity, 0),
+    synthetic: true, connected: false, readOnly: true, physicalQuantity: batches.reduce((sum, batch) => sum + Number(batch.balanceQuantity), 0),
     availableQuantity: batches.filter(({ status, expiryDate }) => status === 'available' && expiryDate > asOfDate)
-      .reduce((sum, batch) => sum + batch.balanceQuantity, 0),
+      .reduce((sum, batch) => sum + Number(batch.balanceQuantity) - Number(batch.reservedQuantity), 0),
     exclusions, proposedSplit: plan.allocations, shortage: plan.ok ? 0 : plan.unallocatedQuantity,
     blockers: plan.ok ? [] : [plan.message], request: plan.request,
   });

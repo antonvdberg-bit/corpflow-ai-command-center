@@ -5,7 +5,7 @@ import { previewBooksRecords } from '../tools/zoho-batch-register-poc/books-prev
 const map = {
   register: { module: 'SyntheticLotRegister', fields: {
     id: 'id', orgId: 'org', itemId: 'item', lotNumber: 'lot', unit: 'unit', status: 'status',
-    expiryDate: 'expiry', baselineQuantity: 'opening', baselineVerified: 'verified', receivedDate: 'received',
+    expiryDate: 'expiry', baselineQuantity: 'opening', baselineVerified: 'verified', reservedQuantity: 'reserved', receivedDate: 'received',
   } },
   movement: { module: 'SyntheticLotMovement', fields: {
     id: 'id', orgId: 'org', movementKey: 'key', itemId: 'item', lotNumber: 'lot', unit: 'unit',
@@ -14,8 +14,8 @@ const map = {
 };
 
 const lots = [
-  { id: 'a', org: 'synthetic-org', item: 'synthetic-item', lot: 'A', unit: 'each', status: 'available', expiry: '2026-12-01', opening: 6, verified: true, received: '2026-09-01' },
-  { id: 'b', org: 'synthetic-org', item: 'synthetic-item', lot: 'B', unit: 'each', status: 'available', expiry: '2027-03-01', opening: 10, verified: true, received: '2026-10-01' },
+  { id: 'a', org: 'synthetic-org', item: 'synthetic-item', lot: 'A', unit: 'each', status: 'available', expiry: '2026-12-01', opening: 6, reserved: 0, verified: true, received: '2026-09-01' },
+  { id: 'b', org: 'synthetic-org', item: 'synthetic-item', lot: 'B', unit: 'each', status: 'available', expiry: '2027-03-01', opening: 10, reserved: 0, verified: true, received: '2026-10-01' },
 ];
 
 function transport(records = lots, movements = []) {
@@ -87,4 +87,25 @@ test('rejects malformed, future, duplicate-key, dangling and non-allocation reve
   await assert.rejects(() => previewBooksRecords(request({ transport: transport(lots, future) })), /future/);
   const dangling = [{ id: 'r', org: 'synthetic-org', key: 'r', item: 'synthetic-item', lot: 'A', unit: 'each', type: 'reversal', quantity: 1, date: '2026-10-01', sequence: 1, reversalOf: 'missing' }];
   await assert.rejects(() => previewBooksRecords(request({ transport: transport(lots, dangling) })), /dangling/);
+});
+
+test('subtracts explicit reservations and preserves physical quantity', async () => {
+  const reservedLot = [{ ...lots[0], reserved: 5 }];
+  const result = await previewBooksRecords(request({ transport: transport(reservedLot), quantity: 2 }));
+  assert.equal(result.physicalQuantity, 6);
+  assert.equal(result.availableQuantity, 1);
+  assert.equal(result.shortage, 1);
+});
+
+test('keeps decimal movement arithmetic exact', async () => {
+  const fractionalLot = [{ ...lots[0], opening: '0.1', reserved: 0 }];
+  const movements = [{
+    id: 'receipt', org: 'synthetic-org', key: 'receipt', item: 'synthetic-item', lot: 'A',
+    unit: 'each', type: 'receipt', quantity: '0.2', date: '2026-10-02', sequence: 1,
+  }];
+  const result = await previewBooksRecords(request({
+    transport: transport(fractionalLot, movements), quantity: '0.3',
+  }));
+  assert.equal(result.physicalQuantity, 0.3);
+  assert.equal(result.shortage, 0);
 });
