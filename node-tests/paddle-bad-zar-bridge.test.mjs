@@ -7,7 +7,8 @@ import {
   getBadErpnextWriteMode,
   productionErpnextWritesAllowed,
 } from '../lib/server/paddle-sandbox/bad-erpnext-adapter.js';
-import { processBadPaddleEvent, releaseOnboardingWithoutPayment } from '../lib/server/paddle-sandbox/bad-order-bridge.js';
+import { processBadPaddleEvent, processBadPurchaseWithRecovery, releaseOnboardingWithoutPayment } from '../lib/server/paddle-sandbox/bad-order-bridge.js';
+import { createMemoryBadPurchaseOutbox, mergeTransactionPayload } from '../lib/server/paddle-sandbox/bad-purchase-outbox.js';
 import { APPROVED_BAD_ZAR_SERVICES, mapBadZarCatalog } from '../lib/server/paddle-sandbox/bad-zar-catalog.js';
 
 const ENV = Object.fromEntries(
@@ -207,6 +208,41 @@ test('an unbound ERPNext adapter does not invent records', async () => {
   const result = await processBadPaddleEvent(completedEvent(), { env: ENV });
   assert.equal(result.outcome, 'pending_adapter_unbound');
   assert.equal(result.error, 'ISOLATED_ERPNEXT_ADAPTER_NOT_BOUND');
+});
+
+test('refund tombstone is durable without an adapter and later completed is ignored', async () => {
+  const outbox = createMemoryBadPurchaseOutbox();
+  const refund = await processBadPurchaseWithRecovery(
+    {
+      eventId: 'evt_unbound_refund',
+      eventType: 'transaction.updated',
+      occurredAt: '2026-10-18T08:20:00Z',
+      data: {
+        id: 'txn_bad_1',
+        status: 'refunded',
+        customData: { brand: 'business_admin_desk', item_code: 'BAD-ONBOARD-EXISTING', correlation_id: 'cfai-bad-corr-0001' },
+      },
+    },
+    { env: ENV, outbox },
+  );
+  const adapter = createMemoryBadErpnextAdapter();
+  const completed = await processBadPurchaseWithRecovery(completedEvent({ eventId: 'evt_after_unbound' }), {
+    adapter,
+    env: ENV,
+    outbox,
+  });
+  assert.equal(refund.outcome, 'refund_or_adjustment');
+  assert.equal(completed.outcome, 'ignored_after_refund');
+  assert.equal(adapter.orders.length, 0);
+  assert.equal((await outbox.getByTransaction('txn_bad_1')).status, 'refunded');
+});
+
+test('stale applied payload cannot demote a newer refunded transaction', () => {
+  const refunded = mergeTransactionPayload(
+    { status: 'refunded', last_event_time: 200, transaction_id: 'txn_1' },
+    { status: 'applied', last_event_time: 100, transaction_id: 'txn_1' },
+  );
+  assert.equal(refunded.status, 'refunded');
 });
 
 test('completed replay after refund does not re-release onboarding', async () => {
