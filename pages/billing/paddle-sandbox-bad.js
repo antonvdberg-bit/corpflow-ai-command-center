@@ -2,12 +2,8 @@ import Head from 'next/head';
 import { useEffect, useMemo, useState } from 'react';
 
 import { checkoutCustomData, createBadCorrelationId, validateBadCustomerIntake } from '../../lib/server/paddle-sandbox/bad-intake.js';
-import { APPROVED_BAD_ZAR_SERVICES, isPaddleSandboxPriceId } from '../../lib/server/paddle-sandbox/bad-zar-catalog.js';
-
-function priceIdFor(envKey) {
-  const value = String(process.env[envKey] || '').trim();
-  return isPaddleSandboxPriceId(value) ? value : '';
-}
+import { APPROVED_BAD_ZAR_SERVICES } from '../../lib/server/paddle-sandbox/bad-zar-catalog.js';
+import { configuredBadCheckoutServices } from '../../lib/server/paddle-sandbox/bad-checkout-static-prices.js';
 
 export default function PaddleSandboxBadPage() {
   const [paddle, setPaddle] = useState(null);
@@ -22,14 +18,7 @@ export default function PaddleSandboxBadPage() {
     correlation_id: createBadCorrelationId(),
   });
 
-  const services = useMemo(
-    () =>
-      APPROVED_BAD_ZAR_SERVICES.map((row) => ({
-        ...row,
-        paddle_price_id: priceIdFor(row.env_key),
-      })),
-    [],
-  );
+  const services = useMemo(() => configuredBadCheckoutServices(), []);
   const selected = services.find((row) => row.item_code === form.item_code) || services[0];
 
   useEffect(() => {
