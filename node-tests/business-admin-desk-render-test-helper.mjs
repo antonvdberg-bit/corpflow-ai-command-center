@@ -22,7 +22,7 @@ Module._load = function businessAdminDeskModuleLoader(request, parent, isMain) {
 };
 
 require.extensions['.js'] = function businessAdminDeskJsLoader(module, filename) {
-  if (filename.includes(`${join('node_modules')}/`)) {
+  if (filename.replaceAll('\\', '/').includes('/node_modules/')) {
     return originalJsLoader(module, filename);
   }
   const source = readFileSync(filename, 'utf8');
