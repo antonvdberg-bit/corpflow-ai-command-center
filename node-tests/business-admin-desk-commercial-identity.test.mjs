@@ -15,28 +15,38 @@ const LegalFooter = loadComponent('components/BusinessAdminDeskLegalFooter.js');
 const PublicLanding = loadComponent('components/BusinessAdminDeskPublicLanding.js');
 const PartnerLanding = loadComponent('components/BusinessAdminDeskPartnerLanding.js');
 const ServiceLanding = loadComponent('components/BusinessAdminDeskServiceLanding.js');
+const PricingReview = loadComponent('components/BusinessAdminDeskPricingReviewPage.js');
+
+const INTERNAL_OPERATING_TEXT = [
+  /Brand contacts/,
+  /go to Anton/,
+  /Anton, general enquiries/,
+  /Anton, billing\/accounts/,
+  /Anton, customer support/,
+  /Serah, service delivery/,
+  /External inbound delivery/,
+  /Outbound send-as/,
+  /automated support-ticket/,
+  /ERPNext/,
+];
+
+function assertNoInternalOperatingText(html) {
+  for (const pattern of INTERNAL_OPERATING_TEXT) {
+    assert.doesNotMatch(html, pattern);
+  }
+}
 
 test.after(() => restoreJsLoader());
 
-test('review footer renders the service-brand disclosure and working brand contacts', () => {
+test('review footer keeps the service-brand disclosure and a single general enquiry address', () => {
   const html = render(createElement(LegalFooter, { internalReview: true }));
   assert.match(html, /Business Admin Desk is a service brand operated by CorpFlowAI Ltd\./);
   assert.match(html, /Service brand/);
-  assert.match(html, /External inbound delivery is confirmed for info@ only/);
-  assert.match(html, /Outbound send-as and automated support-ticket handling are not verified/);
-  assert.doesNotMatch(html, /ERPNext support\/ticketing/);
-
-  const contacts = [
-    ['info@businessadmindesk.co.za', 'Anton, general enquiries'],
-    ['accounts@businessadmindesk.co.za', 'Anton, billing/accounts'],
-    ['support@businessadmindesk.co.za', 'Anton, customer support'],
-    ['Serah.Fourie@businessadmindesk.co.za', 'Serah, service delivery'],
-  ];
-  for (const [address, role] of contacts) {
-    const escaped = address.replace(/[.]/g, '\\.');
-    assert.match(html, new RegExp(`href="mailto:${escaped}"`));
-    assert.match(html, new RegExp(role.replace(/[/,]/g, '\\$&')));
-  }
+  assert.match(html, /href="mailto:info@businessadmindesk\.co\.za"/);
+  assert.doesNotMatch(html, /mailto:accounts@businessadmindesk\.co\.za/);
+  assert.doesNotMatch(html, /mailto:support@businessadmindesk\.co\.za/);
+  assert.doesNotMatch(html, /mailto:Serah\.Fourie@businessadmindesk\.co\.za/);
+  assertNoInternalOperatingText(html);
 });
 
 test('public footer keeps the approved contact baseline', () => {
@@ -69,7 +79,7 @@ test('contact actions render scoped review/public mailto links with encoded cont
   assert.equal(copied, 'info@businessadmindesk.co.za');
 });
 
-test('all landing variants render review contacts, mailto links and noindex isolation', () => {
+test('review landings use the general enquiry address and hide internal operating text', () => {
   const variants = [
     createElement(PublicLanding, { internalReview: true, videoEmbedUrl: 'https://example.test/review-video' }),
     createElement(PartnerLanding, { internalReview: true }),
@@ -81,17 +91,26 @@ test('all landing variants render review contacts, mailto links and noindex isol
   for (const element of variants) {
     const html = render(element);
     assert.match(html, /Business Admin Desk is a service brand operated by CorpFlowAI Ltd\./);
-    assert.match(html, /External inbound delivery is confirmed for info@ only/);
-    assert.match(html, /href="mailto:info@businessadmindesk\.co\.za"/);
-    assert.match(html, /href="mailto:accounts@businessadmindesk\.co\.za"/);
-    assert.match(html, /href="mailto:support@businessadmindesk\.co\.za"/);
-    assert.match(html, /href="mailto:Serah\.Fourie@businessadmindesk\.co\.za"/);
-    assert.match(html, /Anton, customer support/);
-    assert.doesNotMatch(html, /ERPNext support\/ticketing/);
-    assert.match(html, /mailto:info@businessadmindesk\.co\.za/);
+    assert.match(html, /href="mailto:info@businessadmindesk\.co\.za\?subject=/);
+    assert.doesNotMatch(html, /mailto:accounts@businessadmindesk\.co\.za/);
+    assert.doesNotMatch(html, /mailto:support@businessadmindesk\.co\.za/);
+    assert.doesNotMatch(html, /mailto:Serah\.Fourie@businessadmindesk\.co\.za/);
+    assertNoInternalOperatingText(html);
     assert.match(html, /noindex,nofollow/);
     assert.doesNotMatch(html, /rel="canonical"/);
   }
+});
+
+test('pricing review uses the billing address only in that billing context', () => {
+  const html = render(createElement(PricingReview));
+  assert.match(html, /Billing questions:/);
+  assert.match(html, /href="mailto:accounts@businessadmindesk\.co\.za"/);
+  assert.match(html, /href="mailto:info@businessadmindesk\.co\.za"/);
+  assert.doesNotMatch(html, /mailto:support@businessadmindesk\.co\.za/);
+  assert.doesNotMatch(html, /mailto:Serah\.Fourie@businessadmindesk\.co\.za/);
+  assert.match(html, /Business Admin Desk is a service brand operated by CorpFlowAI Ltd\./);
+  assert.match(html, /noindex,nofollow/);
+  assertNoInternalOperatingText(html);
 });
 
 test('public landing renders indexable metadata and its conditional canonical', () => {

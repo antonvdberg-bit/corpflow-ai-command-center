@@ -18,6 +18,11 @@ Module._load = function businessAdminDeskModuleLoader(request, parent, isMain) {
       return React.createElement(React.Fragment, null, children);
     };
   }
+  if (request === 'next/link') {
+    return function TestLink({ href, children, ...props }) {
+      return React.createElement('a', { href, ...props }, children);
+    };
+  }
   return originalModuleLoad.call(this, request, parent, isMain);
 };
 
