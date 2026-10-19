@@ -4,12 +4,6 @@ import { CF } from './public/corpflow-public-styles.js';
 
 const EMAIL = 'swart829@gmail.com';
 const REVIEW_EMAIL = 'info@businessadmindesk.co.za';
-const REVIEW_CONTACTS = [
-  ['info@businessadmindesk.co.za', 'Anton, general enquiries'],
-  ['accounts@businessadmindesk.co.za', 'Anton, billing/accounts'],
-  ['support@businessadmindesk.co.za', 'Anton, customer support'],
-  ['Serah.Fourie@businessadmindesk.co.za', 'Serah, service delivery'],
-];
 
 function reviewMailto(address) {
   return `mailto:${address}`;
@@ -21,29 +15,9 @@ export default function BusinessAdminDeskLegalFooter({ internalReview = false })
   return (
     <div style={{ marginTop: 18, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.10)' }}>
       {internalReview ? (
-        <>
-          <p style={{ margin: 0, color: CF.textMuted, fontSize: 11.5, lineHeight: 1.55 }}>
-            Business Admin Desk is a service brand operated by CorpFlowAI Ltd.
-          </p>
-          <div style={{ marginTop: 10, padding: 10, border: '1px solid rgba(45,212,191,0.28)', borderRadius: 8 }}>
-            <strong style={{ color: CF.text }}>Brand contacts</strong>
-            <div style={{ marginTop: 6 }}>
-              Customer enquiries, billing and support go to Anton. Service delivery goes to Serah.
-            </div>
-            {REVIEW_CONTACTS.map(([address, role]) => (
-              <div key={address} style={{ marginTop: 4, overflowWrap: 'anywhere' }}>
-                <a href={reviewMailto(address)} style={{ color: CF.link, fontWeight: 700 }}>
-                  {address}
-                </a>
-                {' — '}
-                {role}
-              </div>
-            ))}
-            <div style={{ marginTop: 8 }}>
-              External inbound delivery is confirmed for info@ only. Outbound send-as and automated support-ticket handling are not verified.
-            </div>
-          </div>
-        </>
+        <p style={{ margin: 0, color: CF.textMuted, fontSize: 11.5, lineHeight: 1.55 }}>
+          Business Admin Desk is a service brand operated by CorpFlowAI Ltd.
+        </p>
       ) : (
         <p style={{ margin: 0, color: CF.textMuted, fontSize: 11.5, lineHeight: 1.55 }}>
           Business Admin Desk is a trading name of CorpFlowAI LTD, registered in Mauritius · Company/BRN C25228280

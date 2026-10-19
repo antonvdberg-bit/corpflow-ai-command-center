@@ -126,6 +126,20 @@ The review surface states that automated support-ticket handling is not verified
 
 Next release gate: controller review of the contact-correction PR. Do not merge, and do not publish to https://businessadmindesk.co.za/, without explicit approval. Internal test-surface deployment to https://cipc.corpflowai.com/ stays a separate gate after that review.
 
+## Implementation evidence — contact panel removed
+
+Supersedes the website-presentation statements above that place all four addresses, employee routing, or mail-verification diagnostics on the review pages. The operator routing record in this document stays internal. Anton rejected the visible Brand contacts panel on 19 October 2026.
+
+Customer-facing review presentation:
+
+- General enquiry actions and the legal email line use `mailto:info@businessadmindesk.co.za`.
+- The pricing review page, which is the billing context, uses `mailto:accounts@businessadmindesk.co.za` for billing questions.
+- `support@businessadmindesk.co.za` is reserved for a support context and is not shown on the general pages.
+- `Serah.Fourie@businessadmindesk.co.za` is reserved for a named service-delivery contact and is not shown in the footer or general pages.
+- The service-brand sentence, noindex review policy and public Gmail baseline remain unchanged.
+
+Internal routing, which must not be rendered on the website: `info@`, `accounts@` and `support@` route to Anton; `Serah.Fourie@` routes to Serah. External inbound delivery is confirmed only for `info@`. Send-as and ERPNext support-ticket ingestion are not verified.
+
 ## Implementation evidence — bounded correction
 
 Supersedes only the implementation-state statements above that say the website identity correction is not implemented locally. The canonical legal, commercial, pricing, email-routing, release-gate and public-host restrictions remain unchanged.
