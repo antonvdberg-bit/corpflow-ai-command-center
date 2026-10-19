@@ -18,3 +18,9 @@ New bounded first-release website engagement for BESPOKE HOMES LTD trading as Ra
 
 ## Controls
 No production record write, external send, tax assumption, merge or production deploy is authorised by this documentation alone. This proposed document is subject to normal review/merge governance.
+
+## Execution route when ChatGPT lacks ERPNext connector
+
+Use existing **ERPNext Chat -> Cursor handoff v1** in GitHub issue #1390. Produce an `ERPNext Action Request v1` in GitHub, checking active claims before labelling `dispatch:cursor-ready`; the existing factory dispatches Cursor Cloud to call ERPNext's standard DocType REST API via its approved least-privilege integration identity. Reuse existing API and secret references, never request that Anton open a browser as the default execution path, and never duplicate the integration. Require authenticated ERPNext read-back of all record IDs and quotation draft/print evidence. Existing precedent: OrixHealth action request #1392; ERPNext print rule #1401. Read-only discovery and protected master-data/draft mutation approvals must be distinguished, and final external quotation issue needs Anton review. This reference is mandatory in fresh onboarding sessions.
+
+**Lesson from 19 October 2026:** The controller incorrectly concluded ERPNext was inaccessible because ChatGPT lacked a direct ERPNext tool, despite a proven Cursor integration documented in #1390. Prior browser/manual workaround advice is superseded. Bootstraps should search existing work contracts before declaring access blocked.
