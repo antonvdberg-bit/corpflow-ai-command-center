@@ -107,6 +107,25 @@ Next: bounded website identity/contact correction, read-only mail mapping, then 
 
 Reviewable implementation packet: [identity correction](BUSINESS_ADMIN_DESK_IDENTITY_IMPLEMENTATION_PACKET_V1.md). GitHub disclosure and queueing are approved; merge, DNS/mail configuration and public release still require their exact approvals.
 
+## Implementation evidence — 19 October 2026 contact routing
+
+Supersedes only the email-routing statements above that send `support@` exclusively to ERPNext and that treat all four identities as unverified planned addresses. The service-brand sentence, legal facts, pricing, public-host baseline, noindex review policy and release gates remain unchanged.
+
+Operator report recorded on [#1416](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1416) (19 October 2026): Google Workspace domain `businessadmindesk.co.za` is verified and Gmail is activated. Saved aliases route `info@`, `accounts@` and `support@` to Anton, and `Serah.Fourie@` to Serah. External inbound delivery is confirmed only for `info@`. Inbound delivery for the other three aliases, outbound send-as, SPF/DKIM/DMARC and ERPNext support-ticket ingestion are not verified.
+
+Internal-review presentation now shows those four addresses as `mailto` links:
+
+| Address | Presented role |
+| --- | --- |
+| info@businessadmindesk.co.za | Anton, general enquiries |
+| accounts@businessadmindesk.co.za | Anton, billing/accounts |
+| support@businessadmindesk.co.za | Anton, customer support |
+| Serah.Fourie@businessadmindesk.co.za | Serah, service delivery |
+
+The review surface states that automated support-ticket handling is not verified. It does not describe ERPNext ticket handling as operational. Public rendering with `internalReview` false keeps `swart829@gmail.com`, the existing trading-name sentence, indexable metadata and the public canonical. This evidence does not verify DNS, Workspace, send-as, payment, pricing, legal registration or a live deployment.
+
+Next release gate: controller review of the contact-correction PR. Do not merge, and do not publish to https://businessadmindesk.co.za/, without explicit approval. Internal test-surface deployment to https://cipc.corpflowai.com/ stays a separate gate after that review.
+
 ## Implementation evidence — bounded correction
 
 Supersedes only the implementation-state statements above that say the website identity correction is not implemented locally. The canonical legal, commercial, pricing, email-routing, release-gate and public-host restrictions remain unchanged.
