@@ -136,7 +136,17 @@ Customer-facing review presentation:
 - The pricing review page, which is the billing context, uses `mailto:accounts@businessadmindesk.co.za` for billing questions.
 - `support@businessadmindesk.co.za` is reserved for a support context and is not shown on the general pages.
 - `Serah.Fourie@businessadmindesk.co.za` is reserved for a named service-delivery contact and is not shown in the footer or general pages.
-- The service-brand sentence, noindex review policy and public Gmail baseline remain unchanged.
+- The service-brand sentence and noindex review policy remain unchanged.
+
+## Implementation evidence — public identity promotion
+
+Supersedes the statements above that keep `swart829@gmail.com` or the trading-name sentence on the public Business Admin Desk presentation. Anton accepted https://cipc.corpflowai.com/ and authorised publication to https://businessadmindesk.co.za/ on 19 October 2026.
+
+- Public and review enquiry actions use `mailto:info@businessadmindesk.co.za`.
+- The public footer uses **Business Admin Desk is a service brand operated by CorpFlowAI Ltd.** Registered company details remain in the legal disclosure. The trading-name sentence is removed.
+- `accounts@businessadmindesk.co.za` remains only on the internal pricing review page. That page is not part of this public promotion.
+- Review routes stay `noindex,nofollow` without a public canonical. Public routes stay `index,follow` with their existing canonicals.
+- The rejected contact panel, staff routing and mail-verification diagnostics stay off both presentations. Internal mailbox routing remains in this document only.
 
 Internal routing, which must not be rendered on the website: `info@`, `accounts@` and `support@` route to Anton; `Serah.Fourie@` routes to Serah. External inbound delivery is confirmed only for `info@`. Send-as and ERPNext support-ticket ingestion are not verified.
 
