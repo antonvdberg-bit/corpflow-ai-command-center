@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 
 import { CF, cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
 
-const CONTACT_EMAIL = 'swart829@gmail.com';
-const INTERNAL_REVIEW_CONTACT_EMAIL = 'info@businessadmindesk.co.za';
+const CONTACT_EMAIL = 'info@businessadmindesk.co.za';
 
-function selectContactEmail({ internalReview = false } = {}) {
-  return internalReview ? INTERNAL_REVIEW_CONTACT_EMAIL : CONTACT_EMAIL;
+function selectContactEmail() {
+  return CONTACT_EMAIL;
 }
 
 function buildMailto(subject, body, email = CONTACT_EMAIL) {
@@ -32,10 +31,9 @@ Company name:
 You can reply to me on this email.`,
   compact = false,
   secondary,
-  internalReview = false,
 }) {
   const [copied, setCopied] = useState(false);
-  const contactEmail = selectContactEmail({ internalReview });
+  const contactEmail = selectContactEmail();
   const href = buildMailto(subject, body, contactEmail);
 
   async function copyEmail() {

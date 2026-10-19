@@ -111,7 +111,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
               Independent company-administration support. Not a government or regulatory service, and not a law firm.
             </p>
-            {internalReview ? <BusinessAdminDeskLegalFooter internalReview /> : null}
+            <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
         }
       >
