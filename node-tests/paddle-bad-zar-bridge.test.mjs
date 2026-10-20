@@ -120,6 +120,37 @@ test('verified completed transaction creates one customer, order and onboarding'
   assert.equal(adapter.orders[0].buyer_invoice_created, false);
 });
 
+test('verified BAD address-change purchase links one branded confirmation to the same order', async () => {
+  const adapter = createMemoryBadErpnextAdapter();
+  const event = completedEvent({
+    eventId: 'evt_bad_confirmation',
+    transactionId: 'txn_bad_confirmation',
+    intake: intake({
+      item_code: 'BAD-ADDRESS-CHANGE',
+      correlation_id: 'cfai-bad-confirmation-0001',
+    }),
+  });
+  const first = await processBadPaddleEvent(event, { adapter, env: ENV });
+  const replay = await processBadPaddleEvent({ ...event, eventId: 'evt_bad_confirmation_retry' }, {
+    adapter,
+    env: ENV,
+  });
+
+  assert.equal(first.outcome, 'completed');
+  assert.match(first.confirmation_name, /^OC-SYN-BAD-/);
+  assert.equal(first.confirmation_document_role, 'order_confirmation');
+  assert.match(first.confirmation_html, /Business Admin Desk/);
+  assert.equal(replay.outcome, 'idempotent_reuse');
+  assert.equal(adapter.customers.length, 1);
+  assert.equal(adapter.orders.length, 1);
+  assert.equal(adapter.onboardings.length, 1);
+  assert.equal(adapter.confirmations.length, 1);
+  assert.equal(adapter.confirmations[0].order_name, adapter.orders[0].name);
+  assert.equal(adapter.confirmations[0].paddle_transaction_id, 'txn_bad_confirmation');
+  assert.equal(adapter.invoices.length, 0);
+  assert.equal(adapter.payments.length, 0);
+});
+
 test('failed payment does not release onboarding or create financial demands', async () => {
   const adapter = createMemoryBadErpnextAdapter();
   const result = await processBadPaddleEvent(completedEvent({ eventType: 'transaction.payment_failed', status: 'failed' }), {
