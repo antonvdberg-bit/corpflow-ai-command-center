@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCRIPT = path.join(ROOT, 'scripts', 'check-canonical-context-preflight.mjs');
-const CURRENT_VERSION = '2026-08-13-v1';
+const CURRENT_VERSION = '2026-10-02-v2';
 
 function runPreflight(prBody, createdAt = '2026-08-22T06:26:27Z', prNumber = '1041') {
   return spawnSync(process.execPath, [SCRIPT], {

@@ -2,10 +2,19 @@ import React, { useState } from 'react';
 
 import { CF, cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
 
-const CONTACT_EMAIL = 'swart829@gmail.com';
+const CONTACT_EMAIL = 'info@businessadmindesk.co.za';
 
-function buildMailto(subject, body) {
-  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+function selectContactEmail() {
+  return CONTACT_EMAIL;
+}
+
+function buildMailto(subject, body, email = CONTACT_EMAIL) {
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+async function copyContactEmail(clipboard, email) {
+  await clipboard.writeText(email);
+  return email;
 }
 
 export default function BusinessAdminDeskContactActions({
@@ -24,11 +33,12 @@ You can reply to me on this email.`,
   secondary,
 }) {
   const [copied, setCopied] = useState(false);
-  const href = buildMailto(subject, body);
+  const contactEmail = selectContactEmail();
+  const href = buildMailto(subject, body, contactEmail);
 
   async function copyEmail() {
     try {
-      await navigator.clipboard.writeText(CONTACT_EMAIL);
+      await copyContactEmail(navigator.clipboard, contactEmail);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -73,4 +83,4 @@ You can reply to me on this email.`,
   );
 }
 
-export { CONTACT_EMAIL, buildMailto };
+export { CONTACT_EMAIL, buildMailto, copyContactEmail, selectContactEmail };

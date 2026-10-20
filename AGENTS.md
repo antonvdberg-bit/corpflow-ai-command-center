@@ -25,14 +25,20 @@ Before prioritising, dispatching, reporting progress, changing execution capacit
 
 - `docs/operations/COO_OPERATING_CONSTITUTION.md`
 - `docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`
+- `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`
+- `agent-context/README.md`
 
-The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology.
+For material current/historical claims, also retrieve relevant CURRENT records from the shared Postgres Context / Agent Learning fabric when that service is available.
+
+**15 October 2026 CEO decision:** Autonomous execution is the default for all already-authorised, bounded preparation, read-only evaluation, documentation, branch/code/test/PR work and safe dispatch. Executive intervention is reserved for explicit protected-action gates; preserve original approvals and do not create extra permission loops. See `COO_OPERATING_CONSTITUTION.md` section **CEO-approved autonomous execution default**. A rejected tool operation remains a hard boundary, not an invitation to bypass it.
+
+The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology. **Chat history is discovery context, not organisational truth.**
 
 
-When producing implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise.
+When producing runtime implementation work for this repository, Codex must output a `CODEX_PACKET_V1` only unless explicitly instructed otherwise. The documentation-only controller exception below applies to bounded documentation edits and reviewable PR preparation.
 
 Codex must not:
-- create or claim pull requests
+- create or claim runtime implementation pull requests outside explicitly approved access; documentation-only PR preparation is permitted under the controller exception
 - deploy
 - use, inspect, print, rotate, or modify secrets
 - change production data or schema
@@ -70,6 +76,28 @@ Cursor must:
 - return PR URL, branch, commit SHA, and verification summary
 - stop and report a blocker if scope expands or repository instructions conflict
 
+## Controller work and routing discipline
+
+**Operator decision:** Anton approved this documentation-only exception on 4 October 2026, reaffirming summarisation, task evaluation, learning capture, documentation and routing as a non-negotiable work pattern.
+
+ChatGPT/Codex owns routine work summarisation, task evaluation, evidence review, learning capture, canonical documentation upkeep and work routing. These duties are part of doing the work and closing it out; they must not automatically become separate Cursor implementation packets.
+
+| Work | Default route |
+|---|---|
+| Summarisation, evaluation, evidence review, learning capture, documentation and routing | ChatGPT/Codex directly through authorised tools |
+| Repeated deterministic work with an existing verifier and approved task contract | Existing deterministic automation, then Forge where its contract fits |
+| Bounded software implementation, integration, complex changes or documentation requiring implementation evidence unavailable to the controller | Cursor, with a recorded reason it is needed |
+
+Before any Cursor dispatch, record in the originating work item: the concrete implementation needed, why the controller or existing deterministic/Forge route cannot adequately perform it, allowed files, expected evidence and stop condition. If no implementation need is identified, complete the controller work directly. Lack of controller access is an exact access blocker, not a reason to build another runtime or use Anton as courier.
+
+The controller may make bounded documentation-only edits on a branch, commit them, verify the diff and prepare a reviewable PR. This exception includes operating/agent instructions documenting an explicitly approved decision. It does not authorise inventing policy, changing runtime/configuration, extending Forge contracts, bypassing protected doctrine review, merging, deploying, changing secrets/data/schema, spending or sending externally. Runtime implementation remains under its approved execution rules.
+
+Use the existing organisational closeout contract: what changed, verification, failures/corrections, material learning or NO_MATERIAL_LEARNING, routing implications, durable source and supersession. Dynamic learning belongs in the existing Context / Agent Learning fabric when authorised and available; do not invent a write receipt when it is unavailable. Document any material persistence gap and next owner.
+
+Keep documentation needed for an implementation with that implementation. Do not start a second executor to repeat work already claimed; inspect current evidence, reuse the result, and change ownership only after confirmed release or an authorised controlled handoff. A pause label prevents new activation but does not prove a live run stopped.
+
+This is a documented routing rule, not a new runtime dispatch filter. No automation enforcement or service change is included.
+
 # CorpFlow AI Command Center — agent guide
 
 This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router), **Node** server/API routes, **Prisma** + **Postgres**, CMP/automation under `lib/cmp/` and `lib/automation/`. Ignore the **legacy Python / Antigravity template** section at the bottom unless you are explicitly working in `core/engine/` Python.
@@ -84,7 +112,7 @@ This repository is the **CorpFlow AI Command Center**: **Next.js** (pages router
 
 ### Current delivery reality (orchestration — mandatory)
 
-Before giving CorpFlowAI progress, dispatch, next-action or blocker advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** and current GitHub issue/PR state. Do not rely on remembered/manual-pickup assumptions. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (does not authorize merge, deploy, secrets, payment, schema, or external sends).
+Before giving CorpFlowAI progress, dispatch, next-action, blocker, executor/runtime, or historical-state advice, check **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`**, **`docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`**, relevant shared Postgres Context / Agent Learning records when available, and current GitHub issue/PR state. Do not rely on chat history or remembered/manual-pickup assumptions as authoritative. **DEFAULT DELIVERY POSTURE: MOVE WORK, DO NOT WAIT FOR PICKUP** (does not authorize merge, deploy, secrets, payment, schema, or external sends).
 
 **Do not treat as proof of delivery:** local tests only, CI success alone, merge to `main` alone, or `/api/factory/health` (or other internal endpoints) alone when the work affects **client-visible** URLs or flows. Record **deployment ID**, **deployed commit**, **live URLs tested**, and **Delivery Reality Audit** verdict (**COMPLETE / PARTIAL / FAILED**) per the rules above.
 
@@ -143,6 +171,7 @@ If Git says **`ambiguous argument 'main'`**, a tracked path named **`main`** may
 | **Analytics / Search Console / indexing per surface** | **`docs/execution/ANALYTICS_SEARCH_CONSOLE_INDEXING_CHECKLIST.md`** |
 | **Per-client migration audit (identity, login, marketing, off-laptop)** | **`docs/execution/CURRENT_CLIENT_MIGRATION_AUDIT_TEMPLATE.md`** |
 | **Current delivery reality (orchestration snapshot)** — Cursor automatic primary; Codex human `@codex` once; n8n exception-only; no wait-for-pickup | **`docs/operations/CORPFLOWAI_CURRENT_DELIVERY_REALITY.md`** |
+| **Organisational memory + fresh-agent bootstrap** — chat is discovery-only; durable truth classes; Context/Learning retrieval; promotion/closeout rules; Forge/runtime promotion gate | **`docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`** |
 | **Operator Control Board v1 — priority model (P0/P1/P2/Blocked/Deferred) + active workstream table** — top-level "what matters now / who owns it"; sits above the execution queue, beside #249 | **`docs/operations/CORPFLOW_OPERATOR_CONTROL_BOARD_V1.md`** |
 | **Operator Bridge v1 — coordination protocol (ChatGPT ↔ Anton ↔ Cursor + Codex Cloud)** — coordination issue **#249** | **`docs/operations/OPERATOR_BRIDGE_V1.md`** |
 | **Operator Bridge — day-to-day runbook (how Cursor / Codex Cloud post STATUS to #249)** | **`docs/runbooks/OPERATOR_BRIDGE.md`** |

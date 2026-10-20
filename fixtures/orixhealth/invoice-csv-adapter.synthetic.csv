@@ -1,0 +1,5 @@
+Invoice ID,Customer ID,Invoice Date,Status,Currency,Item ID,Quantity,Line Amount,Invoice Subtotal,Source Record,Line ID
+SYN-INV-100,SYN-CUSTOMER-7,2026-05-01,paid,MUR,"item,blue",2,200.00,250.00,SYN-100-1,SYN-LINE-1
+SYN-INV-100,SYN-CUSTOMER-7,2026-05-01,paid,MUR,item-red,1,50.00,250.00,SYN-100-2,SYN-LINE-2
+SYN-INV-101,"Customer
+Seven",2026-05-15,sent,EUR,item-green,1,50,50,SYN-101-1,SYN-LINE-3

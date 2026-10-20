@@ -699,6 +699,112 @@ model TenantKnowledgeAtom {
   @@map("tenant_knowledge_atoms")
 }
 
+/// Internal relationship/context intelligence. Deliberately separate from
+/// public tenant knowledge atoms and always accessed through factory auth.
+model ClientContextSpace {
+  id                 String   @id @default(cuid())
+  contextKey         String   @unique @map("context_key")
+  displayName        String   @map("display_name")
+  tenantId           String?  @map("tenant_id")
+  primaryGithubIssue Int?     @map("primary_github_issue")
+  externalRef        String?  @map("external_ref")
+  lifecycle          String   @default("prospect")
+  status             String   @default("active")
+  metadataJson       Json?    @map("metadata_json")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  records   ClientContextRecord[]
+  sources   ClientContextSource[]
+  relations ClientContextRelation[] @relation("space_relation")
+
+  @@index([tenantId])
+  @@index([status])
+  @@map("client_context_spaces")
+}
+
+model ClientContextSource {
+  id           String    @id @default(cuid())
+  spaceId      String    @map("space_id")
+  sourceType   String    @map("source_type")
+  label        String
+  location     String?
+  sourceDate   DateTime? @map("source_date")
+  excerpt      String?
+  metadataJson Json?     @map("metadata_json")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  space   ClientContextSpace          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  records ClientContextRecordSource[]
+
+  @@index([spaceId, sourceType])
+  @@map("client_context_sources")
+}
+
+model ClientContextRecord {
+  id             String    @id @default(cuid())
+  spaceId        String    @map("space_id")
+  recordKey      String    @map("record_key")
+  category       String
+  title          String
+  body           String
+  tagsJson       Json?     @map("tags_json")
+  confidence     String    @default("medium")
+  verification   String    @default("unverified")
+  state          String    @default("current")
+  validFrom      DateTime? @map("valid_from")
+  validTo        DateTime? @map("valid_to")
+  supersededById String?   @map("superseded_by_id")
+  sensitivity    String    @default("internal")
+  ownerAuthority String?   @map("owner_authority")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  space         ClientContextSpace          @relation(fields: [spaceId], references: [id], onDelete: Cascade)
+  supersededBy  ClientContextRecord?        @relation("record_supersession", fields: [supersededById], references: [id], onDelete: SetNull)
+  supersedes    ClientContextRecord[]       @relation("record_supersession")
+  sources       ClientContextRecordSource[]
+  relationsFrom ClientContextRelation[]     @relation("record_relation_from")
+  relationsTo   ClientContextRelation[]     @relation("record_relation_to")
+
+  @@unique([spaceId, recordKey], name: "client_context_records_space_key")
+  @@index([spaceId, category, state])
+  @@index([spaceId, verification])
+  @@map("client_context_records")
+}
+
+model ClientContextRecordSource {
+  recordId String  @map("record_id")
+  sourceId String  @map("source_id")
+  claim    String?
+
+  record ClientContextRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  source ClientContextSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@id([recordId, sourceId])
+  @@map("client_context_record_sources")
+}
+
+model ClientContextRelation {
+  id           String   @id @default(cuid())
+  spaceId      String   @map("space_id")
+  fromRecordId String?  @map("from_record_id")
+  toRecordId   String?  @map("to_record_id")
+  relationType String   @map("relation_type")
+  label        String?
+  metadataJson Json?    @map("metadata_json")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  space      ClientContextSpace   @relation("space_relation", fields: [spaceId], references: [id], onDelete: Cascade)
+  fromRecord ClientContextRecord? @relation("record_relation_from", fields: [fromRecordId], references: [id], onDelete: Cascade)
+  toRecord   ClientContextRecord? @relation("record_relation_to", fields: [toRecordId], references: [id], onDelete: Cascade)
+
+  @@index([spaceId, relationType])
+  @@index([fromRecordId])
+  @@index([toRecordId])
+  @@map("client_context_relations")
+}
+
 /// Approved payable (invoice / payment record) — parent of MPGS payment attempts.
 model PaymentRecord {
   id               String           @id @default(cuid())

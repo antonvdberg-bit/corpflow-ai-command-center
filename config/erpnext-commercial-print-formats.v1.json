@@ -1,0 +1,89 @@
+{
+  "schema": "corpflow.erpnext.commercial_print_formats.v1",
+  "issue": 1435,
+  "apply_mode": "operator_controlled_readback_required",
+  "canonical_bank_contract": {
+    "company": "company",
+    "bank": "bank",
+    "is_company_account": "is_company_account",
+    "account": "account",
+    "currency": "Account.account_currency",
+    "bank_account_no": "bank_account_no"
+  },
+  "operator_field_map": {
+    "status": "LIVE_METADATA_CONFIRMED_2026_10_16",
+    "required_before_apply": true,
+    "purpose": "Map each canonical Bank Account semantic to an already-existing live field before any template is applied.",
+    "forbid_new_custom_fields": true,
+    "map": {
+      "company": "company",
+      "bank": "bank",
+      "is_company_account": "is_company_account",
+      "account": "account",
+      "currency": "Account.account_currency",
+      "bank_account_no": "bank_account_no",
+      "account_holder": null,
+      "iban": null,
+      "swift": null
+    }
+  },
+  "international_fields": {
+    "account_holder": "operator-mapped-existing-field",
+    "iban": "operator-mapped-existing-field",
+    "swift": "operator-mapped-existing-field"
+  },
+  "formats": [
+    {
+      "name": "CorpFlowAI Domestic Quotation",
+      "doctype": "Quotation",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-quotation.html"
+    },
+    {
+      "name": "CorpFlowAI International Quotation",
+      "doctype": "Quotation",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-quotation.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Sales Order",
+      "doctype": "Sales Order",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-sales-order.html"
+    },
+    {
+      "name": "CorpFlowAI International Sales Order",
+      "doctype": "Sales Order",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-sales-order.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Deposit Request",
+      "doctype": "Payment Request",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-deposit-request.html"
+    },
+    {
+      "name": "CorpFlowAI International Deposit Request",
+      "doctype": "Payment Request",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-deposit-request.html"
+    },
+    {
+      "name": "CorpFlowAI Domestic Sales Invoice",
+      "doctype": "Sales Invoice",
+      "family": "DOMESTIC",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-domestic-sales-invoice.html"
+    },
+    {
+      "name": "CorpFlowAI International Sales Invoice",
+      "doctype": "Sales Invoice",
+      "family": "INTERNATIONAL",
+      "template": "templates/erpnext/commercial-print-formats/corpflowai-international-sales-invoice.html"
+    }
+  ],
+  "non_actions": [
+    "This manifest does not apply, modify, or delete ERPNext Print Format records.",
+    "No bank-account values, credentials, or client data are stored in this repository."
+  ]
+}

@@ -9,11 +9,41 @@ Purpose: compact, version-controlled operating context for ChatGPT, Cursor, Forg
 - No production deploy, production DB/schema/data mutation, env/secrets/access change, payment, external message/publish, paid tool/vendor, or public launch without explicit Anton approval.
 - Never place secrets, credentials, .env values, payment details or client-private data in prompts, logs, GitHub comments or fixtures.
 
+## Controller work comes before executor dispatch
+
+Routine summarisation, task evaluation, evidence review, learning capture, documentation and work routing are non-negotiable controller duties. ChatGPT/Codex may directly make bounded documentation-only branch edits, verify them and prepare reviewable PRs under the 2026-10-04 operator-approved exception in `AGENTS.md`. Stop before merge and protected actions.
+
+Before dispatching Cursor, record the concrete implementation need and why direct controller work or existing deterministic automation / an approved Forge contract is insufficient. A document, summary, learning note or routing decision alone does not justify a Cursor run. Do not duplicate active executor work; verify release before transferring ownership. Forge remains within its existing approved contracts.
+
 ## Cost-aware routing
 1. Deterministic automation first where sufficient.
 2. Forge for bounded LOW-tier deterministic work.
 3. Cursor for multi-file/schema/integration work.
 4. Higher-cost paths only when justified.
+
+Routing may adapt from verified historical evidence, but may never bypass protected-action approvals. Prefer accepted-output economics (PASS, rework, escalation, elapsed time and cost) over model prestige.
+
+
+### Cursor default execution policy
+
+- Default model: **GPT-5.6 Luna Medium**.
+- Grok High / High Fast: prohibited unless a specific complexity justification is recorded and Anton explicitly approves the exception.
+- No automatic retries; controller evaluates the result before any requeue.
+- No duplicate agents; check active claims, runs, branches and PRs before dispatch.
+- Forge first when an approved bounded contract plus deterministic verifier is sufficient.
+- Cursor packets stay small and bounded, with narrow context and one explicit stop condition.
+- Preserve and repair existing branches/PRs instead of rebuilding paid-for work.
+- No paid capacity, on-demand spend escalation or higher-cost model escalation without Anton approval.
+
+
+### Cross-provider capacity optimisation
+
+- Treat ChatGPT, Cursor and Forge as separately constrained resources; route by verified outcome per unit of provider capacity, cost and executive time.
+- When ChatGPT allowance is low, preserve it for controller/judgment work and move bounded rote extraction/summarisation/transformation to deterministic tools or approved Forge contracts where safe.
+- Do not route client-private/sensitive material to Forge merely to save capacity; exact context and existing security boundaries still apply.
+- Generic PO/document summarisation is not automatically a Forge contract. Use an existing approved contract if it fits; otherwise record the repeated need and approve the smallest bounded extension before use.
+- Do not wait for a provider reset when another authorised executor can safely achieve the same verified result.
+- Provider exhaustion never authorises a paid top-up or plan upgrade without Anton approval.
 
 ## Forge cage
 Forge receives an explicit task contract, exact allowed files/context, a hard timeout and a deterministic verifier. It may not roam the repo, mutate production, change secrets/env/access, merge, deploy, publish or send externally.
@@ -27,5 +57,38 @@ Initial contracts:
 
 Any task outside the contract, or two failed attempts, escalates rather than retrying indefinitely.
 
+## Continuous improvement closeout
+
+Every governed ChatGPT, Cursor and Forge completion must answer:
+- what changed;
+- what was verified;
+- what failed or was corrected;
+- whether a reusable lesson was learned;
+- whether routing should change next time;
+- which durable source was updated;
+- whether an older rule/fact is superseded.
+
+If nothing material was learned, record `NO_MATERIAL_LEARNING`. Do not invent learning merely to populate memory.
+
+Learning states:
+`OBSERVATION -> CANDIDATE -> VERIFIED -> ADOPTED -> SUPERSEDED`.
+
+Only low-risk deterministic learning may auto-promote after repeated evidence. Architecture, security, production, financial policy, commercial decisions and client commitments require review before adoption.
+
+Replay paid-for failures and successful patterns through the organisational regression corpus before promoting material agent/runtime/router changes.
+
 ## Learning
 Static rules belong here in Git. Dynamic experience-derived learnings belong in the shared Postgres learning fabric defined by #1370, with provenance, review state and supersession.
+
+Chat/session history is discovery-only. It must be verified and promoted before becoming organisational truth.
+
+## Source-of-truth and bootstrap
+Chat history is a working/discovery surface, not organisational truth.
+
+Fresh authorised agents must:
+1. read `AGENTS.md`, the current delivery reality, and `docs/operations/ORGANIZATIONAL_MEMORY_AND_AGENT_BOOTSTRAP_V1.md`;
+2. retrieve relevant CURRENT Context / Agent Learning records where available;
+3. refresh GitHub issue / PR / commit / CI state for current delivery claims;
+4. promote material state-changing discoveries out of chat into Git, Postgres Context / Agent Learning, GitHub, or ERPNext as appropriate.
+
+When durable sources conflict, do not silently blend them. Prefer current runtime evidence for runtime state, then current GitHub evidence, then current provenance-backed Context / Agent Learning records, then canonical repo doctrine; mark stale sources for reconciliation.

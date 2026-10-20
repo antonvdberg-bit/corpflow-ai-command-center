@@ -18,6 +18,10 @@ import {
   shouldEmitCompletionEvent,
   shouldNotifyCursorCompletionEvent,
 } from '../lib/server/cursor-agent-lifecycle.js';
+import {
+  selectBusinessActionRecovery,
+  validateBusinessActionResult,
+} from '../lib/server/cursor-business-action-result.js';
 
 describe('cursor-agent-lifecycle', () => {
   it('does not turn a completed provider run without artifacts into PASS', () => {
@@ -30,6 +34,56 @@ describe('cursor-agent-lifecycle', () => {
       verdict: 'COMPLETED_UNVERIFIED',
       reason: 'missing_required_completion_artifacts',
     });
+  });
+
+  it('accepts a correlated valid ERPNext result without PR/SHA', () => {
+    const result = {
+      schema: 'corpflow.erpnext_action_result.v1',
+      source_issue: 1391,
+      cursor_agent_id: 'bc-erpnext',
+      cursor_run_id: 'run-erpnext',
+      action_class: 'supplier_read_back',
+      target_doctypes: ['Supplier'],
+      records_read: [{ name: 'SUP-001' }],
+      records_created: [],
+      records_updated: [],
+      before_after_summary: 'Supplier master read and verified',
+      read_back_verified: true,
+      docstatus_or_draft_state: 'draft',
+      quotation_or_supplier_identifiers: [{ supplier: 'SUP-001' }],
+      protected_actions_not_taken: ['submit', 'external_send'],
+      blocker: null,
+      final_verdict: 'PASS',
+    };
+    assert.equal(
+      classifyCursorTerminalOutcome({
+        workType: 'ERPNext business action',
+        businessActionResult: result,
+        sourceIssue: 1391,
+        cursorAgentId: 'bc-erpnext',
+        cursorRunId: 'run-erpnext',
+      }).verdict,
+      'PASS',
+    );
+    assert.equal(
+      validateBusinessActionResult(result, {
+        sourceIssue: 1391,
+        cursorAgentId: 'bc-erpnext',
+        cursorRunId: 'run-erpnext',
+      }).ok,
+      true,
+    );
+  });
+
+  it('selects read-only recovery rather than replay for unverified business work', () => {
+    const recovery = selectBusinessActionRecovery({
+      providerStatus: 'COMPLETED',
+      workType: 'ERPNext no-code mutation',
+      validation: { ok: false, reason: 'missing_business_action_evidence' },
+    });
+    assert.equal(recovery.selected, true);
+    assert.equal(recovery.mode, 'read_only');
+    assert.match(recovery.prompt, /Do not replay or mutate/);
   });
 
   it('accepts a bounded diagnostic result only when its evidence is preserved', () => {
@@ -279,8 +333,40 @@ describe('cursor-agent-lifecycle', () => {
     assert.equal(done.state.finalResult, null);
     assert.equal(done.state.finalVerdict, 'COMPLETED_UNVERIFIED');
     assert.equal(evidence[0].event.final_verdict, 'COMPLETED_UNVERIFIED');
-    assert.equal(removed.length, 0);
-    assert.ok(done.actions.includes('execution_slot_preserved_for_operator_review'));
+    assert.equal(removed.length, 1);
+    assert.ok(done.actions.includes('execution_slot_released_but_acceptance_blocked'));
+  });
+
+  it('publishes correlated unverified business evidence and releases terminal WIP', async () => {
+    const comments = [];
+    const removed = [];
+    const done = await runCursorAgentLifecycleTick({
+      apiKey: 'test-key',
+      agentId: 'bc-business-missing',
+      sourceIssue: 1392,
+      workType: 'ERPNext business action',
+      fetch: async () => ({
+        ok: true,
+        status: 200,
+        async text() {
+          return JSON.stringify({
+            status: 'COMPLETED',
+            agent: { id: 'bc-business-missing', status: 'COMPLETED' },
+            run: { id: 'run-business-missing', status: 'COMPLETED' },
+          });
+        },
+      }),
+      github: {
+        async createIssueComment(issue, body) { comments.push({ issue, body }); },
+        async upsertCompactLifecycle() {},
+        async addIssueLabels() {},
+        async removeIssueLabels(issue, labels) { removed.push({ issue, labels }); },
+      },
+    });
+    assert.equal(done.event.final_verdict, 'COMPLETED_UNVERIFIED');
+    assert.ok(done.actions.includes('business_action_callback_unverified'));
+    assert.equal(removed.length, 1);
+    assert.match(comments.find((comment) => comment.body.includes('CURSOR BUSINESS ACTION RESULT'))?.body || '', /run-business-missing/);
   });
 
   it('releases terminal work from ready dispatch until an explicit requeue', async () => {

@@ -16,9 +16,9 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service description</h2>
         <p style={ps.p}>
-          {MERCHANT_LEGAL_NAME} provides practical operating help for selected businesses, including the
-          Enquiry Recovery Sprint and bounded website work. Services may include diagnosis, written offers,
-          follow-up visibility, and agreed delivery against existing tools. See the{' '}
+          {MERCHANT_LEGAL_NAME} provides complete configured software and workflow packages for selected businesses,
+          including Lead Rescue, Website Rescue and bounded automation work. Packages may include AI processing,
+          implementation, human verification, testing, acceptance and handover under client control. See the{' '}
           <Link href="/services" style={{ color: '#7dd3fc' }}>
             services page
           </Link>{' '}
@@ -62,10 +62,9 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service fulfilment and delivery</h2>
         <p style={ps.p}>
-          The Enquiry Recovery Sprint is a digital service. There is no physical shipment. A first visible preview
-          is targeted within 72 hours after cleared deposit, required access, and required assets or information —
-          not as an unconditional 72-hour delivery guarantee. Historic USD 150 launch-pilot engagements, if invoiced,
-          remain governed by the invoice issued at the time.
+          Packages are digital services. There is no physical shipment. Delivery timing, access requirements,
+          acceptance criteria and handover are confirmed in the written quote. Historic accepted engagements remain
+          governed by their invoice or agreement.
         </p>
         <p style={ps.p}>
           Full delivery terms:{' '}
@@ -84,8 +83,8 @@ export default function TermsPage() {
         </p>
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
-          Each invoice states the currency charged ({CURRENCY_PRIMARY} or {CURRENCY_SECONDARY} as applicable) before
-          you pay.
+          Each invoice states the currency charged ({CURRENCY_PRIMARY}, {CURRENCY_SECONDARY}, or another approved
+          market currency) before you pay. Rates on the pricing page are selected market prices, not FX conversion.
         </p>
       </section>
       <section style={ps.section}>
