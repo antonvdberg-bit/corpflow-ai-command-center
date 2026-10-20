@@ -62,6 +62,12 @@ export default function BusinessAdminDeskPricingReviewPage() {
             Statutory fees are separate. There are no outcome or authority-turnaround guarantees, no duplicate billing,
             and no automatic partner or portfolio discount.
           </p>
+          <p>
+            Billing questions:{' '}
+            <a href="mailto:accounts@businessadmindesk.co.za" style={linkStyle}>
+              accounts@businessadmindesk.co.za
+            </a>
+          </p>
         </section>
         <section style={panelStyle}>
           <h2>Policy and review links</h2>
