@@ -14,11 +14,9 @@ import GlassPanel from '../components/beauty/GlassPanel.js';
 import HeroGlassBlock from '../components/beauty/HeroGlassBlock.js';
 import { cfBtnPrimary, cfBtnSecondary } from '../components/public/corpflow-public-styles.js';
 import BusinessAdminDeskPricingReviewPage from '../components/BusinessAdminDeskPricingReviewPage.js';
-import {
-  isBusinessAdminDeskPublicHost,
-  isCipcDeskStandingTestHost,
-  normalizeHostname,
-} from '../lib/server/cipc-desk-runtime.js';
+import BusinessAdminDeskPublicPricingPage from '../components/BusinessAdminDeskPublicPricingPage.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { normalizeHostname } from '../lib/server/cipc-desk-runtime.js';
 
 const products = {
   lead: 'Lead Rescue',
@@ -39,8 +37,12 @@ const descriptions = {
 };
 
 export default function PricingPage({ host = '' }) {
-  if (isCipcDeskStandingTestHost(host)) {
+  const surface = resolveBusinessAdminDeskSurface(host);
+  if (surface === 'staging') {
     return <BusinessAdminDeskPricingReviewPage />;
+  }
+  if (surface === 'public') {
+    return <BusinessAdminDeskPublicPricingPage />;
   }
   const [product, setProduct] = useState('');
   const [currency, setCurrency] = useState('');
@@ -205,6 +207,10 @@ export default function PricingPage({ host = '' }) {
               <a href="/refund-policy">Refund / cancellation</a> · <a href="/delivery-policy">Delivery</a> ·{' '}
               <a href="/payment-security">Payment security</a> · <a href="/contact">Contact</a>
             </p>
+            <p>
+              These are CorpFlowAI service prices. Business Admin Desk packages are published separately at{' '}
+              <a href="https://businessadmindesk.co.za/pricing">businessadmindesk.co.za/pricing</a>.
+            </p>
             <h3>Can I see an example?</h3>
             <p>
               <a href="/demo/website-rescue">View the fictional Website Rescue before/after example</a>.
@@ -224,8 +230,5 @@ export default function PricingPage({ host = '' }) {
 
 export function getServerSideProps({ req }) {
   const host = normalizeHostname(req?.headers?.host);
-  if (isBusinessAdminDeskPublicHost(host)) {
-    return { notFound: true };
-  }
   return { props: { host } };
 }

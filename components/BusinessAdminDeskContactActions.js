@@ -30,6 +30,7 @@ Company name:
 
 You can reply to me on this email.`,
   compact = false,
+  priority = true,
   secondary,
 }) {
   const [copied, setCopied] = useState(false);
@@ -51,7 +52,11 @@ You can reply to me on this email.`,
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
         <a
           href={href}
-          style={compact ? { ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' } : cfBtnPrimary}
+          style={
+            compact
+              ? { ...(priority ? cfBtnPrimary : cfBtnSecondary), fontSize: 13, minHeight: 40, padding: '10px 16px' }
+              : (priority ? cfBtnPrimary : cfBtnSecondary)
+          }
         >
           {label}
         </a>

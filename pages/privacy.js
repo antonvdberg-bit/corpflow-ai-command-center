@@ -2,8 +2,26 @@ import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import CustomerServiceContact from '../components/CustomerServiceContact.js';
+import BusinessAdminDeskPolicyPage from '../components/BusinessAdminDeskPolicyPage.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { BAD_PRIVACY_SECTIONS } from '../lib/public/business-admin-desk-policies.js';
 
-export default function PrivacyPage() {
+export default function PrivacyPage({ surface = 'other' }) {
+  if (surface === 'public' || surface === 'staging') {
+    return (
+      <BusinessAdminDeskPolicyPage
+        title="Privacy"
+        description="Privacy notice for the Business Admin Desk website, operated by CorpFlowAI Ltd."
+        path="/privacy"
+        review={surface === 'staging'}
+        sections={BAD_PRIVACY_SECTIONS}
+      />
+    );
+  }
+  return <CorpFlowPrivacyPage />;
+}
+
+function CorpFlowPrivacyPage() {
   return (
     <PublicPolicyLayout title="Privacy Policy">
       <section style={ps.section}>
@@ -11,6 +29,11 @@ export default function PrivacyPage() {
         <p style={ps.p}>
           CorpFlowAI provides AI-assisted workflow setup and monitoring services. This policy describes how we handle
           information collected through our public website, intake forms, and service delivery communications.
+          Business Admin Desk has its own privacy notice at{' '}
+          <a href="https://businessadmindesk.co.za/privacy" style={{ color: '#7dd3fc' }}>
+            businessadmindesk.co.za/privacy
+          </a>
+          .
         </p>
       </section>
       <section style={ps.section}>
@@ -69,4 +92,8 @@ export default function PrivacyPage() {
       </section>
     </PublicPolicyLayout>
   );
+}
+
+export function getServerSideProps({ req }) {
+  return { props: { surface: resolveBusinessAdminDeskSurface(req?.headers?.host) } };
 }
