@@ -7,6 +7,14 @@ The template uses standard customer, address, contact, transaction/delivery
 date, currency, item, tax, total and terms fields. The ERPNext order status is
 shown directly, with a docstatus fallback, so the document cannot silently
 present a cancelled or draft order as accepted.
+
+When the status is neither Draft nor Cancelled, and the order is not
+cancelled, the same print format is the customer **Order Confirmation /
+Accepted Service Offer**. That rendering states that it is not a tax invoice
+and not a payment receipt. Draft and cancelled orders keep the Sales Order
+title. An accepted standard-offer confirmation may stay at `docstatus = 0`
+with status `Accepted`: this packet does not submit the order, issue a buyer
+Sales Invoice, or create a Payment Entry.
 The trading identity is selected automatically from each item's native
 `item_group` ancestry: `CorpFlowAI Services` renders CorpFlowAI and
 `Business Admin Desk Services` renders Business Admin Desk. Mixed roots,
@@ -22,6 +30,11 @@ Application and verification:
 3. Render any existing safe Sales Order through the native ERPNext PDF
    endpoint. Do not create, submit, cancel, amend or delete a record merely
    for visual testing.
+
+Synthetic HTML proof for an accepted standard offer is produced by
+`lib/erpnext/accepted-offer-order-confirmation.js`. That preview is not a PDF.
+Native PDF remains blocked until this Print Format is applied in ERPNext and
+read back through the ERPNext PDF endpoint.
 
 No tax, bank, payment, statutory, or missing-identity content is invented.
 
