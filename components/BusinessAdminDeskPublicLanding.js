@@ -129,7 +129,13 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <BusinessAdminDeskBrand subtitle="Integrated packages · South Africa" priority />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
             <a href="/pricing" style={cfBtnSecondary}>Pricing</a>
-            <BusinessAdminDeskContactActions {...DIRECT_CONTACT} compact internalReview={internalReview} />
+            <BusinessAdminDeskContactActions
+              {...DIRECT_CONTACT}
+              compact
+              priority={false}
+              showHint={false}
+              internalReview={internalReview}
+            />
           </div>
         </nav>
 
