@@ -8,13 +8,17 @@ date, currency, item, tax, total and terms fields. The ERPNext order status is
 shown directly, with a docstatus fallback, so the document cannot silently
 present a cancelled or draft order as accepted.
 
-When the status is neither Draft nor Cancelled, and the order is not
-cancelled, the same print format is the customer **Order Confirmation /
-Accepted Service Offer**. That rendering states that it is not a tax invoice
-and not a payment receipt. Draft and cancelled orders keep the Sales Order
-title. An accepted standard-offer confirmation may stay at `docstatus = 0`
-with status `Accepted`: this packet does not submit the order, issue a buyer
-Sales Invoice, or create a Payment Entry.
+The customer **Order Confirmation / Accepted Service Offer** title is shown only
+when `docstatus = 1` (submitted) and the ERPNext status is a submitted
+fulfilment status (`To Deliver and Bill`, `To Deliver`, `To Bill`,
+`Completed`, or `Accepted`). A draft order (`docstatus = 0`) cannot use that
+title even if the status field says `Accepted`; that combination renders
+`ORDER STATE ERROR / NOT CLIENT-READY`. Cancelled, closed, on-hold, unknown,
+and inconsistent states keep the Sales Order title. The confirmation states
+that it is not a tax invoice and not a payment receipt. Synthetic proof may
+model a submitted Sales Order in memory; this packet still does not write,
+submit, or cancel a live ERPNext order, issue a buyer Sales Invoice, or
+create a Payment Entry.
 The trading identity is selected automatically from each item's native
 `item_group` ancestry: `CorpFlowAI Services` renders CorpFlowAI and
 `Business Admin Desk Services` renders Business Admin Desk. Mixed roots,

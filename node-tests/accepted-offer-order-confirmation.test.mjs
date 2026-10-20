@@ -8,9 +8,11 @@ import {
   BAD_ADDRESS_CHANGE_OFFER,
   createOrderConfirmationLedger,
   DOCUMENT_ROLES,
+  isClientReadyOrderConfirmation,
   issueAcceptedOfferOrderConfirmation,
   orderConfirmationItemGroupParent,
   retrieveOrderConfirmation,
+  SYNTHETIC_SUBMITTED_ORDER_STATUS,
 } from '../lib/erpnext/accepted-offer-order-confirmation.js';
 import { loadCommercialDocumentsConfig } from '../lib/erpnext/commercial-documents.js';
 import { getCatalogueItem } from '../lib/erpnext/product-catalogue.js';
@@ -70,7 +72,10 @@ test('Business Admin Desk accepted address-change renders one branded order conf
   assert.equal(issued.offer.rate, BAD_ADDRESS_CHANGE_OFFER.rate);
   assert.equal(issued.order.currency, 'ZAR');
   assert.equal(issued.order.grand_total, 69);
-  assert.equal(issued.order.docstatus, 0);
+  assert.equal(issued.order.docstatus, 1);
+  assert.equal(issued.order.status, SYNTHETIC_SUBMITTED_ORDER_STATUS);
+  assert.equal(issued.order.acceptance_status, 'accepted');
+  assert.equal(isClientReadyOrderConfirmation(issued.order), true);
   assert.equal(issued.order.buyer_invoice_created, false);
   assert.equal(issued.order.payment_entry_created, false);
   assert.equal(issued.fulfilment.delivery_verified, false);
@@ -98,6 +103,8 @@ test('Business Admin Desk accepted address-change renders one branded order conf
   assert.match(issued.html, new RegExp(issued.fulfilment.name));
   assert.match(issued.html, /Synthetic BAD Address Change \(Pty\) Ltd/);
   assert.match(issued.html, /not a tax invoice and it is not a payment receipt/);
+  assert.match(issued.html, /To Deliver and Bill/);
+  assert.doesNotMatch(issued.html, /ORDER STATE ERROR/);
   assert.doesNotMatch(issued.html, /finance@corpflowai\.com/);
   assert.doesNotMatch(issued.html, /<script>/);
 });
@@ -271,6 +278,116 @@ test('draft print status stays a sales order and customer markup is escaped', ()
   assert.doesNotMatch(draft.html, /<script>/);
   assert.match(template, /Order Confirmation/);
   assert.match(template, /not a tax invoice and it is not a payment receipt/);
+  assert.match(template, /doc\.docstatus == 1 and confirmation_status/);
+});
+
+test('draft Sales Order marked Accepted does not render as customer confirmation', () => {
+  const unsafe = renderProfessionalSalesOrder({
+    name: 'SAL-ORD-SYN-DRAFT-ACCEPTED',
+    customer_name: 'Synthetic Draft Accepted Ltd',
+    status: 'Accepted',
+    docstatus: 0,
+    currency: 'ZAR',
+    transaction_date: '2026-10-20',
+    po_no: 'OFF-SYN-BAD-UNSAFE',
+    items: [
+      {
+        item_name: 'Registered-address change',
+        item_group: 'BAD Administration',
+        qty: 1,
+        uom: 'Nos',
+        rate: 69,
+        amount: 69,
+      },
+    ],
+    taxes: [],
+    total: 69,
+    grand_total: 69,
+  }, { parentOf });
+  assert.equal(isClientReadyOrderConfirmation({ docstatus: 0, status: 'Accepted' }), false);
+  assert.match(unsafe.html, /ORDER STATE ERROR \/ NOT CLIENT-READY/);
+  assert.match(unsafe.html, /Sales Order/);
+  assert.doesNotMatch(unsafe.html, /Accepted Service Offer/);
+  assert.doesNotMatch(unsafe.html, /<div class="subtitle">Order Confirmation<\/div>/);
+});
+
+test('cancelled and unknown submitted states are not accepted confirmations', () => {
+  const cancelled = renderProfessionalSalesOrder({
+    name: 'SAL-ORD-SYN-CANCELLED',
+    customer_name: 'Synthetic Cancelled Ltd',
+    status: 'Cancelled',
+    docstatus: 2,
+    currency: 'ZAR',
+    transaction_date: '2026-10-20',
+    items: [
+      {
+        item_name: 'Registered-address change',
+        item_group: 'BAD Administration',
+        qty: 1,
+        uom: 'Nos',
+        rate: 69,
+        amount: 69,
+      },
+    ],
+    taxes: [],
+    total: 69,
+    grand_total: 69,
+  }, { parentOf });
+  assert.equal(isClientReadyOrderConfirmation({ docstatus: 2, status: 'Cancelled' }), false);
+  assert.match(cancelled.html, /Sales Order/);
+  assert.doesNotMatch(cancelled.html, /Accepted Service Offer/);
+
+  const unknownStatus = renderProfessionalSalesOrder({
+    name: 'SAL-ORD-SYN-UNKNOWN-STATUS',
+    customer_name: 'Synthetic Unknown Status Ltd',
+    status: 'Mystery',
+    docstatus: 1,
+    currency: 'ZAR',
+    transaction_date: '2026-10-20',
+    items: [
+      {
+        item_name: 'Registered-address change',
+        item_group: 'BAD Administration',
+        qty: 1,
+        uom: 'Nos',
+        rate: 69,
+        amount: 69,
+      },
+    ],
+    taxes: [],
+    total: 69,
+    grand_total: 69,
+  }, { parentOf });
+  assert.equal(isClientReadyOrderConfirmation({ docstatus: 1, status: 'Mystery' }), false);
+  assert.doesNotMatch(unknownStatus.html, /Accepted Service Offer/);
+
+  const submitted = renderProfessionalSalesOrder({
+    name: 'SAL-ORD-SYN-SUBMITTED',
+    customer_name: 'Synthetic Submitted Ltd',
+    status: SYNTHETIC_SUBMITTED_ORDER_STATUS,
+    docstatus: 1,
+    currency: 'ZAR',
+    transaction_date: '2026-10-20',
+    items: [
+      {
+        item_name: 'Registered-address change',
+        item_group: 'BAD Administration',
+        qty: 1,
+        uom: 'Nos',
+        rate: 69,
+        amount: 69,
+      },
+    ],
+    taxes: [],
+    total: 69,
+    grand_total: 69,
+  }, { parentOf });
+  assert.equal(isClientReadyOrderConfirmation({
+    docstatus: 1,
+    status: SYNTHETIC_SUBMITTED_ORDER_STATUS,
+  }), true);
+  assert.match(submitted.html, /Accepted Service Offer/);
+  assert.match(submitted.html, /Order Confirmation/);
 });
 
 test('committed synthetic previews match a fresh render', () => {
