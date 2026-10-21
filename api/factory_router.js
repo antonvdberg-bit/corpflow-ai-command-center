@@ -119,6 +119,8 @@ import { adminLeadRescueHandler } from '../lib/server/admin-lead-rescue-api.js';
 import { adminRapidDeliveryHandler } from '../lib/server/admin-rapid-delivery-api.js';
 import paddleSandboxWebhookHandler from '../lib/server/paddle-sandbox/webhook.js';
 import paddleSandboxStatusHandler from '../lib/server/paddle-sandbox/status.js';
+import paddleLiveWebhookHandler from '../lib/server/paddle-live/webhook.js';
+import paddleLiveStatusHandler from '../lib/server/paddle-live/status.js';
 import { preserveFactoryRequestBody } from '../lib/server/factory-request-body.js';
 import { recordTrustedAutomationEvent } from '../lib/automation/internal.js';
 import { emitLogicFailure } from '../lib/cmp/_lib/telemetry.js';
@@ -1085,6 +1087,12 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'paddle/status') {
     return paddleSandboxStatusHandler(req, res);
+  }
+  if (pathSeg === 'paddle/live/webhook') {
+    return paddleLiveWebhookHandler(req, res);
+  }
+  if (pathSeg === 'paddle/live/status') {
+    return paddleLiveStatusHandler(req, res);
   }
   if (pathSeg === 'factory/payments/mpgs/hosted-checkout/create') {
     return handleMpgsHostedCheckoutCreate(req, res);
