@@ -22,6 +22,15 @@ const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
 
 const RETIRED = /85,?000|three Lead Rescue clients|Maximum three clients|72-hour preview/i;
 
+test('public header and footer identify the software company without the retired offer', () => {
+  const header = read('components/public/CorpFlowPublicHeader.js');
+  const footer = read('components/public/CorpFlowPublicFooter.js');
+  assert.match(header, /Software and workflow automation/);
+  assert.match(footer, /software and workflow automation company/);
+  assert.match(footer, /Not a generic AI vendor/);
+  assert.doesNotMatch(footer, /operates managed delivery|Maximum three clients|85,?000/);
+});
+
 test('homepage identity, current price and diagnosis CTA do not use the retired offer', () => {
   const home = read('components/CorpFlowPublicHome.js');
   assert.match(home, /software and workflow automation/);
