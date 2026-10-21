@@ -31,7 +31,7 @@ const PARTNER_CONTACT = {
   subject: 'Business Admin Desk - White-label / fractional support',
   body: `Hi Business Admin Desk,
 
-We are looking for additional company-administration capacity.
+We are looking for published company-administration packages behind our firm.
 
 Our business / firm:
 
@@ -103,12 +103,12 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           }
           title={
             <h1 style={{ margin: '0 0 12px', fontSize: 'clamp(34px, 6vw, 52px)', lineHeight: 1.05, color: CF.text, maxWidth: 820 }}>
-              Specialist company-administration capacity behind your firm.
+              Offer published packages behind your firm.
             </h1>
           }
           lead={
             <p style={{ ...cfLead, marginBottom: 0, maxWidth: 800 }}>
-              Add white-label or fractional capacity for the same integrated, software-managed company-administration packages, while your firm keeps the client relationship. Partner rates are confirmed in writing. Online checkout is not open on this website.
+              Use the same published, software-managed company-administration packages behind your firm’s name, while you keep the client relationship. Partner rates are confirmed in writing. Online checkout is not open on this website.
             </p>
           }
           actions={
@@ -124,15 +124,15 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
 
         <section style={cfSection} aria-labelledby="partner-video-title">
           <p style={cfKicker}>A quick introduction</p>
-          <h2 id="partner-video-title" style={cfH2}>Specialist support behind your firm</h2>
+          <h2 id="partner-video-title" style={cfH2}>Published packages behind your firm</h2>
           <p style={{ ...cfBody, maxWidth: 780, marginBottom: 16 }}>
-            See how Business Admin Desk can provide white-label or fractional company-administration capacity while your firm keeps the client relationship.
+            See how Business Admin Desk packages can sit behind your firm while you keep the client relationship.
           </p>
           <GlassPanel variant={{ padding: 10, elevation: 2 }}>
             <div style={{ position: 'relative', width: '100%', aspectRatio: '16 / 9', overflow: 'hidden', borderRadius: 16, background: '#020817' }}>
               <iframe
                 src={PARTNER_VIDEO_EMBED_URL}
-                title="Specialist support behind your firm"
+                title="Published packages behind your firm"
                 loading="lazy"
                 allow="encrypted-media; fullscreen"
                 allowFullScreen
@@ -148,12 +148,12 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
 
         <section style={cfSection} aria-labelledby="partner-fit-title">
           <p style={cfKicker}>Who this is for</p>
-          <h2 id="partner-fit-title" style={cfH2}>Capacity for firms that already have the clients</h2>
+          <h2 id="partner-fit-title" style={cfH2}>For firms that already have the clients</h2>
           <GlassCardGrid minColWidth={280} style={{ marginTop: 16 }}>
             {[
-              ['Accounting and tax firms', 'Add company-administration capacity when client needs extend beyond the work your core team wants to carry.'],
-              ['Advisory and professional-service firms', 'Keep the client relationship while specialist administration is handled behind your service.'],
-              ['Internal company teams', 'Use fractional capacity when workload spikes or specialist administration does not justify a permanent role.'],
+              ['Accounting and tax firms', 'Add published company-administration packages when client needs extend beyond the work your core team wants to carry.'],
+              ['Advisory and professional-service firms', 'Keep the client relationship while the published packages sit behind your service.'],
+              ['Internal company teams', 'Use the same published packages when company-administration work spikes or is outside the team’s usual scope.'],
             ].map(([title, detail]) => (
               <GlassPanel key={title} as="article" variant={{ padding: 22, elevation: 1 }}>
                 <h3 style={{ margin: '0 0 8px', color: CF.text, fontSize: 17 }}>{title}</h3>
@@ -199,12 +199,12 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
 
         <section style={cfSection} aria-labelledby="partner-method-title">
           <p style={cfKicker}>How it works</p>
-          <h2 id="partner-method-title" style={cfH2}>Use us as overflow, fractional or white-label capacity</h2>
+          <h2 id="partner-method-title" style={cfH2}>White-label use of the published packages</h2>
           <GlassCardGrid minColWidth={220} style={{ marginTop: 16 }}>
             {[
               ['1', 'Send the matter or workload', 'Refer one matter, a backlog, or an ongoing category of work.'],
-              ['2', 'Agree the operating boundary', 'We confirm scope, presentation, client-contact rules and evidence expectations before work begins.'],
-              ['3', 'We work behind your chosen model', 'Delivery can sit behind your firm, support your internal team, or use a named specialist where you prefer.'],
+              ['2', 'Agree the operating boundary', 'We confirm the package, presentation, client-contact rules and evidence expectations before work begins.'],
+              ['3', 'The package runs behind your firm', 'The software-managed workflow sits behind your chosen presentation. Status stays visible to your firm.'],
               ['4', 'You keep the relationship', 'Status and completion evidence return to your firm in the agreed format.'],
             ].map(([n, title, detail]) => (
               <GlassPanel key={n} as="article" variant={{ padding: 20, elevation: 1 }}>
@@ -236,9 +236,9 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
             }}
           >
             <p style={cfKicker}>Next step</p>
-            <h2 id="partner-cta-title" style={cfH2}>Tell us where your team needs capacity</h2>
+            <h2 id="partner-cta-title" style={cfH2}>Tell us which packages you want behind your firm</h2>
             <p style={{ ...cfBody, maxWidth: 760 }}>
-              A short description of the workload, client volume or service gap is enough to start. We will confirm whether the fit is sensible and how the support could operate behind your business.
+              A short description of the workload, client volume or service gap is enough to start. We will confirm whether a published package fits and how it would sit behind your business.
             </p>
             <BusinessAdminDeskContactActions {...PARTNER_CONTACT} internalReview={internalReview} />
           </GlassPanel>

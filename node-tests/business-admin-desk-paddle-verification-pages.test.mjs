@@ -3,6 +3,7 @@ import test from 'node:test';
 
 import {
   BAD_CHECKOUT_NOTE,
+  BAD_PACKAGE_MODEL_NOTE,
   BAD_STATUTORY_FEE_NOTE,
   BUSINESS_ADMIN_DESK_PACKAGES,
   formatZarServiceFee,
@@ -49,6 +50,8 @@ test('approved Business Admin Desk fees stay the nine one-time ZAR packages', ()
   assert.equal(formatZarServiceFee(69), 'ZAR 69');
   assert.match(BAD_STATUTORY_FEE_NOTE, /Government and statutory fees are charged separately/);
   assert.match(BAD_CHECKOUT_NOTE, /Online checkout is not available/);
+  assert.match(BAD_PACKAGE_MODEL_NOTE, /software-managed company-administration workflow/);
+  assert.doesNotMatch(BAD_PACKAGE_MODEL_NOTE, /human execution|human intervention|labour menu/i);
   assert.match(BAD_POLICY_OPERATOR_SENTENCE, /operated by CorpFlowAI Ltd/);
   assert.equal(BAD_PENDING_DECISIONS.length >= 4, true);
   assert.match(BAD_PENDING_APPROVAL_HEADING, /Requires commercial or legal approval/);
@@ -77,6 +80,8 @@ test('public pricing page lists every approved fee and does not open checkout', 
   assert.match(html, /mailto:info@businessadmindesk\.co\.za/);
   assert.doesNotMatch(html, /mailto:accounts@businessadmindesk\.co\.za/);
   assertNoCheckoutCta(html);
+  assert.match(html, /software-managed company-administration workflow/);
+  assert.doesNotMatch(html, /human execution|human intervention|labour menu/i);
   for (const [code, amount] of APPROVED_FEES) {
     assert.match(html, new RegExp(code));
     assert.match(html, new RegExp(`ZAR ${amount}`));
@@ -110,6 +115,7 @@ test('Business Admin Desk policy pages are brand-specific and do not invent refu
     assert.match(pub, /index,follow/);
     assert.match(pub, new RegExp(`rel="canonical" href="https://businessadmindesk\\.co\\.za${path}"`));
     assert.match(pub, /Requires commercial or legal approval/);
+    assert.doesNotMatch(pub, /human execution|human intervention|labour menu|staffing arrangements/i);
     assert.doesNotMatch(pub, /Lead Rescue|Website Rescue|7-day|14-day|cooling-off period of/i);
     assert.match(staging, /noindex,nofollow/);
     assert.doesNotMatch(staging, /rel="canonical"/);
