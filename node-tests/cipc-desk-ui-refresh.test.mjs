@@ -58,12 +58,15 @@ test('public Business Admin Desk landing is concise, video-first and serves dire
   assert.match(landing, /BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL\s*=\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
   assert.doesNotMatch(landing, /24cebb01a1b240158c77771c103542da/);
   assert.match(landing, /Business Admin Desk — Clear Company Administration/);
-  assert.match(landing, /You run the business\. We help with the administration\./);
+  assert.match(landing, /Company administration, managed as one process\./);
+  assert.match(landing, /defined, software-managed company-administration packages/);
   assert.match(landing, /For individual businesses/);
   assert.match(landing, /For companies and service providers/);
-  assert.match(landing, /White-label or fractional admin capacity/);
+  assert.match(landing, /White-label packages behind your firm/);
   assert.match(landing, /Discuss white-label \/ fractional support/);
-  assert.match(landing, /Tell us what you need help with/);
+  assert.match(landing, /See package prices/);
+  assert.match(landing, /fully automated filing are not live/);
+  assert.doesNotMatch(landing, /human execution|human intervention|human checks|labour menu|staffing/i);
   assert.match(landing, /index,follow/);
   assert.match(landing, /businessadmindesk\.co\.za/);
   assert.doesNotMatch(landing, /\bCIPC\b/i);
@@ -90,7 +93,7 @@ test('Business Admin Desk CTA is email-primary with a low-friction webmail fallb
   assert.match(actions, /Opens an email with a short starter message/);
   assert.match(actions, /Prefer webmail/);
   assert.match(actions, /Copy our email address/);
-  assert.match(landing, /Tell us what's going on/);
+  assert.match(landing, /Ask about a package/);
   assert.match(service, /Ask us about your Annual Returns/);
   assert.match(service, /Tell us about the director change/);
   assert.match(service, /Ask us about your ownership filing/);
@@ -147,7 +150,7 @@ test('Business Admin Desk staging provides simple navigation and compact legal i
 test('partner candidate embeds a valid HeyGen explainer without pinning a historical asset id', () => {
   const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
   assert.match(partner, /PARTNER_VIDEO_EMBED_URL\s*=\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
-  assert.match(partner, /Specialist support behind your firm/);
+  assert.match(partner, /Published packages behind your firm/);
   assert.match(partner, /BusinessAdminDeskContactActions/);
   assert.doesNotMatch(partner, /818e433a2a7542ffbf6e72e917c78779/);
 });
@@ -166,8 +169,8 @@ test('service-page candidate pattern is concise, regulator-neutral and review-ca
 
 test('partner candidate is concise, white-label focused and regulator-neutral', () => {
   const partner = readFileSync(join(root, 'components/BusinessAdminDeskPartnerLanding.js'), 'utf8');
-  assert.match(partner, /Specialist company-administration capacity behind your firm/);
-  assert.match(partner, /white-label or fractional capacity/i);
+  assert.match(partner, /Offer published packages behind your firm/);
+  assert.match(partner, /White-label use of the published packages/);
   assert.match(partner, /Accounting and tax firms/);
   assert.match(partner, /professional-service firms/i);
   assert.match(partner, /internalReview/);

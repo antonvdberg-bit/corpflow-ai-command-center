@@ -4,6 +4,7 @@ import { CF } from './public/corpflow-public-styles.js';
 
 const items = [
   ['Home', '/'],
+  ['Pricing', '/pricing'],
   ['Annual Returns', '/annual-returns'],
   ['Director Changes', '/director-changes'],
   ['Beneficial Ownership', '/beneficial-ownership'],

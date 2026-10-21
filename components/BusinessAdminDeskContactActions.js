@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 
 import { CF, cfBtnPrimary, cfBtnSecondary } from './public/corpflow-public-styles.js';
 
-const CONTACT_EMAIL = 'swart829@gmail.com';
-const INTERNAL_REVIEW_CONTACT_EMAIL = 'info@businessadmindesk.co.za';
+const CONTACT_EMAIL = 'info@businessadmindesk.co.za';
 
-function selectContactEmail({ internalReview = false } = {}) {
-  return internalReview ? INTERNAL_REVIEW_CONTACT_EMAIL : CONTACT_EMAIL;
+function selectContactEmail() {
+  return CONTACT_EMAIL;
 }
 
 function buildMailto(subject, body, email = CONTACT_EMAIL) {
@@ -31,11 +30,12 @@ Company name:
 
 You can reply to me on this email.`,
   compact = false,
+  priority = true,
+  showHint = true,
   secondary,
-  internalReview = false,
 }) {
   const [copied, setCopied] = useState(false);
-  const contactEmail = selectContactEmail({ internalReview });
+  const contactEmail = selectContactEmail();
   const href = buildMailto(subject, body, contactEmail);
 
   async function copyEmail() {
@@ -53,13 +53,17 @@ You can reply to me on this email.`,
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
         <a
           href={href}
-          style={compact ? { ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' } : cfBtnPrimary}
+          style={
+            compact
+              ? { ...(priority ? cfBtnPrimary : cfBtnSecondary), fontSize: 13, minHeight: 40, padding: '10px 16px' }
+              : (priority ? cfBtnPrimary : cfBtnSecondary)
+          }
         >
           {label}
         </a>
         {secondary || null}
       </div>
-      <p style={{ margin: '9px 0 0', color: CF.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>
+      {showHint ? <p style={{ margin: '9px 0 0', color: CF.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>
         Opens an email with a short starter message. Prefer webmail?{' '}
         <button
           type="button"
@@ -80,7 +84,7 @@ You can reply to me on this email.`,
           {copied ? 'Email address copied' : 'Copy our email address'}
         </button>
         .
-      </p>
+      </p> : null}
     </div>
   );
 }

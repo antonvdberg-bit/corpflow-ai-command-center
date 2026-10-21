@@ -73,11 +73,12 @@ describe('Revenue offer pages — required commercial copy', () => {
     const offer = getRapidDeliveryOffer(slug);
     assert.ok(offer, `offer config missing for ${slug}`);
 
-    it(`${slug} includes price, timeline, deposit, and discovery CTA strings`, () => {
+    it(`${slug} includes price, scope-confirmation, and discovery CTA strings`, () => {
       const combined = JSON.stringify(offer) + COMPONENT + OFFER_LIB;
       assert.ok(combined.includes(String(offer.startingPriceMur)), 'starting price missing');
-      assert.ok(/24–72|24-72/i.test(combined), '24-72 hour timeline language missing');
-      assert.ok(/deposit/i.test(combined), 'deposit language missing');
+      assert.ok(/delivery timing is confirmed individually|scope, access, assets and acceptance/i.test(combined), 'scope-confirmed timing language missing');
+      assert.ok(/written quote|payment terms/i.test(combined), 'written payment terms language missing');
+      assert.ok(!/72-hour|24–72|24-72/i.test(combined), 'retired sprint timing language returned');
       assert.ok(
         combined.includes('Request discovery') || combined.includes('Request Discovery Call'),
         'discovery CTA label missing',
@@ -166,7 +167,7 @@ describe('Revenue offer config — three offers with MUR pricing', () => {
   });
 
   it('matches expected starting prices', () => {
-    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 85000);
+    assert.equal(RAPID_DELIVERY_OFFERS['ai-lead-rescue'].startingPriceMur, 12900);
     assert.equal(RAPID_DELIVERY_OFFERS['premium-landing-page-rescue'].startingPriceMur, 45000);
     assert.equal(RAPID_DELIVERY_OFFERS['customer-reputation-recovery'].startingPriceMur, 45000);
   });

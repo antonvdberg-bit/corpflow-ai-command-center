@@ -107,6 +107,49 @@ Next: bounded website identity/contact correction, read-only mail mapping, then 
 
 Reviewable implementation packet: [identity correction](BUSINESS_ADMIN_DESK_IDENTITY_IMPLEMENTATION_PACKET_V1.md). GitHub disclosure and queueing are approved; merge, DNS/mail configuration and public release still require their exact approvals.
 
+## Implementation evidence — 19 October 2026 contact routing
+
+Supersedes only the email-routing statements above that send `support@` exclusively to ERPNext and that treat all four identities as unverified planned addresses. The service-brand sentence, legal facts, pricing, public-host baseline, noindex review policy and release gates remain unchanged.
+
+Operator report recorded on [#1416](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1416) (19 October 2026): Google Workspace domain `businessadmindesk.co.za` is verified and Gmail is activated. Saved aliases route `info@`, `accounts@` and `support@` to Anton, and `Serah.Fourie@` to Serah. External inbound delivery is confirmed only for `info@`. Inbound delivery for the other three aliases, outbound send-as, SPF/DKIM/DMARC and ERPNext support-ticket ingestion are not verified.
+
+Internal-review presentation now shows those four addresses as `mailto` links:
+
+| Address | Presented role |
+| --- | --- |
+| info@businessadmindesk.co.za | Anton, general enquiries |
+| accounts@businessadmindesk.co.za | Anton, billing/accounts |
+| support@businessadmindesk.co.za | Anton, customer support |
+| Serah.Fourie@businessadmindesk.co.za | Serah, service delivery |
+
+The review surface states that automated support-ticket handling is not verified. It does not describe ERPNext ticket handling as operational. Public rendering with `internalReview` false keeps `swart829@gmail.com`, the existing trading-name sentence, indexable metadata and the public canonical. This evidence does not verify DNS, Workspace, send-as, payment, pricing, legal registration or a live deployment.
+
+Next release gate: controller review of the contact-correction PR. Do not merge, and do not publish to https://businessadmindesk.co.za/, without explicit approval. Internal test-surface deployment to https://cipc.corpflowai.com/ stays a separate gate after that review.
+
+## Implementation evidence — contact panel removed
+
+Supersedes the website-presentation statements above that place all four addresses, employee routing, or mail-verification diagnostics on the review pages. The operator routing record in this document stays internal. Anton rejected the visible Brand contacts panel on 19 October 2026.
+
+Customer-facing review presentation:
+
+- General enquiry actions and the legal email line use `mailto:info@businessadmindesk.co.za`.
+- The pricing review page, which is the billing context, uses `mailto:accounts@businessadmindesk.co.za` for billing questions.
+- `support@businessadmindesk.co.za` is reserved for a support context and is not shown on the general pages.
+- `Serah.Fourie@businessadmindesk.co.za` is reserved for a named service-delivery contact and is not shown in the footer or general pages.
+- The service-brand sentence and noindex review policy remain unchanged.
+
+## Implementation evidence — public identity promotion
+
+Supersedes the statements above that keep `swart829@gmail.com` or the trading-name sentence on the public Business Admin Desk presentation. Anton accepted https://cipc.corpflowai.com/ and authorised publication to https://businessadmindesk.co.za/ on 19 October 2026.
+
+- Public and review enquiry actions use `mailto:info@businessadmindesk.co.za`.
+- The public footer uses **Business Admin Desk is a service brand operated by CorpFlowAI Ltd.** Registered company details remain in the legal disclosure. The trading-name sentence is removed.
+- `accounts@businessadmindesk.co.za` remains only on the internal pricing review page. That page is not part of this public promotion.
+- Review routes stay `noindex,nofollow` without a public canonical. Public routes stay `index,follow` with their existing canonicals.
+- The rejected contact panel, staff routing and mail-verification diagnostics stay off both presentations. Internal mailbox routing remains in this document only.
+
+Internal routing, which must not be rendered on the website: `info@`, `accounts@` and `support@` route to Anton; `Serah.Fourie@` routes to Serah. External inbound delivery is confirmed only for `info@`. Send-as and ERPNext support-ticket ingestion are not verified.
+
 ## Implementation evidence — bounded correction
 
 Supersedes only the implementation-state statements above that say the website identity correction is not implemented locally. The canonical legal, commercial, pricing, email-routing, release-gate and public-host restrictions remain unchanged.
@@ -117,3 +160,18 @@ Supersedes only the implementation-state statements above that say the website i
 - Review routes render `noindex,nofollow` without canonicals; public routes retain indexable metadata and conditional public canonicals.
 - The focused test uses the existing React/Next compiler and `react-dom/server` to render footer, contact, public, partner and all three service variants, and invokes the clipboard helper with synthetic data. No live submission or mail configuration is performed.
 - This evidence does not verify email aliases, DNS, legal registration details, pricing, Paddle eligibility, public release, deployment or live URL behavior.
+
+## Implementation evidence — public package pages for Paddle URL review (20 October 2026)
+
+Supersedes the statements above that say no Business Admin Desk price list is approved, that the public homepage is only standalone human support, and that `businessadmindesk.co.za/pricing` must remain a 404. It does not approve merge, production deploy, Paddle submission, live checkout, VAT treatment, or a refund right.
+
+CEO instruction on issue #1432 (20 October 2026): publish the integrated software-managed package model and the nine approved one-time ZAR service fees so the pricing, terms, privacy and refund URLs are no longer blank. Government and statutory fees stay separate. Online checkout stays off.
+
+Source behaviour prepared for review:
+
+- The public homepage describes one software-managed workflow. It states that fully automated filing and online checkout are not live.
+- `businessadmindesk.co.za/pricing` renders the nine approved fees. `cipc.corpflowai.com` and `cipc-desk.corpflowai.com` render the same fees with `noindex,nofollow` and no public canonical.
+- Business Admin Desk `/terms`, `/privacy` and `/refund-policy` name CorpFlowAI Ltd as the operator. Open items, including VAT, merchant of record, retention and any refund window, are labelled **Requires commercial or legal approval** and are not written as customer rights.
+- `corpflowai.com` pricing and policies remain the CorpFlowAI offer. They link to the Business Admin Desk pages instead of listing those ZAR fees.
+
+This section records source preparation only. It is not proof that the pages are deployed or that Paddle has accepted them.

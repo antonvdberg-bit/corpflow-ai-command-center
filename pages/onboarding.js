@@ -20,7 +20,7 @@ const STEPS = [
   {
     label: 'Step 2',
     title: 'Diagnosis conversation',
-    body: 'A CorpFlowAI operator confirms whether Lead Rescue is commercially worth doing. If we cannot identify a meaningful recovery problem, we should not work together.',
+    body: 'The diagnosis confirms whether Lead Rescue is commercially worth doing. If we cannot identify a meaningful recovery problem, we should not work together.',
   },
   {
     label: 'Step 3',
@@ -61,7 +61,7 @@ const NOT_ASKED_LIST = [
 export default function OnboardingPage() {
   const meta = buildPublicPageMeta({
     title: 'Client onboarding',
-    description: 'Lead Rescue starts with a diagnosis and written offer. MUR 85,000 fixed. First visible preview follows the agreed commercial, access, and asset conditions.',
+    description: `Lead Rescue starts with a diagnosis and written offer. ${ENQUIRY_RECOVERY_PRICE_LINE}. Delivery timing follows the agreed scope, access and acceptance conditions.`,
     path: '/onboarding',
     ogImage: '/assets/visuals/corpflow-onboarding-hero.jpg',
   });

@@ -7,6 +7,7 @@ import io
 import json
 import os
 from pathlib import Path
+import re
 import socket
 import subprocess
 import tarfile
@@ -19,19 +20,33 @@ def sha(p):
     with p.open('rb') as f:
         return hashlib.file_digest(f, 'sha256').hexdigest()
 
+
+def verified_backup(status, root=ROOT):
+    """Resolve the exact run recorded by the verified backup status."""
+    run = status.get('backup_run')
+    if not (
+        status.get('outcome') == 'success'
+        and status.get('remote_verified') is True
+        and isinstance(run, str)
+        and re.fullmatch(r'\d{8}T\d{6}Z', run)
+    ):
+        raise RuntimeError('latest server backup identity is not verified')
+    folder = root / 'daily' / run
+    manifest_path = folder / 'manifest.json'
+    if folder.is_symlink() or manifest_path.is_symlink() or not manifest_path.is_file():
+        raise RuntimeError('verified backup manifest is unavailable')
+    return run, folder, json.loads(manifest_path.read_text())
+
+
 def main():
     os.umask(0o077)
     if os.geteuid() != 0 or socket.gethostname() != 'corpflow-exec-01-u69678':
         raise RuntimeError('wrong host or account')
     status = json.loads(Path('/var/lib/corpflowai-erp-backup/status.json').read_text())
-    if status.get('outcome') != 'success' or not status.get('remote_verified'):
-        raise RuntimeError('latest server backup is not verified')
     attempt = dt.datetime.fromisoformat(status['last_attempt_utc'])
     if dt.datetime.now(dt.timezone.utc)-attempt > dt.timedelta(hours=36):
         raise RuntimeError('server backup too old')
-    run = attempt.strftime('%Y%m%dT%H%M%SZ')
-    folder = ROOT/'daily'/run
-    manifest = json.loads((folder/'manifest.json').read_text())
+    run, folder, manifest = verified_backup(status)
     if len(manifest['files']) != 4:
         raise RuntimeError('incomplete artifact inventory')
     for item in manifest['files']:

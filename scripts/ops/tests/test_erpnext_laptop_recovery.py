@@ -1,15 +1,33 @@
 import importlib.util
 import ast
 import pathlib
+import tempfile
 import unittest
 
 spec=importlib.util.spec_from_file_location('copy',pathlib.Path(__file__).resolve().parents[1]/'erpnext-laptop-copy.py')
 copy=importlib.util.module_from_spec(spec); spec.loader.exec_module(copy)
+package_spec=importlib.util.spec_from_file_location('package',pathlib.Path(__file__).resolve().parents[1]/'erpnext-laptop-package.py')
+package=importlib.util.module_from_spec(package_spec); package_spec.loader.exec_module(package)
 
 def receipt(day):
     return {'run':day.replace('-','')+'T010000Z','created_utc':day+'T01:00:00+00:00','sha256':'a'*64}
 
 class RotationTests(unittest.TestCase):
+    def test_verified_manifest_identity_is_not_derived_from_status_timestamp(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=pathlib.Path(temp)
+            run='20261014T010002Z'
+            folder=root/'daily'/run
+            folder.mkdir(parents=True)
+            (folder/'manifest.json').write_text('{"version": 1, "files": []}')
+            status={'outcome':'success','remote_verified':True,
+                    'last_attempt_utc':'2026-10-14T01:00:01+00:00',
+                    'backup_run':run}
+            selected, selected_folder, manifest=package.verified_backup(status,root)
+            self.assertEqual(selected,run)
+            self.assertEqual(selected_folder,folder)
+            self.assertEqual(manifest['version'],1)
+
     def test_embedded_restore_python_compiles(self):
         tree=ast.parse((pathlib.Path(__file__).resolve().parents[1]/'erpnext-laptop-restore-test.py').read_text())
         found=[]

@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
+import BusinessAdminDeskPolicyPage from '../components/BusinessAdminDeskPolicyPage.js';
 import {
   CURRENCY_PRIMARY,
   CURRENCY_SECONDARY,
@@ -9,16 +10,40 @@ import {
   TRANSACTION_RECEIPT_FIELDS,
   formatCurrencyDisclosure,
 } from '../lib/public/merchant-identity.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { BAD_TERMS_SECTIONS } from '../lib/public/business-admin-desk-policies.js';
 
-export default function TermsPage() {
+export default function TermsPage({ surface = 'other' }) {
+  if (surface === 'public' || surface === 'staging') {
+    return (
+      <BusinessAdminDeskPolicyPage
+        title="Terms"
+        description="Terms for Business Admin Desk packages operated by CorpFlowAI Ltd. Online checkout is not available."
+        path="/terms"
+        review={surface === 'staging'}
+        sections={BAD_TERMS_SECTIONS}
+      />
+    );
+  }
+  return <CorpFlowTermsPage />;
+}
+
+function CorpFlowTermsPage() {
   return (
     <PublicPolicyLayout title="Terms of Service">
       <section style={ps.section}>
         <h2 style={ps.h2}>Service description</h2>
         <p style={ps.p}>
-          {MERCHANT_LEGAL_NAME} provides practical operating help for selected businesses, including the
-          Enquiry Recovery Sprint and bounded website work. Services may include diagnosis, written offers,
-          follow-up visibility, and agreed delivery against existing tools. See the{' '}
+          {MERCHANT_LEGAL_NAME} is a software and workflow automation company. It provides configured software
+          packages for selected businesses, including Lead Rescue, Website Rescue and bounded automation work. A
+          package includes the agreed software configuration, implementation, testing, acceptance and handover.
+          Setup and support that are part of the written package stay in that package. Ongoing care is a separate
+          opt-in. Agreed AI processing is included only when the written package says so. Business Admin
+          Desk packages are a separate service brand and are described only at{' '}
+          <a href="https://businessadmindesk.co.za/terms" style={{ color: '#7dd3fc' }}>
+            businessadmindesk.co.za/terms
+          </a>
+          . See the{' '}
           <Link href="/services" style={{ color: '#7dd3fc' }}>
             services page
           </Link>{' '}
@@ -62,10 +87,9 @@ export default function TermsPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Service fulfilment and delivery</h2>
         <p style={ps.p}>
-          The Enquiry Recovery Sprint is a digital service. There is no physical shipment. A first visible preview
-          is targeted within 72 hours after cleared deposit, required access, and required assets or information —
-          not as an unconditional 72-hour delivery guarantee. Historic USD 150 launch-pilot engagements, if invoiced,
-          remain governed by the invoice issued at the time.
+          Packages are digital services. There is no physical shipment. Delivery timing, access requirements,
+          acceptance criteria and handover are confirmed in the written quote. Historic accepted engagements remain
+          governed by their invoice or agreement.
         </p>
         <p style={ps.p}>
           Full delivery terms:{' '}
@@ -79,20 +103,26 @@ export default function TermsPage() {
         <h2 style={ps.h2}>Payment and currencies</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details on the marketing pages. Payment instructions are provided through the agreed invoice or hosted payment
-          link from our acquiring bank when card payments are enabled.
+          details on the marketing pages and does not offer live checkout. Payment instructions are issued in the
+          written quote or invoice. A hosted card page is used only after the relevant provider is approved and
+          activated.
+        </p>
+        <p style={ps.p}>
+          If a sale is later processed through Paddle, Paddle is the merchant of record for that transaction only
+          and Paddle&apos;s buyer terms apply to it. {MERCHANT_LEGAL_NAME} remains the supplier of the software
+          package and does not issue a second customer invoice for the same Paddle charge. Paddle checkout is not active on this website. This paragraph does not create a new payment, refund or cancellation right.
         </p>
         <p style={ps.p}>{formatCurrencyDisclosure()}</p>
         <p style={ps.p}>
-          Each invoice states the currency charged ({CURRENCY_PRIMARY} or {CURRENCY_SECONDARY} as applicable) before
-          you pay.
+          Each invoice states the currency charged ({CURRENCY_PRIMARY}, {CURRENCY_SECONDARY}, or another approved
+          market currency) before you pay. Rates on the pricing page are selected market prices, not FX conversion.
         </p>
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>Receipts and transaction records</h2>
         <p style={ps.p}>
-          Each successful payment is acknowledged by a PDF invoice or receipt issued by {MERCHANT_LEGAL_NAME}. Records
-          include, where applicable:
+          Where payment is invoiced directly by {MERCHANT_LEGAL_NAME}, each successful payment is acknowledged by a
+          PDF invoice or receipt issued by {MERCHANT_LEGAL_NAME}. Records include, where applicable:
         </p>
         <ul style={ps.ul}>
           {TRANSACTION_RECEIPT_FIELDS.map((field) => (
@@ -124,4 +154,8 @@ export default function TermsPage() {
       </section>
     </PublicPolicyLayout>
   );
+}
+
+export function getServerSideProps({ req }) {
+  return { props: { surface: resolveBusinessAdminDeskSurface(req?.headers?.host) } };
 }

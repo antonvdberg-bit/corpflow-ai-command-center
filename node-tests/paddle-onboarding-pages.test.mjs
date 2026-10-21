@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+
+const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
+
+test('pricing pages keep host isolation and no checkout claims', () => {
+  const pricing = read('pages/pricing.js');
+  const bad = read('components/BusinessAdminDeskPricingReviewPage.js');
+  const sandboxBad = read('pages/billing/paddle-sandbox-bad.js');
+  const packages = read('lib/public/business-admin-desk-packages.js');
+  assert.match(pricing, /resolveBusinessAdminDeskSurface/);
+  assert.match(pricing, /BusinessAdminDeskPublicPricingPage/);
+  assert.doesNotMatch(pricing, /notFound:\s*true/);
+  assert.match(bad, /noindex,nofollow/);
+  assert.match(bad, /no checkout or payment/i);
+  assert.match(packages, /BAD-ONBOARD-EXISTING/);
+  assert.doesNotMatch(bad, /12900|45000|85000|51000|34000/);
+  assert.doesNotMatch(packages, /12900|45000|85000|51000|34000/);
+  assert.match(sandboxBad, /noindex,nofollow/);
+  assert.match(sandboxBad, /Browser checkout success does not release onboarding/);
+  assert.match(sandboxBad, /ZAR/);
+});
+
+test('onboarding review is printable and keeps provider acceptance pending', () => {
+  const page = read('pages/onboarding-review.js');
+  assert.match(page, /noindex,nofollow/);
+  assert.match(page, /@media print/);
+  assert.match(page, /review-checklist-row/);
+  assert.match(page, /grid-template-columns: minmax\(0, 1fr\)/);
+  assert.match(page, /Provider eligibility.*OPEN|provider eligibility/i);
+  assert.match(page, /No checkout/i);
+  assert.match(page, /paddle\.com/);
+});
+
+test('affected policy pages do not present retired sprint terms as current', () => {
+  for (const path of ['pages/terms.js', 'pages/refund-policy.js', 'pages/delivery-policy.js']) {
+    const source = read(path);
+    assert.doesNotMatch(source, /MUR 85,000 fixed|MUR 51,000|MUR 34,000/);
+  }
+});

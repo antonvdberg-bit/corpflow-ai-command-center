@@ -1,0 +1,33 @@
+# ERPNext-first quotation workflow (proposed)
+
+## CEO instruction — 19 October 2026
+
+All CorpFlowAI commercial quotations must originate in **ERPNext** and be linked to the appropriate ERPNext Customer, Contact, Address, and Opportunity records. ERPNext is the source of commercial and financial truth; Frappe CRM is the related sales surface. Do not use independently generated PDFs or conversational documents as official quotation records.
+
+## Procedure
+1. Verify whether the company, contact, address and opportunity already exist. Reuse matches; establish missing records through the authorised ERPNext process, avoiding duplicates.
+2. Obtain actual billing/legal entity data, required address, applicable tax treatment, approved fixed fee, scope, exclusions, validity and payment terms. Do not invent commercial details.
+3. Create an ERPNext **draft Quotation** linked to the opportunity and correct legal Customer, Contact and Address. Verify currency, line items, taxes, terms, print format, document number and internal approval status.
+4. Present the actual ERPNext-generated quotation to Anton for review. Never mistake an independent preview PDF for the ERPNext commercial record.
+5. Following Anton's explicit approval, issue/send the quotation through the approved commercial channel. The quotation requires affirmative written acceptance from the authorised customer representative, identifying the quotation number, price, scope and terms.
+6. Preserve acceptance evidence and status in ERPNext, then trigger delivery/project and invoicing per the accepted terms. Never confuse quotation acceptance with first-release delivery acceptance.
+7. All corrections and revisions must be ERPNext document versions/amendments with traceable approval; avoid shadow quotation records.
+
+## Current application — Rare & Exclusive
+New bounded first-release website engagement for BESPOKE HOMES LTD trading as Rare & Exclusive. Proposed fixed fee MUR 45,000, no deposit; 100% payable upon first-release acceptance; quotation validity 14 days; first 12 months managed hosting included. This is **not** the old full platform engagement. Jan's design approval is **not** quotation acceptance. Before external issue, verify ERPNext master records, statutory tax treatment, actual ERPNext quotation document and Anton approval. Client details and source documents stay in ERPNext/private correspondence, not GitHub.
+
+## Controls
+No production record write, external send, tax assumption, merge or production deploy is authorised by this documentation alone. This proposed document is subject to normal review/merge governance.
+
+## Execution route when ChatGPT lacks ERPNext connector
+
+Use existing **ERPNext Chat -> Cursor handoff v1** in GitHub issue #1390. Produce an `ERPNext Action Request v1` in GitHub, checking active claims before labelling `dispatch:cursor-ready`; the existing factory dispatches Cursor Cloud to call ERPNext's standard DocType REST API via its approved least-privilege integration identity. Reuse existing API and secret references, never request that Anton open a browser as the default execution path, and never duplicate the integration. Require authenticated ERPNext read-back of all record IDs and quotation draft/print evidence. Existing precedent: OrixHealth action request #1392; ERPNext print rule #1401. Read-only discovery and protected master-data/draft mutation approvals must be distinguished, and final external quotation issue needs Anton review. This reference is mandatory in fresh onboarding sessions.
+
+**Lesson from 19 October 2026:** The controller incorrectly concluded ERPNext was inaccessible because ChatGPT lacked a direct ERPNext tool, despite a proven Cursor integration documented in #1390. Prior browser/manual workaround advice is superseded. Bootstraps should search existing work contracts before declaring access blocked.
+
+## Cursor execution environments - mandatory routing distinction
+
+- **Cursor Web / Cloud Agent**: GitHub-triggered, remotely executed; does not inherit Anton's laptop filesystem, browser sessions, locally installed tools or local-network access. Use the documented #1390 GitHub factory/Cloud ERPNext API route when the required integration identity, ERPNext destination and secrets are actually available and verified in that Cloud execution context. Require a real agent/run ID and ERPNext read-back; a ready label alone does not prove execution. It does not require Anton's laptop to be open.
+- **Cursor Desktop / laptop**: separately installed IDE on Anton's computer with potentially available local files, applications, credentials and connectivity, but it cannot automatically inherit Cloud Agent automations, Cloud-specific integrations, identities or access. Do not assume local capabilities merely from a Cloud proof. Requires an expressly suitable local execution arrangement, and should not be an automatic fallback.
+- **Routing test**: decide from the exact task's data location, authenticated identity, host/network accessibility, allowed action and executor claims. Never label work simply `Cursor` without indicating the environment; if required capability is unverified, do read-only preflight in the intended environment and stop at the exact missing gate. Never transplant secrets or ask the operator to manually courier data.
+- **Rare & Exclusive #1493**: route to Cursor **Web/Cloud** under #1390 for the existing API worker, conditional on current execution-context preflight, factory eligibility and approval gates. Do not route this to Cursor Desktop merely because Anton's laptop is online.
