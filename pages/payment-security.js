@@ -6,8 +6,26 @@ import {
   MERCHANT_WEBSITE_HOST,
   TRANSACTION_RECEIPT_FIELDS,
 } from '../lib/public/merchant-identity.js';
+import BusinessAdminDeskPolicyPage from '../components/BusinessAdminDeskPolicyPage.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { BAD_PAYMENT_SECURITY_SECTIONS } from '../lib/public/business-admin-desk-policies.js';
 
-export default function PaymentSecurityPage() {
+export default function PaymentSecurityPage({ surface = 'other' }) {
+  if (surface === 'public' || surface === 'staging') {
+    return (
+      <BusinessAdminDeskPolicyPage
+        title="Payment security"
+        description="Payment-security notice for the Business Admin Desk website. Online checkout is not available and card details are not collected here."
+        path="/payment-security"
+        review={surface === 'staging'}
+        sections={BAD_PAYMENT_SECURITY_SECTIONS}
+      />
+    );
+  }
+  return <CorpFlowPaymentSecurityPage />;
+}
+
+function CorpFlowPaymentSecurityPage() {
   return (
     <PublicPolicyLayout title="Payment Security">
       <section style={ps.section}>
@@ -70,4 +88,8 @@ export default function PaymentSecurityPage() {
       </section>
     </PublicPolicyLayout>
   );
+}
+
+export function getServerSideProps({ req }) {
+  return { props: { surface: resolveBusinessAdminDeskSurface(req?.headers?.host) } };
 }

@@ -59,7 +59,7 @@ export default function CorpFlowPublicHeader({
           <Link href="/" style={styles.brand}>
             CorpFlowAI
           </Link>
-          <div style={styles.brandSub}>Mauritius-based · selected clients</div>
+          <div style={styles.brandSub}>Software and workflow automation</div>
         </div>
         <button
           type="button"

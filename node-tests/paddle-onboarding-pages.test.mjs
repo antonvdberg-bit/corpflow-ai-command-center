@@ -7,12 +7,19 @@ const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), '
 test('pricing pages keep host isolation and no checkout claims', () => {
   const pricing = read('pages/pricing.js');
   const bad = read('components/BusinessAdminDeskPricingReviewPage.js');
-  assert.match(pricing, /isCipcDeskStandingTestHost/);
-  assert.match(pricing, /isBusinessAdminDeskPublicHost/);
-  assert.match(pricing, /notFound: true/);
+  const sandboxBad = read('pages/billing/paddle-sandbox-bad.js');
+  const packages = read('lib/public/business-admin-desk-packages.js');
+  assert.match(pricing, /resolveBusinessAdminDeskSurface/);
+  assert.match(pricing, /BusinessAdminDeskPublicPricingPage/);
+  assert.doesNotMatch(pricing, /notFound:\s*true/);
   assert.match(bad, /noindex,nofollow/);
   assert.match(bad, /no checkout or payment/i);
+  assert.match(packages, /BAD-ONBOARD-EXISTING/);
   assert.doesNotMatch(bad, /12900|45000|85000|51000|34000/);
+  assert.doesNotMatch(packages, /12900|45000|85000|51000|34000/);
+  assert.match(sandboxBad, /noindex,nofollow/);
+  assert.match(sandboxBad, /Browser checkout success does not release onboarding/);
+  assert.match(sandboxBad, /ZAR/);
 });
 
 test('onboarding review is printable and keeps provider acceptance pending', () => {
