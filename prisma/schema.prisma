@@ -63,6 +63,8 @@ model AuthUser {
   createdAt   DateTime  @default(now()) @map("created_at")
   lastLoginAt DateTime? @map("last_login_at")
 
+  badPurchaseOwnerships BadPurchaseOwnership[]
+
   @@index([level])
   @@index([tenantId])
   @@map("auth_users")
@@ -940,4 +942,65 @@ model CompanyMasterArtifact {
   @@index([companyId, logicalAlias, isCurrent])
   @@index([tenantId])
   @@map("company_master_artifacts")
+}
+
+/// BAD authenticated buyer-to-order ownership. Webhooks may update payment
+/// state for a bound Paddle reference; they must not create or replace the
+/// AuthUser/tenant/brand owner. Prepared in #1509; live migrate is a separate
+/// approval. Do not add these tables to ensure-schema until that approval.
+model BadPurchaseOwnership {
+  id                    String    @id @default(cuid())
+  authUserId            String    @map("auth_user_id")
+  tenantId              String    @map("tenant_id")
+  brand                 String
+  checkoutIntentId      String    @unique @map("checkout_intent_id")
+  orderConfirmationRef  String    @unique @map("order_confirmation_ref")
+  paddleTransactionId   String?   @unique @map("paddle_transaction_id")
+  erpnextOrderRef       String?   @map("erpnext_order_ref")
+  status                String
+  issuedAt              DateTime? @map("issued_at")
+  refundedAt            DateTime? @map("refunded_at")
+  revokedAt             DateTime? @map("revoked_at")
+  lastEventId           String?   @map("last_event_id")
+  lastEventAt           DateTime? @map("last_event_at")
+  confirmationRef       String?   @map("confirmation_ref")
+  reversalHistory       Json      @default("[]") @map("reversal_history_json")
+  fulfilmentEntitled    Boolean   @default(false) @map("fulfilment_entitled")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  updatedAt             DateTime  @updatedAt @map("updated_at")
+
+  authUser AuthUser @relation(fields: [authUserId], references: [id], onDelete: Restrict)
+
+  @@index([authUserId, tenantId, brand])
+  @@index([tenantId, brand, status])
+  @@index([status])
+  @@map("bad_purchase_ownership")
+}
+
+/// Early Paddle refund/revocation received before an authenticated bind.
+model BadPurchaseUnboundReversal {
+  id                  String    @id @default(cuid())
+  paddleTransactionId String    @unique @map("paddle_transaction_id")
+  status              String
+  lastEventId         String?   @map("last_event_id")
+  lastEventAt         DateTime? @map("last_event_at")
+  reversalHistory     Json      @default("[]") @map("reversal_history_json")
+  createdAt           DateTime  @default(now()) @map("created_at")
+  updatedAt           DateTime  @updatedAt @map("updated_at")
+
+  @@map("bad_purchase_unbound_reversals")
+}
+
+/// Idempotency receipts for verified Paddle events against BAD ownership.
+model BadPurchaseWebhookEvent {
+  id                  String   @id @default(cuid())
+  eventId             String   @unique @map("event_id")
+  eventType           String   @map("event_type")
+  paddleTransactionId String?  @map("paddle_transaction_id")
+  ownershipId         String?  @map("ownership_id")
+  outcome             String
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@index([paddleTransactionId])
+  @@map("bad_purchase_webhook_events")
 }

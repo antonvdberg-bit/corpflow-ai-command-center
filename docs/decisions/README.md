@@ -40,6 +40,8 @@ What we chose (one paragraph).
 
 | Date | Topic | File |
 |------|--------|------|
+| 2026-10-21 | BAD durable buyer ownership prepared in existing Postgres; live migration gated (#1509) | `20261021-bad-durable-buyer-ownership.md` |
+| 2026-10-21 | BAD synthetic buyer ownership contract (#1507 / PR #1508) | `20261021-bad-buyer-ownership-contract.md` |
 | 2026-08-27 | ERPNext onboarding F — bank/reconciliation current-main landing after CURRENT-MAIN REPAIR; bank-feed NOT REQUIRED (#1220; reuses #1139; do not merge stale PR #1141, #1221, #1229, or #1234) | `20260827-erpnext-bank-reconciliation-readiness.md` (`JE-2026-08-27-4`, `JE-2026-08-28-1`) |
 | 2026-08-28 | ERPNext Customer/Contact master GET-only quotation/delivery acceptance, current-main re-land (#1206; reuses closed PR #1211) | `20260827-erpnext-customer-master-quotation-delivery.md` (`JE-2026-08-28-1`) |
 | 2026-08-27 | ERPNext onboarding C — Selling / Quote-to-Cash safe slice landed on current main (#1166; reuses #1056 / PR #1101; retires stale #1128) | `20260826-erpnext-selling-quote-to-cash.md` (`JE-2026-08-27-3`) |
