@@ -124,6 +124,7 @@ test('Business Admin Desk policy pages are brand-specific and do not invent refu
   const refund = render(createElement(RefundPage, { surface: 'public' }));
   assert.match(refund, /does not create a refund right/);
   assert.match(refund, /does not promise that an authority will return a statutory fee/);
+  assert.match(refund, /software-managed company-administration packages/);
 });
 
 test('CorpFlowAI pricing and policies stay on non-Business-Admin-Desk hosts', () => {

@@ -201,7 +201,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
 
         <section style={cfSection} aria-labelledby="bad-audience-title">
           <p style={cfKicker}>Two ways we can help</p>
-          <h2 id="bad-audience-title" style={cfH2}>Your business, or capacity behind your business</h2>
+          <h2 id="bad-audience-title" style={cfH2}>Your company, or packages behind your firm</h2>
           <GlassCardGrid minColWidth={300} style={{ marginTop: 16 }}>
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
               <p style={{ ...cfKicker, marginBottom: 8 }}>For individual businesses</p>
