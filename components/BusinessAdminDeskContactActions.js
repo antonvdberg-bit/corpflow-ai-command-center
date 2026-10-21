@@ -30,6 +30,8 @@ Company name:
 
 You can reply to me on this email.`,
   compact = false,
+  priority = true,
+  showHint = true,
   secondary,
 }) {
   const [copied, setCopied] = useState(false);
@@ -51,13 +53,17 @@ You can reply to me on this email.`,
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
         <a
           href={href}
-          style={compact ? { ...cfBtnPrimary, fontSize: 13, minHeight: 40, padding: '10px 16px' } : cfBtnPrimary}
+          style={
+            compact
+              ? { ...(priority ? cfBtnPrimary : cfBtnSecondary), fontSize: 13, minHeight: 40, padding: '10px 16px' }
+              : (priority ? cfBtnPrimary : cfBtnSecondary)
+          }
         >
           {label}
         </a>
         {secondary || null}
       </div>
-      <p style={{ margin: '9px 0 0', color: CF.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>
+      {showHint ? <p style={{ margin: '9px 0 0', color: CF.textMuted, fontSize: 12.5, lineHeight: 1.5 }}>
         Opens an email with a short starter message. Prefer webmail?{' '}
         <button
           type="button"
@@ -78,7 +84,7 @@ You can reply to me on this email.`,
           {copied ? 'Email address copied' : 'Copy our email address'}
         </button>
         .
-      </p>
+      </p> : null}
     </div>
   );
 }

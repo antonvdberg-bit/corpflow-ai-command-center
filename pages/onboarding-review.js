@@ -20,9 +20,8 @@ const sourceLinks = [
 function Checklist({ bad }) {
   const rows = bad
     ? [
-        ['Package scope documented', 'VERIFIED', 'Quote-only service scope is described; final rates remain pending.'],
-        ['Final commercial approval', 'OPEN', 'Numerical ZAR rates are not approved.'],
-        ['Legal and refund text', 'OPEN', 'Human review and evidence of applicable terms remain required.'],
+        ['Approved package fees', 'VERIFIED', 'Nine one-time ZAR service fees are approved. VAT treatment and checkout remain open.'],
+        ['Legal and refund text', 'OPEN', 'Published pages separate current facts from decisions that still need approval.'],
         ['Contact channel', 'OPEN', 'Business Admin Desk contact aliases require real-channel verification.'],
         ['Provider eligibility', 'OPEN', 'Paddle eligibility is not inferred from this page.'],
       ]
