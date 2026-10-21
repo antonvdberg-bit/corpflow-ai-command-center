@@ -61,6 +61,10 @@ export default function PaddleSandboxPage() {
         <p style={{ color: '#9a3412', fontWeight: 700 }}>TEST ENVIRONMENT — Paddle sandbox only</p>
         <h1>CorpFlowAI payment rail proof</h1>
         <p>Checkout completion is not activation. Only a verified Paddle webhook can make the isolated proof account eligible.</p>
+        <p>
+          Business Admin Desk sandbox mapping lives on a separate route:{' '}
+          <a href="/billing/paddle-sandbox-bad">/billing/paddle-sandbox-bad</a>.
+        </p>
         {error && <p role="alert">{error}</p>}
         <p aria-live="polite">Status: {state}</p>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>

@@ -38,7 +38,7 @@ const configs = {
     whatWeDo: [
       'We review what has happened and what information is needed.',
       'We identify anything that needs attention before routine filing can proceed.',
-      'Once the matter is ready, we progress the agreed administration and keep the next step clear.',
+      'Once the matter is ready, the published package runs through to the named outcome and the next step stays visible.',
     ],
     boundaries: [
       'Beneficial ownership or financial-statement matters that still need work are scoped separately.',
@@ -72,7 +72,7 @@ You can reply to me on this email.`,
     whatWeDo: [
       'We review what changed and what information or supporting documents are needed.',
       'We check that the authority and company record are clear for routine processing.',
-      'When everything is in order, we progress the agreed administration and keep the next step clear.',
+      'When everything is in order, the published package runs through to the named outcome and the next step stays visible.',
     ],
     boundaries: [
       'Disputed removals, death-related changes and contested appointments are not treated as routine filings.',
@@ -107,7 +107,7 @@ You can reply to me on this email.`,
     whatWeDo: [
       'Collect the company and ownership information needed for the standard path.',
       'Check that the ownership/control information supplied is complete enough to proceed.',
-      'Prepare and progress the agreed standard-path administration when authority and information are complete.',
+      'Run the published simple beneficial-ownership package when authority and information are complete.',
       'Keep evidence and next-step communication clear.',
     ],
     boundaries: [
@@ -139,7 +139,7 @@ export default function BusinessAdminDeskServiceLanding({
   const cfg = configs[serviceKey] || configs['annual-returns'];
   const route = `/${serviceKey}`;
   const pageTitle = `Business Admin Desk · ${cfg.title}`;
-  const description = `${cfg.title} support from Business Admin Desk — clear, practical company administration for South African businesses.`;
+  const description = `${cfg.title} as a defined, software-managed Business Admin Desk package for South African businesses. Online checkout is not open yet.`;
   const visualHero = buildPublicVisualHero('services') || buildPublicVisualHero('process');
   const contact = { label: cfg.ctaLabel, subject: cfg.subject, body: cfg.body };
 
@@ -167,7 +167,7 @@ export default function BusinessAdminDeskServiceLanding({
           <div>
             <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Independent company-administration support. Not a government or regulatory service, and not a law firm.
+              Business Admin Desk is a service brand operated by CorpFlowAI Ltd. Software-managed company-administration packages for South Africa. Not a government or regulatory service, and not a law firm.
             </p>
             <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
@@ -184,7 +184,7 @@ export default function BusinessAdminDeskServiceLanding({
             marginBottom: 20,
           }}
         >
-          <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
+          <BusinessAdminDeskBrand subtitle="Software-managed packages · South Africa" priority />
           <BusinessAdminDeskContactActions {...contact} compact internalReview={internalReview} />
         </nav>
 
@@ -280,9 +280,9 @@ export default function BusinessAdminDeskServiceLanding({
             }}
           >
             <p style={cfKicker}>Next step</p>
-            <h2 id="service-cta-title" style={cfH2}>Start with the situation, not the paperwork</h2>
+            <h2 id="service-cta-title" style={cfH2}>Start with the published package that fits</h2>
             <p style={{ ...cfBody, maxWidth: 760 }}>
-              Tell us what has happened and what you are trying to achieve. We will review the matter, confirm the scope and explain the next step before work begins.
+              Tell us what has happened and the outcome you need. We will confirm whether a published package fits, what information is required, and the next step before work begins. Fully automated filing is not live on this website.
             </p>
             <BusinessAdminDeskContactActions {...contact} internalReview={internalReview} />
           </GlassPanel>

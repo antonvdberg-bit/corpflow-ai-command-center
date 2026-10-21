@@ -26,7 +26,7 @@ import {
 
 const PAGE_TITLE = 'Business Admin Desk · Software-managed company administration';
 const PAGE_DESCRIPTION =
-  'Business Admin Desk sells integrated, software-managed company-administration packages for South Africa. CorpFlowAI Ltd operates the service. Online checkout is not open yet.';
+  'Business Admin Desk sells defined, software-managed company-administration packages for South Africa. CorpFlowAI Ltd operates the service. Online checkout is not open yet.';
 
 const DIRECT_CONTACT = {
   label: 'Ask about a package',
@@ -109,7 +109,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
               <BusinessAdminDeskBrand compact href="/" />
             </div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Business Admin Desk is a service brand operated by CorpFlowAI Ltd. Integrated company-administration packages for South Africa. Not a government or regulatory service, and not a law firm.
+              Business Admin Desk is a service brand operated by CorpFlowAI Ltd. Software-managed company-administration packages for South Africa. Not a government or regulatory service, and not a law firm.
             </p>
             <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
@@ -126,7 +126,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             marginBottom: 20,
           }}
         >
-          <BusinessAdminDeskBrand subtitle="Integrated packages · South Africa" priority />
+          <BusinessAdminDeskBrand subtitle="Software-managed packages · South Africa" priority />
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
             <a href="/pricing" style={cfBtnSecondary}>Pricing</a>
             <BusinessAdminDeskContactActions
@@ -144,7 +144,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
         <HeroGlassBlock
           eyebrow={
             <p style={{ ...cfKicker, marginBottom: 10 }}>
-              {internalReview ? 'Internal review · not published' : 'Integrated packages · South Africa'}
+              {internalReview ? 'Internal review · not published' : 'Software-managed packages · South Africa'}
             </p>
           }
           title={
@@ -163,7 +163,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           }
           lead={
             <p style={{ ...cfLead, marginBottom: 0, maxWidth: 760 }}>
-              Business Admin Desk sells integrated, software-managed end-to-end packages. Software workflow management and controlled human execution are parts of the same workflow. The package list and one-time fees are published. Online checkout and fully automated filing are not live on this website.
+              Business Admin Desk sells defined, software-managed company-administration packages. You choose a published service, we confirm the company and required information, then that workflow runs through to the named outcome. The package list and one-time fees are published. Online checkout and fully automated filing are not live on this website.
             </p>
           }
           actions={
@@ -182,7 +182,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <p style={cfKicker}>A quick introduction</p>
           <h2 id="bad-video-title" style={cfH2}>What Business Admin Desk is here to do</h2>
           <p style={{ ...cfBody, maxWidth: 780 }}>
-            The short video introduces the service. The current offer is the integrated package list on the pricing page. The video is not a claim that automated filing or online checkout is live.
+            The short video introduces the service. The current offer is the published package list on the pricing page. The video is not a claim that automated filing or online checkout is live.
           </p>
 
           <GlassPanel variant={{ padding: 14, elevation: 2 }} style={{ marginTop: 14 }}>
@@ -201,7 +201,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
 
         <section style={cfSection} aria-labelledby="bad-audience-title">
           <p style={cfKicker}>Two ways we can help</p>
-          <h2 id="bad-audience-title" style={cfH2}>Your business, or capacity behind your business</h2>
+          <h2 id="bad-audience-title" style={cfH2}>Your company, or packages behind your firm</h2>
           <GlassCardGrid minColWidth={300} style={{ marginTop: 16 }}>
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
               <p style={{ ...cfKicker, marginBottom: 8 }}>For individual businesses</p>
@@ -214,9 +214,9 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
 
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
               <p style={{ ...cfKicker, marginBottom: 8 }}>For companies and service providers</p>
-              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>White-label or fractional admin capacity</h3>
+              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>White-label packages behind your firm</h3>
               <p style={{ ...cfBody, marginBottom: 16 }}>
-                The same integrated packages can sit behind a firm or an internal team. Partner and portfolio rates are confirmed in writing. They are not an automatic discount, and online checkout is not open.
+                The same published packages can sit behind a firm or an internal team. Partner and portfolio rates are confirmed in writing. They are not an automatic discount, and online checkout is not open.
               </p>
               <a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>
             </GlassPanel>
@@ -254,7 +254,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             {[
               ['1', 'Choose a package', 'Review the published one-time service fee and what that package covers.'],
               ['2', 'Confirm the instruction', 'We agree the company, the information required, the service fee and any separate government or statutory fee before work starts.'],
-              ['3', 'Carry out the agreed package', 'Software-managed steps and controlled human checks belong to the same workflow. We confirm status with you. This website does not yet run fully automated filing or a live card checkout.'],
+              ['3', 'Carry out the agreed package', 'The software-managed package is carried through to the named outcome. We confirm status with you. This website does not yet run fully automated filing or a live card checkout.'],
             ].map(([number, title, detail]) => (
               <GlassPanel key={number} as="article" variant={{ padding: 20, elevation: 1 }}>
                 <div
