@@ -36,16 +36,21 @@ function CorpFlowRefundPolicyPage() {
           .
         </p>
         <p style={ps.p}>
-          Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
-          number, line item, ticket amount, currency, payment route, and payment-confirmation timestamp.
+          Where payment is invoiced directly by CorpFlowAI Ltd, each successful payment is acknowledged by a PDF
+          invoice recording the invoice number, line item, amount, currency, payment route, and payment-confirmation
+          timestamp. If a sale is later processed through Paddle, Paddle is merchant of record for that transaction
+          and the buyer record for that charge follows Paddle&apos;s terms. CorpFlowAI Ltd does not issue a second
+          customer invoice for the same Paddle charge. Paddle checkout is not active on this website, and this
+          paragraph does not create a new refund or cancellation right.
         </p>
       </section>
       <section style={ps.section}>
         <h2 style={ps.h2}>Setup fees</h2>
         <p style={ps.p}>
-          Setup fees cover time and work performed to design, configure, test, and hand over the agreed workflow. If you
+          Setup fees cover the agreed work to design, configure, test, and hand over the software package. If you
           cancel before work starts, a refund may be available. Once setup work has started, refunds are discretionary or
-          prorated depending on work already performed.
+          prorated depending on work already performed. This section states the existing position. It does not add a
+          new refund period.
         </p>
       </section>
       <section style={ps.section}>
