@@ -218,6 +218,12 @@ test('durable flag is off by default and resolve stays inert', () => {
   assert.equal(resolveDurableBadBuyerOwnershipStore({ badPurchaseOwnership: {} }, {}), null);
 });
 
+test('advisory lock query returns a Prisma-readable value', () => {
+  const source = readFileSync(path.join(ROOT, 'lib/server/paddle-sandbox/bad-buyer-ownership-durable.js'), 'utf8');
+  assert.match(source, /SELECT 1::int AS locked FROM \(SELECT pg_advisory_xact_lock/);
+  assert.doesNotMatch(source, /\$queryRaw`SELECT pg_advisory_xact_lock/);
+});
+
 test('prepared migration is not in ensure-schema auto-apply DDL', () => {
   const sql = readFileSync(
     path.join(ROOT, 'prisma/migrations/20261021140000_bad_purchase_ownership/migration.sql'),

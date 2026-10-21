@@ -56,10 +56,17 @@ an intent lock after a transaction lock. A database trigger in the prepared
 migration rejects owner/intent replacement and any status transition out of a
 tombstone, and forces `fulfilment_entitled` false while the row is terminal.
 
-The automated concurrency test uses two simulated connections and a lock
-manager. It is **not** a live multi-instance Postgres run. That proof stays
-inside the separate migration-execution approval, on a disposable database,
-never on shared or production Postgres from this change.
+`pg_advisory_xact_lock` returns `void`. Prisma cannot read a `void` column, so
+the adapter runs the lock inside a subquery and selects `1::int`. The lock is
+still taken before the read. This was found on real PostgreSQL and is covered
+by the disposable test below.
+
+Two checks exist:
+
+- `node-tests/paddle-bad-buyer-ownership-durable.test.mjs` simulates two connections. It runs in ordinary `npm test` and does not open a database.
+- `node-tests/paddle-bad-buyer-ownership-disposable-pg.test.mjs` uses two independent PostgreSQL connections. It stays skipped unless `CORPFLOW_BAD_OWNERSHIP_DISPOSABLE_PG=1` and `CORPFLOW_BAD_OWNERSHIP_DISPOSABLE_URL` name a loopback database whose name contains `disposable`. It refuses to start when `POSTGRES_URL`, `DATABASE_URL`, or `PRISMA_DATABASE_URL` is present, when the URL contains a password, or when the server is not on loopback. These two names are local test switches only. Do not set them in Vercel or any shared environment.
+
+Disposable verification on 21 October 2026 passed against a local PostgreSQL 16.15 database that listened only on `localhost`, with Prisma Client 6.19.2 and Node v22.23.3. Two backend process IDs proved the connections were independent. The shared Core database was not used. `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE` stayed unset. Empty-table rollback removed only the three new tables. After rows existed, turning the feature off left the audit rows in place. That result does **not** approve applying the migration to shared or production Postgres.
 
 ## Apply (separate approval required)
 
@@ -86,6 +93,7 @@ never on shared or production Postgres from this change.
 
 ## Outstanding approvals
 
+- Merge the real-Postgres lock correction (advisory lock must return an integer Prisma can read)
 - Execute the migration on shared/production Postgres
 - Enable the durable flag in a live runtime
 - Merge/deploy of the integration
