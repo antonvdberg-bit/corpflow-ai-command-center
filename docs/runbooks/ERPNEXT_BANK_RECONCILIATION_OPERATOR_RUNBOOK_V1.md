@@ -104,12 +104,15 @@ to qpdf through stdin, so it is not placed in the process argument list. Do not
 assume this removes all host-level process or memory exposure; use the approved
 operator account and host controls.
 
-The worker does not send, archive, delete, label, or otherwise mutate Gmail. It
-does not use OCR. Native PDF-to-#1378 payload extraction remains an explicit
-adapter contract: until a safe adapter supplies the redacted statement payload,
-the result is `EXTRACTION_REQUIRED` and no import preview is marked ready.
-Validation failures never produce preview readiness. Preview output remains
-ERPNext Bank Transaction import data only; no ERPNext record is created.
+The worker does not send, archive, delete, label, or otherwise mutate Gmail.
+It does not use OCR. Native password-free PDF text extraction uses the bundled
+`pdf-parse` dependency and accepts only the supported SBM tabular layout:
+currency, statement period, opening/closing balances, total credits/debits,
+and rows containing transaction date, value date, description, debit, credit,
+and running balance. Missing or inconsistent fields fail closed with an
+`SBM_PDF_*` error; no transaction is guessed. Validation failures never
+produce preview readiness. Preview output remains ERPNext Bank Transaction
+import data only; no ERPNext record is created.
 
 Local synthetic acceptance with a redacted payload:
 

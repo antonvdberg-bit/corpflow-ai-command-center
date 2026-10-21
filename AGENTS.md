@@ -30,6 +30,8 @@ Before prioritising, dispatching, reporting progress, changing execution capacit
 
 For material current/historical claims, also retrieve relevant CURRENT records from the shared Postgres Context / Agent Learning fabric when that service is available.
 
+**15 October 2026 CEO decision:** Autonomous execution is the default for all already-authorised, bounded preparation, read-only evaluation, documentation, branch/code/test/PR work and safe dispatch. Executive intervention is reserved for explicit protected-action gates; preserve original approvals and do not create extra permission loops. See `COO_OPERATING_CONSTITUTION.md` section **CEO-approved autonomous execution default**. A rejected tool operation remains a hard boundary, not an invitation to bypass it.
+
 The COO constitution is the durable cross-chat business-allocation doctrine. Revenue/client deadlines must not be displaced by repeated control-plane or observability expansion. Capacity and parallelism are business decisions, not fixed technical ideology. **Chat history is discovery context, not organisational truth.**
 
 

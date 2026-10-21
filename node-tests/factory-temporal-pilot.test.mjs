@@ -171,14 +171,14 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
   const legacyYaml = readFileSync(LEGACY_PATH, 'utf8');
   const workflowFiles = readdirSync(WORKFLOWS_DIR);
 
-  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, WIP=2, Temporal is not a second dispatcher', () => {
+  it('keeps one spine: GitHub truth, Handoff sole Cursor wake, and bounded pilot capacity', () => {
     assert.equal(FACTORY_CONTROL_PLANE_V1.spine, 'one_supervisory_orchestration_spine');
     assert.equal(FACTORY_CONTROL_PLANE_V1.sourceOfTruth, 'github');
     assert.equal(FACTORY_CONTROL_PLANE_V1.cursorWakePath, FACTORY_CURSOR_HANDOFF_WORKFLOW_NAME);
     assert.equal(FACTORY_CONTROL_PLANE_V1.wipMaxSlots, 2);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 2);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipPilotMaxSlots, 4);
     assert.equal(FACTORY_CONTROL_PLANE_V1.wipProductionReserveSlots, 2);
-    assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 0);
+    assert.equal(FACTORY_CONTROL_PLANE_V1.wipTemporalExtraSlots, 2);
     assert.equal(CURSOR_WIP_MAX_SLOTS, 2);
     assert.match(handoffYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
     assert.match(reconcileYaml, /CORPFLOW_TEMPORAL_PILOT:\s*\$\{\{\s*vars\.CORPFLOW_TEMPORAL_PILOT\s*\}\}/);
@@ -272,7 +272,7 @@ describe('factory Temporal real-production pilot control plane (#1130)', () => {
     assert.equal(parsed.mode, 'dry-run');
     assert.equal(parsed.wipMaxSlots, 2);
     assert.equal(parsed.wipDefaultMaxSlots, 2);
-    assert.equal(parsed.wipPilotMaxSlots, 2);
+    assert.equal(parsed.wipPilotMaxSlots, 4);
     const live = spawnSync(process.execPath, [WORKER_PATH, '--live'], { encoding: 'utf8' });
     assert.equal(live.status, 2);
     assert.match(live.stderr, /NOT READY/);

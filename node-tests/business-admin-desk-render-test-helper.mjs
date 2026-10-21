@@ -18,11 +18,16 @@ Module._load = function businessAdminDeskModuleLoader(request, parent, isMain) {
       return React.createElement(React.Fragment, null, children);
     };
   }
+  if (request === 'next/link') {
+    return function TestLink({ href, children, ...props }) {
+      return React.createElement('a', { href, ...props }, children);
+    };
+  }
   return originalModuleLoad.call(this, request, parent, isMain);
 };
 
 require.extensions['.js'] = function businessAdminDeskJsLoader(module, filename) {
-  if (filename.includes(`${join('node_modules')}/`)) {
+  if (filename.replaceAll('\\', '/').includes('/node_modules/')) {
     return originalJsLoader(module, filename);
   }
   const source = readFileSync(filename, 'utf8');

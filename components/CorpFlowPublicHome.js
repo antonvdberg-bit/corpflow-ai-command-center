@@ -19,6 +19,7 @@ import {
   LEAD_RESCUE_PUBLIC_PAYMENT_LINE,
 } from '../lib/public/enquiry-recovery-sprint.js';
 import { shouldEmitCorpFlowBrandAssets } from '../lib/public/corpflow-brand-assets.js';
+import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
 import { cfBody, CF } from './public/corpflow-public-styles.js';
 
 const FLAGSHIP_VIDEO_PATH = '/media/corpflowai/corpflowai-flagship-homepage-final-1080p.mp4';
@@ -26,7 +27,7 @@ const HOME_SECTION_SPACING = { marginTop: 64 };
 
 const meta = buildPublicPageMeta({
   title: 'Stop losing valuable enquiries after first contact',
-  description: 'Lead Rescue helps selected Mauritius businesses identify and recover valuable enquiries that have gone quiet. MUR 85,000 fixed. Maximum three clients. Request a 15-minute diagnosis.',
+  description: `${MERCHANT_LEGAL_NAME} is a software and workflow automation company. Lead Rescue helps selected businesses recover valuable enquiries that have gone quiet. ${ENQUIRY_RECOVERY_PRICE_LINE}. Request a 15-minute diagnosis.`,
   path: '/',
   ogImage: '/assets/visuals/corpflow-home-hero.jpg',
 });
@@ -59,8 +60,16 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       {showFlagshipVideo ? <FlagshipVideoSection /> : null}
 
-      <OutcomeSection id="commercial-focus" label="The live offer" title={`${ENQUIRY_RECOVERY_OFFER_NAME} — ${ENQUIRY_RECOVERY_PRICE_LINE}`} style={HOME_SECTION_SPACING}>
-        <p style={cfBody}>{ENQUIRY_RECOVERY_SCARCITY_LINE}</p>
+      <OutcomeSection id="commercial-focus" label="The company" title={`${MERCHANT_LEGAL_NAME} builds software and workflow automation`} style={HOME_SECTION_SPACING}>
+        <p style={cfBody}>
+          {MERCHANT_LEGAL_NAME} is the registered software and workflow automation company behind this website. The current standard packages configure enquiry capture, follow-up visibility, a bounded website path, or an agreed automation workflow — then hand that working setup to you.
+        </p>
+        <p style={{ ...cfBody, margin: 0 }}>
+          The live standard offer is {ENQUIRY_RECOVERY_OFFER_NAME} — {ENQUIRY_RECOVERY_PRICE_LINE}. {ENQUIRY_RECOVERY_SCARCITY_LINE}
+        </p>
+      </OutcomeSection>
+
+      <OutcomeSection label="What the software does" title={`${ENQUIRY_RECOVERY_OFFER_NAME} — ${ENQUIRY_RECOVERY_PRICE_LINE}`} style={HOME_SECTION_SPACING}>
         <p style={cfBody}>{ENQUIRY_RECOVERY_IMPLEMENTATION_LINE}</p>
         <p style={cfBody}>{CORPflow_BUYER_FIT.body}</p>
         <p style={{ ...cfBody, margin: 0 }}>{LEAD_RESCUE_PUBLIC_PAYMENT_LINE}</p>
@@ -68,37 +77,37 @@ export default function CorpFlowPublicHome({ host = null, search = null }) {
 
       <OutcomeSection label="What happens when you click" title="A 15-minute diagnosis — not a commitment to buy" style={HOME_SECTION_SPACING}>
         <p style={cfBody}>
-          We look at where enquiries arrive, where follow-up becomes difficult to see, and whether a recovered enquiry is valuable enough to justify intervention. If there is a real Lead Rescue case, we send a written offer. If there is not, we tell you.
+          We look at where enquiries arrive, where follow-up becomes difficult to see, and whether a recovered enquiry is valuable enough to justify the standard Lead Rescue setup. If there is a real Lead Rescue case, we send a written offer. If there is not, we tell you.
         </p>
         <p style={{ ...cfBody, margin: 0 }}>{ENQUIRY_RECOVERY_QUALIFICATION_LINE}</p>
       </OutcomeSection>
 
       <OutcomeSection
-        id="human-machine-ready"
-        label="Built for the operating reality ahead"
-        title="Clear for people. Structured for machines. Controlled by authority."
+        id="software-foundation"
+        label="What you receive"
+        title="A configured system you can keep using"
         style={{ marginTop: 32 }}
       >
         <p style={cfBody}>
-          We design important business paths so customers and staff can use them easily today, while the underlying information and workflow remain clear enough for AI assistants and connected systems to support tomorrow.
+          Lead Rescue, Website Rescue and bounded automation are software packages: agreed capture or page behaviour, alerts or enquiry paths, testing, and handover. Setup and support that belong in the written package stay in that package. Ongoing care is a separate choice after acceptance.
         </p>
         <p style={{ ...cfBody, margin: 0 }}>
-          We do not sell “future-proof” technology. We build replaceable, controlled foundations so the next interaction layer does not force the business to start again.
+          We do not replace your existing tools unless that work is specifically scoped, and we do not claim a capability that is not in the written package.
         </p>
       </OutcomeSection>
 
       <div style={{ marginTop: 24 }}>
         <PublicTrustBand>
           <p style={{ ...cfBody, margin: 0, color: '#eef6ff' }}>
-            Mauritius-based. Controlled delivery. No guaranteed-revenue claims. Human-ready, machine-ready, and authority-controlled by design — without replacing your existing stack unless that work is specifically scoped.
+            Mauritius-based software and workflow automation. Controlled delivery. No guaranteed-revenue claims. Existing tools stay in place unless a replacement is specifically scoped.
           </p>
         </PublicTrustBand>
       </div>
 
       <div style={{ marginTop: 16 }}>
         <PublicCtaBand
-          title="Could one recovered enquiry justify MUR 85,000?"
-          body="We can currently accommodate three Lead Rescue clients. Request a 15-minute diagnosis. No payment is taken on this website."
+          title={`See whether Lead Rescue fits — ${ENQUIRY_RECOVERY_PRICE_LINE}.`}
+          body={`${ENQUIRY_RECOVERY_SCARCITY_LINE} ${LEAD_RESCUE_PUBLIC_PAYMENT_LINE}`}
           primaryCta={CORPflow_HOMEPAGE_HERO.primaryCta}
         />
       </div>

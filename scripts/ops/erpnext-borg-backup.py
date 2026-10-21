@@ -223,6 +223,7 @@ def main():
         DAILY.mkdir(mode=0o700, parents=True, exist_ok=True)
         DAILY.chmod(0o700)
         run_id = utcnow().strftime("%Y%m%dT%H%M%SZ")
+        state["backup_run"] = run_id
         pending = DAILY / (".pending-" + run_id)
         folder = DAILY / run_id
         pending.mkdir(mode=0o700)
