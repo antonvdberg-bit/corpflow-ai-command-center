@@ -58,12 +58,14 @@ test('public Business Admin Desk landing is concise, video-first and serves dire
   assert.match(landing, /BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL\s*=\s*['"]https:\/\/app\.heygen\.com\/embeds\/[a-f0-9]{32}['"]/i);
   assert.doesNotMatch(landing, /24cebb01a1b240158c77771c103542da/);
   assert.match(landing, /Business Admin Desk — Clear Company Administration/);
-  assert.match(landing, /You run the business\. We help with the administration\./);
+  assert.match(landing, /Company administration, managed as one process\./);
+  assert.match(landing, /software-managed end-to-end packages/);
   assert.match(landing, /For individual businesses/);
   assert.match(landing, /For companies and service providers/);
   assert.match(landing, /White-label or fractional admin capacity/);
   assert.match(landing, /Discuss white-label \/ fractional support/);
-  assert.match(landing, /Tell us what you need help with/);
+  assert.match(landing, /See package prices/);
+  assert.match(landing, /fully automated filing are not live/);
   assert.match(landing, /index,follow/);
   assert.match(landing, /businessadmindesk\.co\.za/);
   assert.doesNotMatch(landing, /\bCIPC\b/i);
@@ -90,7 +92,7 @@ test('Business Admin Desk CTA is email-primary with a low-friction webmail fallb
   assert.match(actions, /Opens an email with a short starter message/);
   assert.match(actions, /Prefer webmail/);
   assert.match(actions, /Copy our email address/);
-  assert.match(landing, /Tell us what's going on/);
+  assert.match(landing, /Ask about a package/);
   assert.match(service, /Ask us about your Annual Returns/);
   assert.match(service, /Tell us about the director change/);
   assert.match(service, /Ask us about your ownership filing/);

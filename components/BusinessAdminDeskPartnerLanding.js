@@ -72,7 +72,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           <div>
             <div style={{ marginBottom: 8 }}><BusinessAdminDeskBrand compact href="/" /></div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Independent company-administration support. Not a government or regulatory service, and not a law firm.
+              Business Admin Desk is a service brand operated by CorpFlowAI Ltd. Not a government or regulatory service, and not a law firm.
             </p>
             <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
@@ -108,7 +108,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           }
           lead={
             <p style={{ ...cfLead, marginBottom: 0, maxWidth: 800 }}>
-              Add experienced white-label or fractional capacity without adding permanent headcount — while your firm keeps the client relationship.
+              Add white-label or fractional capacity for the same integrated, software-managed company-administration packages, while your firm keeps the client relationship. Partner rates are confirmed in writing. Online checkout is not open on this website.
             </p>
           }
           actions={
@@ -165,7 +165,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
 
         <section style={cfSection} aria-labelledby="partner-work-title">
           <p style={cfKicker}>What we can sit behind</p>
-          <h2 id="partner-work-title" style={cfH2}>Practical company-administration support</h2>
+          <h2 id="partner-work-title" style={cfH2}>Integrated packages your firm can offer behind its own name</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
             {[
               'Company administration',
@@ -221,7 +221,7 @@ export default function BusinessAdminDeskPartnerLanding({ internalReview = false
           <h2 id="partner-boundary-title" style={cfH2}>Scoped before work starts</h2>
           <GlassPanel variant={{ padding: 24, elevation: 2 }} style={{ marginTop: 14 }}>
             <p style={{ ...cfBody, margin: 0 }}>
-              White-label and fractional support is agreed around the work you actually need. We do not publish a generic fee table, promise filing outcomes, or take over your client relationship by default.
+                  The nine published package fees are on the pricing page. Partner and portfolio rates are confirmed in writing and are not an automatic discount. We do not promise filing outcomes, and we do not take over your client relationship by default. Online checkout is not available.
             </p>
           </GlassPanel>
         </section>

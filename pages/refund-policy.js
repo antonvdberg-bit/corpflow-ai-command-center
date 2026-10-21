@@ -2,15 +2,38 @@ import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { formatCurrencyDisclosure } from '../lib/public/merchant-identity.js';
+import BusinessAdminDeskPolicyPage from '../components/BusinessAdminDeskPolicyPage.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { BAD_REFUND_SECTIONS } from '../lib/public/business-admin-desk-policies.js';
 
-export default function RefundPolicyPage() {
+export default function RefundPolicyPage({ surface = 'other' }) {
+  if (surface === 'public' || surface === 'staging') {
+    return (
+      <BusinessAdminDeskPolicyPage
+        title="Refund and cancellation"
+        description="Refund and cancellation notice for Business Admin Desk packages operated by CorpFlowAI Ltd. No refund right is created by this page."
+        path="/refund-policy"
+        review={surface === 'staging'}
+        sections={BAD_REFUND_SECTIONS}
+      />
+    );
+  }
+  return <CorpFlowRefundPolicyPage />;
+}
+
+function CorpFlowRefundPolicyPage() {
   return (
     <PublicPolicyLayout title="Refund and Cancellation Policy">
       <section style={ps.section}>
         <h2 style={ps.h2}>Payment timing</h2>
         <p style={ps.p}>
           Payment is handled after intake review and scope confirmation. This website does not collect card or banking
-          details on the marketing pages. {formatCurrencyDisclosure()}
+          details on the marketing pages. {formatCurrencyDisclosure()} Business Admin Desk refund wording is published
+          separately at{' '}
+          <a href="https://businessadmindesk.co.za/refund-policy" style={{ color: '#7dd3fc' }}>
+            businessadmindesk.co.za/refund-policy
+          </a>
+          .
         </p>
         <p style={ps.p}>
           Each successful payment is acknowledged by a PDF invoice issued by CorpFlowAI Ltd recording the invoice
@@ -75,4 +98,8 @@ export default function RefundPolicyPage() {
       </section>
     </PublicPolicyLayout>
   );
+}
+
+export function getServerSideProps({ req }) {
+  return { props: { surface: resolveBusinessAdminDeskSurface(req?.headers?.host) } };
 }

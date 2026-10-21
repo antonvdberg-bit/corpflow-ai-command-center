@@ -160,3 +160,18 @@ Supersedes only the implementation-state statements above that say the website i
 - Review routes render `noindex,nofollow` without canonicals; public routes retain indexable metadata and conditional public canonicals.
 - The focused test uses the existing React/Next compiler and `react-dom/server` to render footer, contact, public, partner and all three service variants, and invokes the clipboard helper with synthetic data. No live submission or mail configuration is performed.
 - This evidence does not verify email aliases, DNS, legal registration details, pricing, Paddle eligibility, public release, deployment or live URL behavior.
+
+## Implementation evidence — public package pages for Paddle URL review (20 October 2026)
+
+Supersedes the statements above that say no Business Admin Desk price list is approved, that the public homepage is only standalone human support, and that `businessadmindesk.co.za/pricing` must remain a 404. It does not approve merge, production deploy, Paddle submission, live checkout, VAT treatment, or a refund right.
+
+CEO instruction on issue #1432 (20 October 2026): publish the integrated software-managed package model and the nine approved one-time ZAR service fees so the pricing, terms, privacy and refund URLs are no longer blank. Government and statutory fees stay separate. Online checkout stays off.
+
+Source behaviour prepared for review:
+
+- The public homepage describes one software-managed workflow. It states that fully automated filing and online checkout are not live.
+- `businessadmindesk.co.za/pricing` renders the nine approved fees. `cipc.corpflowai.com` and `cipc-desk.corpflowai.com` render the same fees with `noindex,nofollow` and no public canonical.
+- Business Admin Desk `/terms`, `/privacy` and `/refund-policy` name CorpFlowAI Ltd as the operator. Open items, including VAT, merchant of record, retention and any refund window, are labelled **Requires commercial or legal approval** and are not written as customer rights.
+- `corpflowai.com` pricing and policies remain the CorpFlowAI offer. They link to the Business Admin Desk pages instead of listing those ZAR fees.
+
+This section records source preparation only. It is not proof that the pages are deployed or that Paddle has accepted them.
