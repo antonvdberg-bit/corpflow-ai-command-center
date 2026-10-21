@@ -87,6 +87,18 @@
           "cf_demo_sequence": 1
         },
         {
+          "cf_demo_id": "move-a-allocation",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_key": "move-a-allocation",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_lot": "A",
+          "cf_demo_unit": "each",
+          "cf_demo_type": "allocation",
+          "cf_demo_quantity": 1,
+          "cf_demo_date": "2026-10-03",
+          "cf_demo_sequence": 2
+        },
+        {
           "cf_demo_id": "move-b-receipt",
           "cf_demo_org": "synthetic-org",
           "cf_demo_key": "move-b-receipt",
@@ -94,7 +106,7 @@
           "cf_demo_lot": "B",
           "cf_demo_unit": "each",
           "cf_demo_type": "receipt",
-          "cf_demo_quantity": 3,
+          "cf_demo_quantity": 2,
           "cf_demo_date": "2026-10-02",
           "cf_demo_sequence": 1
         }
@@ -106,7 +118,7 @@
     "lot-a": {
       "canonicalItemId": "synthetic-item",
       "unit": "each",
-      "openingQuantity": 4,
+      "openingQuantity": 5,
       "verified": true,
       "date": "2026-09-01",
       "sequence": 0,
@@ -115,7 +127,7 @@
     "lot-b": {
       "canonicalItemId": "synthetic-item",
       "unit": "each",
-      "openingQuantity": 7,
+      "openingQuantity": 8,
       "verified": true,
       "date": "2026-10-01",
       "sequence": 0,

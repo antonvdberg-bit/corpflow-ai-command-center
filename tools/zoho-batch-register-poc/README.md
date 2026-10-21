@@ -50,12 +50,16 @@ not manufacture it from body content. It performs no HTTP, OAuth, filesystem,
 environment, credentials, timers, retries, POST, PUT, commit, receipt, or
 reversal writes.
 
-The explicit mapping must name fictional item, register, and movement modules
+The explicit mapping must name fictional item, register, and movement module
 fields for IDs, organization, item, lot, unit, status, expiry, received date,
 item expiry policy, movement key/type/quantity/date/sequence, and optional
 reversal reference. Verified opening and reservation evidence is deliberately
-separate under `evidenceByBatchId`; it is joined by canonical scalar batch ID,
-canonical item ID, and compatible unit. A movement must be strictly after its
+separate under `evidenceByBatchId`; it is joined by the register's scalar native
+batch ID and only accepted when its canonical item and unit match a unique
+canonical item lookup from the supplied item pages. Every required evidence
+field is explicit; zero opening quantity, sequence, or reservation is valid.
+The mapper examines all matching policy fields, so conflicting values reject
+instead of silently selecting the first. A movement must be strictly after its
 lot's verified opening boundary by date and sequence; missing or contradictory
 boundary evidence fails closed. Lookup normalization is deliberately narrow:
 the native fixture uses flat `cf_demo_*` fields and canonical policy in
@@ -86,6 +90,19 @@ after completion. Input cloning, mapper execution, result validation, and
 output cloning are one bounded failure boundary. Errors expose only a stable
 `native <source> mapping failed` message and never raw native values or causes.
 
+Native bridge acceptance matrix (verified by the focused suite):
+
+| Case | Expected | Actual |
+| --- | --- | --- |
+| Native item identity changed or missing | Reject mapping | Rejects with stable native mapping error |
+| Supplied opening evidence field removed | Reject mapping | Rejects; no fixture fallback |
+| Conflicting canonical policy entries | Block allocation | Rejects mapping |
+| Rejected async mapper | One bounded rejection, no unhandled event | Passes with zero unhandled events |
+| Approved zero opening/receipt boundary | Preserve valid zero values | Generic adapter accepts valid zero opening |
+| Exempt FIFO | Earlier received lot first, including undated/legacy-past expiry | Covered by native integration tests |
+| Reservation or quarantine | Reduce availability or exclude lot | Covered by native integration tests |
+| Later-page read/envelope/mapping failure | Reject whole preview | Existing fail-closed boundary coverage |
+
 `buildExpiryReview({ items, batches, asOfDate })` is also synthetic and
 read-only. It treats `items` as the canonical item source, validates nonblank
 batch/item/lot identities and finite nonnegative decimal quantities (maximum
@@ -112,8 +129,10 @@ balances before calling the core. `planAllocation({ itemId, quantity, unit, asOf
 Gregorian dates, positive quantities, supported units/statuses, unique batch
 IDs and product/lot identity, nonnegative six-decimal quantities, reservations
 within balance, finite values, and safe scaled-integer bounds. It excludes
-other products, quarantined, expired, undated, and `expiryDate <= asOfDate`
-stock. It sorts FEFO, then received date, then batch ID. Shortages do not
+other products, quarantined, expired, and `expiryDate <= asOfDate` stock.
+Required-policy items need a valid future expiry; canonical exempt-policy items
+may use receipt-order FIFO for undated or legacy-past-expiry stock. It sorts
+FEFO, then received date, then batch ID. Shortages do not
 mutate state.
 
 `BatchLedger` holds canonical item policy, rechecks it during commit, and adds same-lot receipts without changing identity or expiry,
