@@ -1,6 +1,6 @@
 # BAD buyer ownership contract — bounded synthetic implementation
 
-Status: `IMPLEMENTED SYNTHETIC CONTRACT / DURABLE SCHEMA NOT APPROVED`
+Status: `IMPLEMENTED SYNTHETIC CONTRACT / DURABLE SCHEMA PREPARED IN REPO — LIVE MIGRATION NOT APPROVED`
 
 Source: issue [#1507](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1507)
 
@@ -72,7 +72,9 @@ are required. Refunded and revoked rows are sticky tombstones: a newer
 completion event must not clear them. Rollback must preserve the
 ownership/order audit row and revoke access rather than delete accounting
 evidence. Migration, foreign keys, retention, and production rollout remain
-separate protected approvals. No durable schema is approved by this record.
+separate protected approvals. No durable schema is approved by this record for **live application**.
+Preparation of the migration and gated adapter is tracked in
+`docs/decisions/20261021-bad-durable-buyer-ownership.md` and issue #1509.
 
 ## Acceptance mapping
 

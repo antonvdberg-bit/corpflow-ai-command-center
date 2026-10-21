@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { createMemoryBadBuyerOwnershipStore } from '../lib/server/paddle-sandbox/bad-buyer-ownership.js';
+import {
+  createMemoryBadBuyerOwnershipStore,
+  resolveBadBuyerOwnerFromSession,
+} from '../lib/server/paddle-sandbox/bad-buyer-ownership.js';
 
 const OWNER = { auth_user_id: 'auth-buyer-1', tenant_id: 'tenant-bad-1', brand: 'business_admin_desk' };
 const OTHER_OWNER = { auth_user_id: 'auth-buyer-2', tenant_id: 'tenant-bad-1', brand: 'business_admin_desk' };
@@ -524,4 +527,81 @@ test('browser identity and unknown events do not grant access or leak confirmati
   assert.equal(JSON.stringify(unknown).includes('synthetic confirmation'), false);
   assert.equal(JSON.stringify(wrongBrand).includes('buyer@example.test'), false);
   assert.equal(JSON.stringify(wrongBrandRefund).includes('buyer@example.test'), false);
+});
+
+test('cancellation permanently prevents later completion and retrieval', async () => {
+  const store = await paidStore();
+  const cancelled = await store.applyVerifiedWebhook({
+    eventId: 'evt-cancel-1',
+    eventType: 'transaction.updated',
+    occurredAt: '2026-10-21T09:30:00Z',
+    data: { id: INTENT.paddle_transaction_id, status: 'canceled' },
+  });
+  const late = await store.applyVerifiedWebhook(completedEvent({
+    eventId: 'evt-after-cancel',
+    occurredAt: '2026-10-21T12:00:00Z',
+  }));
+  const record = await store.inspect(INTENT.checkout_intent_id);
+
+  assert.equal(cancelled.status, 'revoked');
+  assert.equal(late.status, 'revoked');
+  assert.equal(late.ignored, true);
+  assertTerminalDenial(record);
+  assert.equal(
+    (await store.issueOrderConfirmation({
+      checkout_intent_id: INTENT.checkout_intent_id,
+      owner: OWNER,
+      confirmation: VALID_CONFIRMATION,
+    })).code,
+    'ORDER_NOT_ISSUABLE',
+  );
+});
+
+test('a trusted server may associate a Paddle id later; webhooks still cannot create ownership', async () => {
+  const store = createMemoryBadBuyerOwnershipStore();
+  const bound = await store.bindCheckoutIntent({
+    checkout_intent_id: 'intent-late-txn',
+    order_confirmation_ref: 'OC-LATE',
+    owner: OWNER,
+  });
+  assert.equal(bound.paddle_transaction_id, null);
+  const ignored = await store.applyVerifiedWebhook(completedEvent({
+    eventId: 'evt-unbound-complete',
+    transactionId: 'txn-late',
+  }));
+  assert.equal(ignored.ignored, true);
+  assert.equal((await store.inspect('intent-late-txn')).status, 'draft');
+
+  const associated = await store.associateProviderTransaction({
+    checkout_intent_id: 'intent-late-txn',
+    paddle_transaction_id: 'txn-late',
+  });
+  assert.equal(associated.paddle_transaction_id, 'txn-late');
+  await store.applyVerifiedWebhook(completedEvent({
+    eventId: 'evt-bound-complete',
+    transactionId: 'txn-late',
+  }));
+  assert.equal((await store.inspect('intent-late-txn')).status, 'paid');
+});
+
+test('owner identity is taken only from a verified tenant session user', async () => {
+  const owner = resolveBadBuyerOwnerFromSession({
+    ok: true,
+    payload: { typ: 'tenant', user_id: 'auth-buyer-1', tenant_id: 'tenant-bad-1' },
+  });
+  assert.deepEqual(owner, OWNER);
+  assert.throws(
+    () => resolveBadBuyerOwnerFromSession({
+      ok: true,
+      payload: { typ: 'tenant', tenant_id: 'tenant-bad-1' },
+    }),
+    /AUTH_USER_REQUIRED/,
+  );
+  assert.throws(
+    () => resolveBadBuyerOwnerFromSession({
+      ok: true,
+      payload: { typ: 'tenant', user_id: 'auth-buyer-1', tenant_id: 'tenant-bad-1', email: 'buyer@example.test' },
+    }),
+    /UNTRUSTED_OWNER_SOURCE/,
+  );
 });
