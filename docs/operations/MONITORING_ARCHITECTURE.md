@@ -1,5 +1,8 @@
 # Monitoring & 24/7 execution architecture (canonical)
 
+> **Live verification supersession — 2026-10-08:** Monitor #14 is installed and active under anton's user-systemd timer; earlier install-pending wording in this historical map is superseded. The daily ERP backup wrapper now runs through the existing root Borg cron at 01:00 UTC (05:00 Mauritius), with seven completed local managed runs and existing 7d encrypted remote retention. Monitor #14 also checks sanitized ERP backup status, remote-verification evidence, last-attempt failures, missing/stale (>36h) protection and stuck (>3h) runs. Immediate backup failures invoke the same failure-only Telegram path; the independent health timer remains at 07:15 UTC. One complete ERP/Borg cycle, normal silent health checks and a labelled Telegram test (HTTP 200 accepted) passed. See [verified recovery evidence](../erpnext/ERPNEXT_SERVER_RECOVERY_2026_10_07.md). Full new-backup restore and next unattended run remain unverified. The previously documented restic retention unit names were not found; do not equate small heartbeat snapshots with ERP coverage.
+
+
 **Status:** v1.1 — updated 2026-10-02
 **Owner:** Anton (operator) for hosts/secrets/scheduled jobs; Cursor for repo-side wiring + this doc.
 **Scope:** This doc is the **single component map** for "what monitors what, on what schedule, with what alert path." It does not restate component-level details — it points at the canonical doc per component. When a new monitoring surface or scheduled job is added, **§ 2 must be updated in the same PR** (rule formalised in § 9).
