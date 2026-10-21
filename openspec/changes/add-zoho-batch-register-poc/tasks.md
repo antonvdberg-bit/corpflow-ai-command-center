@@ -13,11 +13,15 @@
   adapter with pagination, mapping, baseline, replay, and blocker checks.
 - [x] 1.7 Add synthetic fixture and adapter regression tests; document the
   unverified live integration and concurrency boundaries.
+- [x] 1.8 Add canonical item policies, exempt receipt ordering, policy
+  revalidation, and the pure deterministic expiry review report.
+- [x] 1.9 Add acceptance coverage for policies, report boundaries, zero stock,
+  quarantine, invalid dates, stale plans, and deterministic repeat.
 
 ## 2. Verification
 
 - [x] 2.1 Run the focused Node test file.
-- [ ] 2.2 Run strict OpenSpec validation (OpenSpec CLI unavailable in the
-  execution environment).
+- [ ] 2.2 Run strict OpenSpec validation.
 - [x] 2.3 Run `git diff --check`.
-- [ ] 2.4 Run strict OpenSpec validation (CLI unavailable in this environment).
+- [ ] 2.4 Record that live Zoho field translation, UAT, concurrency, posting,
+  scheduling, sends, and production stock control remain unverified.

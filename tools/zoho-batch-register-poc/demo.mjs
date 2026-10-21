@@ -20,7 +20,7 @@ const announce = (message, error = false) => {
 };
 
 function reset() {
-  ledger = new BatchLedger(initialBatches);
+  ledger = new BatchLedger(initialBatches, { serum: 'required', 'other-product': 'required' });
   pendingPlan = undefined;
   $('#allocation-review').hidden = true;
   render();
@@ -47,11 +47,12 @@ function render() {
   $('#physical-stock').textContent = `${batches.filter((batch) => batch.itemId === 'serum').reduce((sum, batch) => sum + batch.balanceQuantity, 0)} each`;
   $('#available-stock').textContent = isValidDate(asOfDate)
     ? `${batches
-      .filter((batch) => batch.itemId === 'serum' && batch.status === 'available' && batch.expiryDate && batch.expiryDate > asOfDate)
+    .filter((batch) => batch.itemId === 'serum' && batch.status === 'available' && batch.expiryDate && batch.expiryDate > asOfDate)
       .reduce((sum, batch) => sum + batch.balanceQuantity - batch.reservedQuantity, 0)} each`
     : '—';
   const selectedLot = $('#receive-lot').value;
-  $('#receive-lot').innerHTML = batches.filter((batch) => batch.itemId === 'serum').map((batch) => `<option value="${batch.batchId}">${batch.lotNumber} · expires ${batch.expiryDate}</option>`).join('');
+  $('#receive-lot').innerHTML = batches.filter((batch) => batch.itemId === 'serum').map((batch) =>
+    `<option value="${batch.batchId}">${batch.lotNumber} · policy required · ${batch.expiryDate ? `expires ${batch.expiryDate}` : 'unknown expiry date'}</option>`).join('');
   if (batches.some((batch) => batch.batchId === selectedLot)) $('#receive-lot').value = selectedLot;
   const events = ledger.history;
   $('#history-list').innerHTML = events.length
@@ -93,7 +94,7 @@ $('#allocate-form').addEventListener('submit', (event) => {
     });
     if (!pendingPlan.ok) throw new Error(pendingPlan.message);
     $('#allocation-lines').innerHTML = pendingPlan.allocations.map((line) =>
-      `<li><strong>${line.quantity} each</strong> from ${line.lotNumber} · expires ${line.expiryDate} · ${line.remainingBalance} left</li>`
+      `<li><strong>${line.quantity} each</strong> from ${line.lotNumber} · policy ${line.itemPolicy} · ${line.expiryDate ? `expires ${line.expiryDate}` : 'no expiry required'} · ${line.remainingBalance} left</li>`
     ).join('');
     $('#allocation-review').hidden = false;
     announce('Review the suggested split before confirming.');

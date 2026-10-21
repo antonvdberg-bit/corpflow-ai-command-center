@@ -1,4 +1,4 @@
-import { planAllocation } from './core.mjs';
+import { normalizeItemPolicies, planAllocation } from './core.mjs';
 
 const UNITS = new Set(['each', 'kg', 'g', 'l', 'ml', 'box']);
 const MOVEMENT_TYPES = new Set(['receipt', 'allocation', 'reversal']);
@@ -249,14 +249,25 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     receivedDate: lot.receivedDate, balanceQuantity: exactQuantity(lot.balance),
     reservedQuantity: exactQuantity(lot.reserved), version: 1,
   }));
-  const plan = planAllocation({ itemId, quantity: required(requestedQuantity, 'quantity'), unit, asOfDate, batches });
-  const exclusions = batches.filter((batch) => batch.status !== 'available' || !batch.expiryDate || batch.expiryDate <= asOfDate)
-    .map(({ batchId, status, expiryDate }) => ({ batchId, reason: status !== 'available' ? `status:${status}` : `expiry:${expiryDate ?? 'absent'}` }));
+  const itemPolicyContext = normalizeItemPolicies(arguments[0].itemPolicyContext ?? {});
+  const plan = planAllocation({
+    itemId, quantity: required(requestedQuantity, 'quantity'), unit, asOfDate, batches, itemPolicyContext,
+  });
+  const policy = plan.itemPolicy;
+  const exclusions = batches.filter((batch) =>
+    batch.status !== 'available' ||
+    (policy === 'required' && (!batch.expiryDate || batch.expiryDate <= asOfDate)) ||
+    policy === 'review'
+  ).map(({ batchId, status, expiryDate }) => ({
+    batchId,
+    reason: policy === 'review' ? 'classification:review' : status !== 'available' ? `status:${status}` : `expiry:${expiryDate ?? 'absent'}`,
+  }));
   return clone({
     synthetic: true, connected: false, readOnly: true,
     physicalQuantity: displayedQuantity([...lots.values()].reduce((sum, lot) => sum + lot.balance, 0n), 'physicalQuantity'),
     availableQuantity: displayedQuantity([...lots.values()]
-      .filter((lot) => lot.status === 'available' && lot.expiryDate && lot.expiryDate > asOfDate)
+      .filter((lot) => lot.status === 'available' &&
+        (policy === 'not_applicable' || (lot.expiryDate && lot.expiryDate > asOfDate)))
       .reduce((sum, lot) => sum + lot.balance - lot.reserved, 0n), 'availableQuantity'),
     exclusions, proposedSplit: plan.allocations, shortage: plan.ok ? 0 : plan.unallocatedQuantity,
     blockers: plan.ok ? [] : [plan.message], request: plan.request,

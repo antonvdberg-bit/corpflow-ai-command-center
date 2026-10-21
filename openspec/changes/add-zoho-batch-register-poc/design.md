@@ -20,6 +20,12 @@ enforcement or locking behavior.
   normalizes only the synthetic contract, replays immutable fetched records
   from an explicit verified opening baseline, and delegates final splitting to
   `core.mjs`.
+- Keep item policy canonical and trusted at the ledger/adapter boundary:
+  absent, blank, and unknown values normalize to `review`; no expiry date,
+  item name, unit, or supplier infers exemption.
+- Keep the daily review pure and explicit-date driven. It reports positive
+  replayed lot balances only and has no scheduler, transport, persistence, or
+  send side effect.
 
 ## Non-goals
 

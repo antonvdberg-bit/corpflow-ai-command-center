@@ -22,14 +22,14 @@
     <header class="hero">
       <p class="eyebrow">CorpFlowAI inventory proof</p>
       <h1>Batch register</h1>
-      <p class="lede">FEFO allocation for one product, with receipts, shortages, and reversible history.</p>
+      <p class="lede">Policy-aware FEFO allocation for one product, with receipts, shortages, and reversible history.</p>
       <p class="banner" role="status">Synthetic data · not connected to Zoho</p>
     </header>
     <section class="card summary" aria-labelledby="stock-title">
       <div>
         <p class="eyebrow">Synthetic item</p>
         <h2 id="stock-title">Herbal face serum</h2>
-        <p>SKU CF-SERUM-01 · unit: each</p>
+        <p>SKU CF-SERUM-01 · unit: each · item policy: required</p>
       </div>
       <dl>
         <div><dt>Physical stock</dt><dd id="physical-stock">—</dd></div>
@@ -53,7 +53,7 @@
       <section class="card" aria-labelledby="allocate-title">
         <p class="eyebrow">Task 02</p>
         <h2 id="allocate-title">Allocate stock</h2>
-        <p class="muted">The earliest eligible expiry is suggested first.</p>
+        <p class="muted">Required items use FEFO; undated or invalid expiry is a classification blocker.</p>
         <form id="allocate-form">
           <label for="allocate-quantity">Quantity</label>
           <input id="allocate-quantity" type="number" min="0.000001" step="0.000001" value="8" required>

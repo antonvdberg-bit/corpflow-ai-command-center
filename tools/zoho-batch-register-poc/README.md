@@ -17,8 +17,10 @@ Open `http://localhost:4173/demo.html`. The demo has synthetic Lot A (6 units),
 Lot B (10 units with 2 reserved), quarantined stock, an expired lot, an
 undated lot, and another product. Expired, undated, quarantined, reserved, and
 wrong-product quantities are intentionally excluded from the as-of available
-total and FEFO planner. It demonstrates physical versus available quantity,
-FEFO allocation, receipts, shortages, retained history, reversal, and reset.
+total and planner. Explicit `required` policy uses FEFO; `not_applicable` uses
+receipt order; missing, blank, or unknown policy is `review` and blocks
+allocation. It demonstrates physical versus available quantity, FEFO
+allocation, receipts, shortages, retained history, reversal, and reset.
 
 The planner is also directly usable:
 
@@ -54,8 +56,9 @@ baseline, reservations, movements, reversals, intermediate balances, and
 aggregates exact until the final displayed totals are converted once. The pure
 replay is `opening + receipts - allocations + full reversal of the original
 allocation delta`; reversal preserves later receipts. Blank status is excluded
-as quarantine, while absent expiry is excluded without being date-parsed. Only `available` stock
-with a future expiry is eligible. The result is marked `synthetic`,
+as quarantine, while absent expiry is excluded without being date-parsed for
+required items. Exempt items use receipt order without requiring expiry. The
+result is marked `synthetic`,
 `connected: false`, and `readOnly: true`, and includes physical/available
 quantities, exclusions, proposed split, shortage, and blockers.
 
@@ -69,7 +72,7 @@ before write as an atomic multi-lot allocation guarantee.
 
 The adapter requires an explicit verified opening baseline and reservation quantity,
 replays dated movements in order, and rejects ambiguous or negative intermediate
-balances before calling the core. `planAllocation({ itemId, quantity, unit, asOfDate, batches })` validates real
+balances before calling the core. `planAllocation({ itemId, quantity, unit, asOfDate, batches, itemPolicyContext })` validates real
 Gregorian dates, positive quantities, supported units/statuses, unique batch
 IDs and product/lot identity, nonnegative six-decimal quantities, reservations
 within balance, finite values, and safe scaled-integer bounds. It excludes
@@ -77,13 +80,15 @@ other products, quarantined, expired, undated, and `expiryDate <= asOfDate`
 stock. It sorts FEFO, then received date, then batch ID. Shortages do not
 mutate state.
 
-`BatchLedger` adds same-lot receipts without changing identity or expiry,
+`BatchLedger` holds canonical item policy, rechecks it during commit, and adds same-lot receipts without changing identity or expiry,
 revalidates the complete request, source fingerprint, lot identity, eligibility,
 versions, and every split before an atomic commit, rejects stale or forged
 plans, detects recursive idempotency payload conflicts, and reverses each
 allocation once by applying quantity deltas to current lots while retaining
 later movements and history. This is a local atomicity simulation, not a claim
-about Books locking or recovery semantics.
+about Books locking or recovery semantics. `buildExpiryReview` is a pure,
+deterministic, read-only report for an explicit Gregorian `asOfDate`; it does
+not schedule, send, persist, or call a transport.
 
 ## Provenance and rollback
 

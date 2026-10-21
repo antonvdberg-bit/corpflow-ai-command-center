@@ -14,6 +14,9 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
   allocation concept.
 - Add a dependency-free, read-only adapter for paginated synthetic register
   and movement records using an explicit mapping and verified opening baseline.
+- Add one canonical item expiry policy (`required`, `not_applicable`, or
+  `review`) to planning, commit rechecks, the synthetic adapter, and a
+  deterministic read-only daily review report.
 
 ## Impact
 
@@ -22,4 +25,5 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
 - No runtime, dependency, database, environment, deployment, or live Zoho
   behavior changes. This stage remains synthetic and unconnected; live
   response mapping, posting authority, durable concurrency/recovery, and
-  all-channel enforcement are not accepted.
+  all-channel enforcement are not accepted. No scheduler, reminder, email,
+  persistence, or live stock-control behavior is enabled.

@@ -11,7 +11,8 @@ const batches = [
   { batchId: 'undated', itemId: 'serum', lotNumber: 'U', status: 'available', balanceQuantity: 99, reservedQuantity: 0, unit: 'each', version: 1, receivedDate: '2026-08-01' },
 ];
 
-const request = (quantity = 8) => ({ itemId: 'serum', quantity, unit: 'each', asOfDate: '2026-10-18' });
+const policies = { serum: 'required', other: 'required' };
+const request = (quantity = 8) => ({ itemId: 'serum', quantity, unit: 'each', asOfDate: '2026-10-18', itemPolicyContext: policies });
 
 test('plans FEFO split of 8 as A6 plus B2', () => {
   const plan = planAllocation({ ...request(), batches });
@@ -26,14 +27,14 @@ test('reservations reduce available quantity and excluded stock is ignored', () 
 });
 
 test('shortage does not mutate ledger', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   assert.equal(ledger.plan(request(100)).ok, false);
   assert.deepEqual(ledger.batches, batches);
 });
 
 test('same lot can exist for another product, but duplicate product lot is rejected', () => {
-  assert.doesNotThrow(() => new BatchLedger(batches));
-  assert.throws(() => new BatchLedger([{ ...batches[0] }, { ...batches[0], batchId: 'duplicate' }]), /duplicate item and lot/);
+  assert.doesNotThrow(() => new BatchLedger(batches, policies));
+  assert.throws(() => new BatchLedger([{ ...batches[0] }, { ...batches[0], batchId: 'duplicate' }], policies), /duplicate item and lot/);
 });
 
 test('validates dates, units, quantities, precision, and overflow', () => {
@@ -48,6 +49,7 @@ test('keeps six-place fractions exact during split', () => {
   const plan = planAllocation({
     itemId: 'serum', quantity: '0.300003', unit: 'each', asOfDate: '2026-10-18',
     batches: [{ ...batches[0], balanceQuantity: '0.100001' }, { ...batches[1], balanceQuantity: '0.200002' }],
+    itemPolicyContext: policies,
   });
   assert.deepEqual(plan.allocations.map(({ quantity }) => quantity), [0.100001, 0.200002]);
 });
@@ -58,7 +60,7 @@ test('uses received date then batch id for deterministic ties', () => {
 });
 
 test('receives into a lot, rejects expiry conflict, and replays idempotently', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   const receipt = { batchId: 'a', itemId: 'serum', lotNumber: 'A', expiryDate: '2026-12-01', unit: 'each', quantity: 2, idempotencyKey: 'r1' };
   assert.equal(ledger.receive(receipt).batch.balanceQuantity, 8);
   assert.equal(ledger.receive(receipt).batch.balanceQuantity, 8);
@@ -66,7 +68,7 @@ test('receives into a lot, rejects expiry conflict, and replays idempotently', (
 });
 
 test('stale second plan is rejected and successful commit is idempotent', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   const first = ledger.plan(request(6));
   const second = ledger.plan(request(6));
   const committed = ledger.commit(first, { idempotencyKey: 'a1' });
@@ -75,7 +77,7 @@ test('stale second plan is rejected and successful commit is idempotent', () => 
 });
 
 test('malformed split is atomic and reversal restores exact original lots once', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   const plan = ledger.plan(request(8));
   const malformed = { ...plan, allocations: plan.allocations.map((line, index) => index ? { ...line, quantity: 999 } : line) };
   const before = ledger.batches;
@@ -91,7 +93,7 @@ test('malformed split is atomic and reversal restores exact original lots once',
 });
 
 test('reversal applies deltas without erasing later receipts and sales across lots', () => {
-  const ledger = new BatchLedger(batches.slice(0, 2).map((batch) => ({ ...batch, balanceQuantity: 10 })));
+  const ledger = new BatchLedger(batches.slice(0, 2).map((batch) => ({ ...batch, balanceQuantity: 10 })), policies);
   const first = ledger.commit(ledger.plan(request(12)), { idempotencyKey: 'sale-1' });
   ledger.receive({
     batchId: 'a', itemId: 'serum', lotNumber: 'A', expiryDate: '2026-12-01',
@@ -108,7 +110,7 @@ test('reversal applies deltas without erasing later receipts and sales across lo
 });
 
 test('same idempotency key rejects nested payload conflicts but replays exact requests', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   const plan = ledger.plan(request(2));
   const committed = ledger.commit(plan, { idempotencyKey: 'shared-key' });
   assert.equal(ledger.commit(plan, { idempotencyKey: 'shared-key' }).allocationId, committed.allocationId);
@@ -120,7 +122,7 @@ test('same idempotency key rejects nested payload conflicts but replays exact re
 });
 
 test('forged allocations reject atomically when totals, identity, or eligibility are invalid', () => {
-  const ledger = new BatchLedger(batches);
+  const ledger = new BatchLedger(batches, policies);
   const plan = ledger.plan(request(2));
   const before = ledger.batches;
   const forged = { ...plan, allocations: [{ ...plan.allocations[0], quantity: 7 }] };

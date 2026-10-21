@@ -2,6 +2,7 @@ const MAX_SCALE = 6;
 const MAX_SAFE_SCALED = BigInt(Number.MAX_SAFE_INTEGER);
 const VALID_UNITS = new Set(['each', 'kg', 'g', 'l', 'ml', 'box']);
 const VALID_STATUSES = new Set(['available', 'quarantined', 'expired']);
+const VALID_POLICIES = new Set(['required', 'not_applicable', 'review']);
 
 function fail(message) {
   throw new TypeError(message);
@@ -56,6 +57,32 @@ function clone(value) {
   return structuredClone(value);
 }
 
+export function normalizeItemPolicy(value) {
+  if (value === 'required' || value === 'not_applicable') return value;
+  return 'review';
+}
+
+export function normalizeItemPolicies(context = {}) {
+  const result = new Map();
+  const records = context instanceof Map
+    ? [...context.entries()].map(([itemId, policy]) => ({ itemId, policy }))
+    : Array.isArray(context) ? context : Object.entries(context).map(([itemId, policy]) => ({ itemId, policy }));
+  for (const record of records) {
+    if (!record || typeof record !== 'object' || !record.itemId) fail('item policy requires item identity');
+    const policy = normalizeItemPolicy(record.policy);
+    if (result.has(record.itemId) && result.get(record.itemId) !== policy) {
+      fail(`conflicting item policy: ${record.itemId}`);
+    }
+    if (result.has(record.itemId)) fail(`duplicate item policy: ${record.itemId}`);
+    result.set(record.itemId, policy);
+  }
+  return result;
+}
+
+function policyFor(itemId, context) {
+  return context.get(itemId) ?? 'review';
+}
+
 function fingerprint(value) {
   if (value === null || typeof value !== 'object') return JSON.stringify(value);
   if (Array.isArray(value)) return `[${value.map(fingerprint).join(',')}]`;
@@ -97,6 +124,18 @@ export function planAllocation({ itemId, quantity, unit, asOfDate, batches }) {
   const requested = toScaled(quantity, 'quantity');
   if (requested <= 0n) fail('quantity must be positive');
   const validated = validateBatches(batches);
+  const itemPolicies = normalizeItemPolicies(arguments[0].itemPolicyContext ?? arguments[0].itemPolicies);
+  const policy = policyFor(itemId, itemPolicies);
+  if (!VALID_POLICIES.has(policy)) fail(`unsupported item policy: ${policy}`);
+  if (policy === 'review') {
+    return {
+      ok: false, allocations: [], unallocatedQuantity: fromScaled(requested),
+      message: `Classification required for item ${itemId}`,
+      expectedVersions: {}, request: { itemId, quantity: fromScaled(requested), unit, asOfDate, policy },
+      itemPolicy: policy,
+      sourceFingerprint: fingerprint({ request: { itemId, quantity: fromScaled(requested), unit, asOfDate, policy }, allocations: [], expectedVersions: {} }),
+    };
+  }
   const eligible = validated
     .map((batch) => {
       const available = toScaled(batch.balanceQuantity, 'balanceQuantity') - toScaled(batch.reservedQuantity, 'reservedQuantity');
@@ -106,13 +145,11 @@ export function planAllocation({ itemId, quantity, unit, asOfDate, batches }) {
       batch.itemId === itemId &&
       batch.unit === unit &&
       batch.status === 'available' &&
-      batch.expiryDate &&
-      batch.expiryDate > asOfDate &&
+      (policy === 'not_applicable' || (batch.expiryDate && batch.expiryDate > asOfDate)) &&
       available > 0n
     )
     .sort((a, b) =>
-      a.batch.expiryDate.localeCompare(b.batch.expiryDate) ||
-      a.batch.receivedDate.localeCompare(b.batch.receivedDate) ||
+      (policy === 'required' ? a.batch.expiryDate.localeCompare(b.batch.expiryDate) : a.batch.receivedDate.localeCompare(b.batch.receivedDate)) ||
       a.batch.batchId.localeCompare(b.batch.batchId)
     );
   let remaining = requested;
@@ -126,6 +163,7 @@ export function planAllocation({ itemId, quantity, unit, asOfDate, batches }) {
       lotNumber: batch.lotNumber,
       quantity: fromScaled(amount),
       expiryDate: batch.expiryDate,
+      itemPolicy: policy,
       remainingBalance: fromScaled(available - amount),
       unit: batch.unit,
       version: batch.version,
@@ -139,9 +177,10 @@ export function planAllocation({ itemId, quantity, unit, asOfDate, batches }) {
     unallocatedQuantity: fromScaled(remaining),
     message: ok ? 'Allocation planned' : `Shortage: ${fromScaled(remaining)} ${unit} unallocated`,
     expectedVersions: Object.fromEntries(eligible.map(({ batch }) => [batch.batchId, batch.version])),
-    request: { itemId, quantity: fromScaled(requested), unit, asOfDate },
+    request: { itemId, quantity: fromScaled(requested), unit, asOfDate, policy },
+    itemPolicy: policy,
     sourceFingerprint: fingerprint({
-      request: { itemId, quantity: fromScaled(requested), unit, asOfDate },
+      request: { itemId, quantity: fromScaled(requested), unit, asOfDate, policy },
       allocations,
       expectedVersions: Object.fromEntries(eligible.map(({ batch }) => [batch.batchId, batch.version])),
     }),
@@ -150,10 +189,12 @@ export function planAllocation({ itemId, quantity, unit, asOfDate, batches }) {
 
 export class BatchLedger {
   #batches;
+  #itemPolicies;
   #history = [];
   #replays = new Map();
-  constructor(batches) {
+  constructor(batches, itemPolicyContext = {}) {
     this.#batches = validateBatches(batches);
+    this.#itemPolicies = normalizeItemPolicies(itemPolicyContext);
   }
 
   get batches() {
@@ -165,12 +206,19 @@ export class BatchLedger {
   }
 
   plan(request) {
-    return planAllocation({ ...request, batches: this.#batches });
+    return planAllocation({ ...request, batches: this.#batches, itemPolicyContext: this.#itemPolicies });
+  }
+
+  setItemPolicy(itemId, policy) {
+    if (!itemId) fail('itemId is required');
+    const normalized = normalizeItemPolicies([{ itemId, policy }]).get(itemId);
+    this.#itemPolicies.set(itemId, normalized);
+    return normalized;
   }
 
   receive({ batchId, quantity, idempotencyKey, lotNumber, itemId, expiryDate, unit, receivedDate = new Date().toISOString().slice(0, 10) }) {
     if (!idempotencyKey) fail('idempotencyKey is required');
-    const payload = { batchId, quantity, lotNumber, itemId, expiryDate, unit, receivedDate };
+    const payload = { batchId, quantity, lotNumber, itemId, expiryDate, unit, receivedDate, policy: policyFor(itemId, this.#itemPolicies) };
     const digest = fingerprint({ type: 'receipt', payload });
     const previous = this.#replays.get(idempotencyKey);
     if (previous) {
@@ -208,12 +256,15 @@ export class BatchLedger {
     const requested = toScaled(plan.request.quantity, 'plan.request.quantity');
     if (requested <= 0n) fail('plan.request.quantity must be positive');
     if (plan.allocations.length === 0) fail('allocation plan must contain allocations');
+    const currentPolicy = policyFor(plan.request.itemId, this.#itemPolicies);
+    if (plan.itemPolicy !== currentPolicy || plan.request.policy !== currentPolicy) fail('item policy changed since planning');
     if (plan.sourceFingerprint !== fingerprint({
       request: {
         itemId: plan.request.itemId,
         quantity: fromScaled(requested),
         unit: plan.request.unit,
         asOfDate: plan.request.asOfDate,
+        policy: currentPolicy,
       },
       allocations: plan.allocations,
       expectedVersions: plan.expectedVersions,
@@ -233,8 +284,9 @@ export class BatchLedger {
       if (allocation.itemId !== batch.itemId || allocation.lotNumber !== batch.lotNumber ||
         allocation.unit !== batch.unit || allocation.unit !== plan.request.unit ||
         batch.itemId !== plan.request.itemId || batch.status !== 'available' ||
-        !batch.expiryDate || batch.expiryDate <= plan.request.asOfDate ||
-        allocation.expiryDate !== batch.expiryDate) {
+        (currentPolicy === 'required' && (!batch.expiryDate || batch.expiryDate <= plan.request.asOfDate)) ||
+        allocation.expiryDate !== batch.expiryDate ||
+        allocation.itemPolicy !== currentPolicy) {
         fail(`allocation identity or eligibility changed for ${batch.batchId}`);
       }
       const amount = toScaled(allocation.quantity, 'allocation.quantity');

@@ -82,7 +82,8 @@ function transport(records = lots, movements = []) {
 
 const request = (overrides = {}) => ({
   transport: transport(), orgId: 'synthetic-org', asOfDate: '2026-10-18',
-  itemId: 'synthetic-item', unit: 'each', quantity: 8, map, ...overrides,
+  itemId: 'synthetic-item', unit: 'each', quantity: 8, map,
+  itemPolicyContext: { 'synthetic-item': 'required' }, ...overrides,
 });
 
 test('adapts paginated synthetic records into an earliest-expiry split', async () => {

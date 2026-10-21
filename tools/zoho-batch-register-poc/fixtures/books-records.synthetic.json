@@ -1,4 +1,7 @@
 {
+  "itemPolicies": [
+    { "itemId": "synthetic-item", "policy": "required" }
+  ],
   "map": {
     "register": {
       "module": "SyntheticLotRegister",

@@ -78,3 +78,31 @@ negative balances without mutating fetched records.
   five, then its valid full reversal is read
 - **THEN** the derived balance is fifteen and the later receipt remains
   represented
+
+### Requirement: Explicit item expiry policy and daily review
+
+The prototype MUST normalize one canonical item policy to `required`,
+`not_applicable`, or `review`. Missing, blank, unknown, or conflicting policy
+MUST fail closed as `review` and MUST NOT infer exemption. Required stock MUST
+use FEFO and valid future expiry; exempt stock MUST use receipt date and stable
+batch ID without requiring or fabricating expiry; review stock MUST block
+allocation. Plans and commits MUST carry and recheck policy.
+
+#### Scenario: Exempt undated stock
+
+- **WHEN** a classified exempt item has positive available undated lots
+- **THEN** the planner allocates by receipt order and preserves all stock
+  controls and legacy expiry values
+
+#### Scenario: Classification blocker
+
+- **WHEN** an item policy is missing or unknown
+- **THEN** allocation is blocked and the item appears in the classification
+  review bucket
+
+#### Scenario: Daily review
+
+- **WHEN** a pure report receives normalized items, replayed lot balances, and
+  an explicit Gregorian as-of date
+- **THEN** it returns deterministic excluded, classification, missing/invalid,
+  and mutually exclusive expiry-age buckets without sending or scheduling
