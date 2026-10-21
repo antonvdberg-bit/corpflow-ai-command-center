@@ -49,6 +49,9 @@ test('rejects a reversal sequence preceding its original despite a later date', 
 });
 
 const map = {
+  item: { module: 'SyntheticItem', fields: {
+    id: 'id', orgId: 'org', itemId: 'item', unit: 'unit', policy: 'policy',
+  } },
   register: { module: 'SyntheticLotRegister', fields: {
     id: 'id', orgId: 'org', itemId: 'item', lotNumber: 'lot', unit: 'unit', status: 'status',
     expiryDate: 'expiry', baselineQuantity: 'opening', baselineVerified: 'verified',
@@ -73,6 +76,11 @@ function transport(records = lots, movements = []) {
     async fetchPage(request) {
       calls.push(request);
       const source = request.source;
+      if (source === 'item') {
+        return request.module === 'NestedItem'
+          ? { records: [{ meta: { id: 'nested-item', org: 'synthetic-org' }, stock: { item: 'synthetic-item', unit: 'each', policy: 'required' } }], hasMore: false }
+          : { records: [{ id: 'item-1', org: 'synthetic-org', item: 'synthetic-item', unit: 'each', policy: 'required' }], hasMore: false };
+      }
       const pages = source === 'register' ? [records] : [movements];
       const index = request.cursor ? 1 : 0;
       return { records: pages[index] ?? [], hasMore: index === 0 && pages.length > 1, ...(index === 0 && pages.length > 1 ? { nextCursor: 'next' } : {}) };
@@ -246,6 +254,9 @@ test('rejects adapter overflow and accepts nested mapped values', async () => {
       baselineVerified: 'stock.verified', baselineDate: 'stock.baselineDate',
       baselineSequence: 'stock.baselineSequence', reservedQuantity: 'stock.reserved', receivedDate: 'stock.received',
     } },
+    item: { module: 'NestedItem', fields: {
+      id: 'meta.id', orgId: 'meta.org', itemId: 'stock.item', unit: 'stock.unit', policy: 'stock.policy',
+    } },
     movement: { module: 'NestedMovement', fields: {
       id: 'meta.id', orgId: 'meta.org', movementKey: 'meta.key', itemId: 'stock.item',
       lotNumber: 'stock.lot', unit: 'stock.unit', type: 'stock.type', quantity: 'stock.quantity',
@@ -256,6 +267,7 @@ test('rejects adapter overflow and accepts nested mapped values', async () => {
     meta: { id: 'nested-a', org: 'synthetic-org' },
     stock: {
       item: 'synthetic-item', lot: 'A', unit: 'each', status: 'available',
+      policy: 'required',
       expiry: '2026-12-01', opening: '0.1', verified: true,
       baselineDate: '2026-09-01', baselineSequence: 0, reserved: 0, received: '2026-09-01',
     },
@@ -272,5 +284,27 @@ test('requires explicit opening boundary evidence', async () => {
   const missingBoundaryMap = structuredClone(map);
   delete missingBoundaryMap.register.fields.baselineDate;
   await assert.rejects(() => previewBooksRecords(request({ map: missingBoundaryMap })), /baselineDate/);
+});
+
+test('sources policy from the canonical item record, not caller overrides', async () => {
+  const canonicalMap = structuredClone(map);
+  canonicalMap.item = {
+    module: 'SyntheticItem',
+    fields: { id: 'id', orgId: 'org', itemId: 'item', unit: 'unit', policy: 'policy' },
+  };
+  const canonicalItem = { id: 'item-1', org: 'synthetic-org', item: 'synthetic-item', unit: 'each', policy: 'review' };
+  const canonicalTransport = transport(lots, []);
+  const originalFetchPage = canonicalTransport.fetchPage;
+  canonicalTransport.fetchPage = async (requestValue) => requestValue.source === 'item'
+    ? { records: [canonicalItem], hasMore: false }
+    : originalFetchPage(requestValue);
+  const result = await previewBooksRecords(request({
+    map: canonicalMap,
+    transport: canonicalTransport,
+    itemPolicyContext: { 'synthetic-item': 'not_applicable' },
+    quantity: 1,
+  }));
+  assert.equal(result.proposedSplit.length, 0);
+  assert.match(result.blockers.join('\n'), /Classification required|review/);
 });
 

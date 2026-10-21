@@ -1,8 +1,29 @@
 {
-  "itemPolicies": [
-    { "itemId": "synthetic-item", "policy": "required" }
+  "itemPages": [
+    {
+      "records": [
+        {
+          "record_id": "item-1",
+          "organization_id": "synthetic-org",
+          "item_code": "synthetic-item",
+          "stock_unit": "each",
+          "expiry_policy": "required"
+        }
+      ],
+      "hasMore": false
+    }
   ],
   "map": {
+    "item": {
+      "module": "SyntheticItem",
+      "fields": {
+        "id": "record_id",
+        "orgId": "organization_id",
+        "itemId": "item_code",
+        "unit": "stock_unit",
+        "policy": "expiry_policy"
+      }
+    },
     "register": {
       "module": "SyntheticLotRegister",
       "fields": {

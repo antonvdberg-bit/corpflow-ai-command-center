@@ -75,3 +75,35 @@ test('H/I/J: boundaries, validation, positive stock, status, and determinism', (
   });
   assert.equal(quarantined.expired.lots[0].status, 'quarantined');
 });
+
+test('rejects malformed quantities and duplicate identities before zero filtering', () => {
+  for (const balanceQuantity of [null, undefined, '', true, false, [], {}, -1, NaN, Infinity, '1.0000001', '9007199254.740992']) {
+    const report = buildExpiryReview({
+      items: [{ itemId: 'required', policy: 'required' }],
+      batches: [{ ...base[0], itemId: 'required', batchId: `bad-${String(balanceQuantity)}`, balanceQuantity }],
+      asOfDate: '2026-10-18',
+    });
+    assert.equal(report.complete, false, String(balanceQuantity));
+    assert.ok(report.errors.length > 0, String(balanceQuantity));
+  }
+  const duplicate = buildExpiryReview({
+    items: [{ itemId: 'required', policy: 'required' }],
+    batches: [
+      { ...base[0], itemId: 'required', batchId: 'zero', lotNumber: 'DUP', balanceQuantity: '0' },
+      { ...base[0], itemId: 'required', batchId: 'positive', lotNumber: 'DUP', balanceQuantity: '1' },
+    ],
+    asOfDate: '2026-10-18',
+  });
+  assert.equal(duplicate.complete, false);
+  assert.match(duplicate.errors.join('\n'), /duplicate item\/lot identity/);
+});
+
+test('reports an orphan batch item as an incomplete source', () => {
+  const report = buildExpiryReview({
+    items: [{ itemId: 'required', policy: 'required' }],
+    batches: [{ ...base[0], itemId: 'missing-canonical-item', balanceQuantity: '1' }],
+    asOfDate: '2026-10-18',
+  });
+  assert.equal(report.complete, false);
+  assert.match(report.errors.join('\n'), /missing canonical item identity/);
+});

@@ -33,15 +33,19 @@ import { BatchLedger, planAllocation } from './core.mjs';
 `previewBooksRecords({ transport, orgId, asOfDate, itemId, unit, quantity, map })`
 is a read-only adapter around `core.mjs`. The caller injects a transport with
 only `fetchPage({ source, module, orgId, page, cursor })`, returning
-`{ records, hasMore, nextCursor }`. The adapter fetches every page, rejects
-loops, duplicate IDs, malformed envelopes, organization/item/unit mismatches,
-future dates, and ambiguous movement sequences. It never performs HTTP,
+`{ records, hasMore, nextCursor }`. The explicit mapping includes a canonical
+item source as well as register and movement sources. The adapter fetches every
+page, rejects loops, duplicate IDs, malformed envelopes,
+organization/item/unit mismatches, missing or conflicting canonical item
+records, future dates, and ambiguous movement sequences. Policy is normalized
+only from the canonical item record; caller policy context is ignored and
+cannot turn review-required stock into an exemption. It never performs HTTP,
 OAuth, POST, PUT, commit, receipt, or reversal writes.
 
-The explicit mapping must name fictional register and movement modules and
+The explicit mapping must name fictional item, register, and movement modules
 fields for IDs, organization, item, lot, unit, status, expiry, received date,
 verified opening quantity, verified `baselineDate` and nonnegative
-`baselineSequence` watermark, movement key/type/quantity/date/sequence, and
+`baselineSequence` watermark, item expiry policy, movement key/type/quantity/date/sequence, and
 optional reversal reference. A movement must be strictly after its lot's
 verified opening boundary by date and sequence; missing or contradictory
 boundary evidence fails closed. Lookup normalization is deliberately narrow:
@@ -61,6 +65,15 @@ required items. Exempt items use receipt order without requiring expiry. The
 result is marked `synthetic`,
 `connected: false`, and `readOnly: true`, and includes physical/available
 quantities, exclusions, proposed split, shortage, and blockers.
+
+`buildExpiryReview({ items, batches, asOfDate })` is also synthetic and
+read-only. It treats `items` as the canonical item source, validates nonblank
+batch/item/lot identities and finite nonnegative decimal quantities (maximum
+six places and safe scaled bounds) before zero-stock filtering, and rejects
+duplicate batch or item/lot identities. Missing canonical item identities and
+required missing/invalid expiry dates make the report `complete: false`; an
+explicit numeric or decimal-string zero remains a valid non-alert row. The
+report does not aggregate quantities or perform floating-point repairs.
 
 Status: configured synthetic mapping and mock-verified adapter only; live API
 readback, durable concurrency/recovery, and all-channel enforcement remain

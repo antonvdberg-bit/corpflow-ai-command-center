@@ -15,10 +15,16 @@ function date(value, field) {
   return value;
 }
 
-function positive(value, field) {
-  const number = Number(value);
-  if (!Number.isFinite(number) || number <= 0) fail(`${field} must be a positive quantity`);
-  return number;
+function quantity(value, field) {
+  if ((typeof value !== 'number' && typeof value !== 'string') ||
+    (typeof value === 'number' && !Number.isFinite(value)) ||
+    !/^(?:\d+|\d+\.\d{1,6})$/.test(String(value))) {
+    fail(`${field} must be a nonnegative quantity with at most six decimals`);
+  }
+  const [whole, fraction = ''] = String(value).split('.');
+  const scaled = BigInt(whole) * 1000000n + BigInt(fraction.padEnd(6, '0'));
+  if (scaled > BigInt(Number.MAX_SAFE_INTEGER)) fail(`${field} exceeds safe quantity limit`);
+  return Number(scaled) / 1000000;
 }
 
 function emptyBucket() {
@@ -28,7 +34,6 @@ function emptyBucket() {
 export function buildExpiryReview({ items, batches, asOfDate, source = 'synthetic' }) {
   date(asOfDate, 'asOfDate');
   if (!Array.isArray(items) || !Array.isArray(batches)) fail('items and batches must be arrays');
-  const policies = normalizeItemPolicies(items);
   const report = {
     asOfDate, source, synthetic: true, readOnly: true, complete: true, errors: [],
     excluded: emptyBucket(), needsClassification: emptyBucket(),
@@ -36,21 +41,49 @@ export function buildExpiryReview({ items, batches, asOfDate, source = 'syntheti
     expired: emptyBucket(), today: emptyBucket(), days1to30: emptyBucket(),
     days31to60: emptyBucket(), days61to90: emptyBucket(), over90: emptyBucket(),
   };
+  let policies;
+  try {
+    policies = normalizeItemPolicies(items);
+  } catch (error) {
+    report.complete = false;
+    report.errors.push(error.message);
+    policies = new Map();
+  }
   const seen = new Set();
+  const seenIdentities = new Set();
   for (const batch of batches) {
     try {
-      if (!batch?.batchId || !batch.itemId || !VALID_UNITS.has(batch.unit)) fail('batch identity or unit is invalid');
-      if (!VALID_STATUSES.has(batch.status)) fail(`invalid status for ${batch.batchId}`);
-      const rawQuantity = Number(batch.balanceQuantity);
-      if (!Number.isFinite(rawQuantity) || rawQuantity < 0) fail(`balanceQuantity for ${batch.batchId} must be nonnegative`);
-      if (rawQuantity === 0) continue;
-      const quantity = positive(rawQuantity, `balanceQuantity for ${batch.batchId}`);
+      if (!batch || typeof batch !== 'object' || typeof batch.batchId !== 'string' || !batch.batchId.trim() ||
+        typeof batch.itemId !== 'string' || !batch.itemId.trim() ||
+        typeof batch.lotNumber !== 'string' || !batch.lotNumber.trim()) {
+        fail('batchId, itemId, and lotNumber must be nonblank');
+      }
       if (seen.has(batch.batchId)) fail(`duplicate batchId: ${batch.batchId}`);
       seen.add(batch.batchId);
+      const identity = `${batch.itemId}\u0000${batch.lotNumber}`;
+      if (seenIdentities.has(identity)) fail(`duplicate item/lot identity: ${batch.itemId}/${batch.lotNumber}`);
+      seenIdentities.add(identity);
+      if (!policies.has(batch.itemId)) fail(`missing canonical item identity: ${batch.itemId}`);
+    } catch (error) {
+      report.complete = false;
+      report.errors.push(error.message);
+    }
+  }
+  for (const batch of batches) {
+    try {
+      if (!batch || typeof batch !== 'object' ||
+        typeof batch.batchId !== 'string' || !batch.batchId.trim() ||
+        typeof batch.itemId !== 'string' || !batch.itemId.trim() ||
+        typeof batch.lotNumber !== 'string' || !batch.lotNumber.trim() ||
+        !VALID_UNITS.has(batch.unit)) fail('batch identity or unit is invalid');
+      if (!VALID_STATUSES.has(batch.status)) fail(`invalid status for ${batch.batchId}`);
+      const rawQuantity = quantity(batch.balanceQuantity, `balanceQuantity for ${batch.batchId}`);
+      if (rawQuantity === 0) continue;
       const entry = {
         batchId: batch.batchId, itemId: batch.itemId, lotNumber: batch.lotNumber,
-        status: batch.status, unit: batch.unit, quantity,
+        status: batch.status, unit: batch.unit, quantity: rawQuantity,
       };
+      if (!policies.has(batch.itemId)) fail(`missing canonical item identity: ${batch.itemId}`);
       const policy = policies.get(batch.itemId) ?? 'review';
       if (policy === 'not_applicable') {
         report.excluded.count += 1; report.excluded.lots.push(entry); continue;
@@ -59,6 +92,10 @@ export function buildExpiryReview({ items, batches, asOfDate, source = 'syntheti
         report.needsClassification.count += 1; report.needsClassification.lots.push(entry); continue;
       }
       if (!batch.expiryDate) {
+        if (policy === 'required') {
+          report.complete = false;
+          report.errors.push(`missing expiryDate for ${batch.batchId}`);
+        }
         report.missingOrInvalidExpiry.count += 1; report.missingOrInvalidExpiry.lots.push(entry); continue;
       }
       try {
@@ -70,7 +107,7 @@ export function buildExpiryReview({ items, batches, asOfDate, source = 'syntheti
         report.missingOrInvalidExpiry.lots.push(entry);
         continue;
       }
-      const days = Math.round((Date.parse(`${batch.expiryDate}T00:00:00Z`) - Date.parse(`${asOfDate}T00:00:00Z`)) / DAY);
+      const days = (Date.parse(`${batch.expiryDate}T00:00:00Z`) - Date.parse(`${asOfDate}T00:00:00Z`)) / DAY;
       const bucket = days < 0 ? report.expired : days === 0 ? report.today :
         days <= 30 ? report.days1to30 : days <= 60 ? report.days31to60 :
           days <= 90 ? report.days61to90 : report.over90;

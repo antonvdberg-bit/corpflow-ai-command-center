@@ -119,7 +119,12 @@ async function fetchAll(transport, source, orgId, map) {
 }
 
 function validateMapping(map) {
-  if (!map?.register?.module || !map?.movement?.module) fail('register and movement mappings are required');
+  if (!map?.item?.module || !map?.register?.module || !map?.movement?.module) {
+    fail('item, register, and movement mappings are required');
+  }
+  for (const field of ['id', 'orgId', 'itemId', 'unit', 'policy']) {
+    if (!map.item.fields?.[field]) fail(`missing required mapping: item.${field}`);
+  }
   for (const source of ['register', 'movement']) {
     const fields = map[source].fields;
     for (const field of source === 'register'
@@ -163,10 +168,28 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
   required(itemId, 'itemId');
   if (!UNITS.has(unit)) fail(`unknown or incompatible stock unit: ${unit}`);
   validateMapping(map);
-  const [registers, rawMovements] = await Promise.all([
+  const [items, registers, rawMovements] = await Promise.all([
+    fetchAll(transport, 'item', orgId, map.item),
     fetchAll(transport, 'register', orgId, map.register),
     fetchAll(transport, 'movement', orgId, map.movement),
   ]);
+  const canonicalItems = [];
+  for (const record of items) {
+    const id = read(record, map.item.fields.id, 'item.id');
+    if (read(record, map.item.fields.orgId, 'item.orgId') !== orgId) fail(`item organization mismatch: ${id}`);
+    const canonicalItemId = read(record, map.item.fields.itemId, 'item.itemId');
+    const canonicalUnit = read(record, map.item.fields.unit, 'item.unit');
+    if (!UNITS.has(canonicalUnit)) fail(`unknown or incompatible canonical item unit: ${canonicalItemId}`);
+    canonicalItems.push({
+      itemId: canonicalItemId,
+      unit: canonicalUnit,
+      policy: optional(record, map.item.fields.policy),
+    });
+  }
+  const matchingItems = canonicalItems.filter((record) => record.itemId === itemId);
+  if (matchingItems.length === 0) fail(`missing canonical item identity: ${itemId}`);
+  if (matchingItems.some((record) => record.unit !== unit)) fail(`canonical item unit mismatch: ${itemId}`);
+  const itemPolicyContext = normalizeItemPolicies(matchingItems);
   const lots = new Map();
   for (const record of registers) {
     const id = read(record, map.register.fields.id, 'register.id');
@@ -249,7 +272,6 @@ export async function previewBooksRecords({ transport, orgId, asOfDate, itemId, 
     receivedDate: lot.receivedDate, balanceQuantity: exactQuantity(lot.balance),
     reservedQuantity: exactQuantity(lot.reserved), version: 1,
   }));
-  const itemPolicyContext = normalizeItemPolicies(arguments[0].itemPolicyContext ?? {});
   const plan = planAllocation({
     itemId, quantity: required(requestedQuantity, 'quantity'), unit, asOfDate, batches, itemPolicyContext,
   });
