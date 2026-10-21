@@ -249,18 +249,31 @@ def main():
         manifest = {"version": 1, "site": SITE, "created_utc": stamp(), "files": files}
         atomic_json(pending / "manifest.json", manifest, 0o600)
         os.rename(pending, folder)
+        stage = "ops_snapshot"
+        state["stage"] = stage
+        atomic_json(STATUS, state, 0o644)
+        ops_result = json.loads(command(["/usr/bin/python3", "/usr/local/sbin/corpflowai-ops-recovery-snapshot.py", "--create"], timeout=600))
+        ops_folder = Path(ops_result["folder"])
+        if ops_folder.parent != Path("/root/corpflowai-ops-recovery/daily") or not re.fullmatch(r"\d{8}T\d{6}Z", ops_folder.name):
+            raise BackupError("unexpected ops snapshot path")
+        ops_manifest = json.loads((ops_folder / "manifest.json").read_text())
         stage = "borg_backup"
         state["stage"] = stage
         atomic_json(STATUS, state, 0o644)
         command(["/bin/bash", "-e", "/opt/borg/backup.sh"], timeout=7200)
         stage = "verify_remote"
         archive = verify_remote(folder, manifest)
+        if verify_remote(ops_folder, ops_manifest) != archive:
+            raise BackupError("ops artifacts not in same verified archive")
+        state["ops_remote_verified"] = True
+        state["ops_snapshot_utc"] = ops_manifest["created_utc"]
+        managed_retention(Path("/root/corpflowai-ops-recovery/daily"))
         stage = "local_retention"
         managed_retention(DAILY)
         state.update(outcome="success", stage="complete", last_success_utc=stamp(),
                      remote_verified=True, archive=archive)
         atomic_json(STATUS, state, 0o644)
-        print("ERP backup: PASS; four artifacts and manifest verified in encrypted remote archive")
+        print("ERP backup: PASS; ERP and protected ops artifacts verified in encrypted remote archive")
         return 0
     except Exception:
         # Never stringify exceptions that could contain credentials, paths from shell output or ERP content.
