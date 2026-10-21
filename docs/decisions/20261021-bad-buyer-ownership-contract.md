@@ -30,9 +30,18 @@ Only a server-side caller with a verified `corpflow_session` may bind:
   server-side purchase boundary.
 
 The verified Paddle webhook may update state for an already-bound provider
-reference. It may not create ownership from email, custom metadata,
-correlation ID, or an unbound transaction. Anonymous retrieval fails closed.
-Refund/revocation preserves the order record but blocks document retrieval.
+reference. It may not create or replace ownership from email, a browser
+body, custom metadata, correlation ID, or an unbound transaction. Anonymous
+retrieval fails closed. The caller must pass an owner already resolved from
+the server session; this module is not a public retrieval route.
+
+A provider transaction reference can belong to only one checkout intent.
+Refund and revocation write a permanent tombstone and keep reversal history,
+including when the reversal arrives before the checkout intent is bound.
+A later, earlier, repeated, or concurrent `transaction.completed` event
+cannot restore paid status, confirmation issuance, retrieval, or fulfilment
+entitlement. Issuance requires a confirmation object with both a non-empty
+reference and non-empty content; a missing confirmation is not marked issued.
 
 ## Minimal durable schema proposal (not executed)
 
@@ -58,15 +67,19 @@ If this contract is approved for durable use, add a relation such as
 Mutation authority would be split: authenticated server purchase creation
 binds the owner and intent; verified Paddle webhook processing changes payment
 and reversal state; an authenticated owner-scoped service issues and retrieves
-the confirmation. A unique intent/provider reference and transactional
-compare-and-set transitions are required. Rollback must preserve the
+the confirmation. A unique intent and a unique provider transaction reference
+are required. Refunded and revoked rows are sticky tombstones: a newer
+completion event must not clear them. Rollback must preserve the
 ownership/order audit row and revoke access rather than delete accounting
 evidence. Migration, foreign keys, retention, and production rollout remain
-separate protected approvals.
+separate protected approvals. No durable schema is approved by this record.
 
 ## Acceptance mapping
 
-The synthetic suite covers owner/other/anonymous and cross-tenant denial,
+The synthetic suite covers owner/other/anonymous and cross-tenant/brand denial,
 draft/unissued denial, unbound webhook denial, replay and out-of-order
-events, concurrent delivery, failed/abandoned payment, refund/revocation,
-duplicate binding prevention, and the absence of HTML from webhook results.
+events, concurrent delivery, failed/abandoned payment, refund-before-payment,
+refund-then-later-completion, concurrent refund/completion, repeated refunds,
+replayed completions after refund, duplicate provider-transaction binding,
+immutable owner binding, invalid confirmation refusal, unknown-event refusal,
+and the absence of confirmation HTML from webhook results.
