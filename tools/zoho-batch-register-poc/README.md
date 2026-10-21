@@ -15,11 +15,11 @@ python3 -m http.server 4173 --directory tools/zoho-batch-register-poc
 
 Open `http://localhost:4173/demo.html`. The demo has synthetic Lot A (6 units),
 Lot B (10 units with 2 reserved), quarantined stock, an expired lot, an
-undated lot, and another product. Expired, undated, quarantined, reserved, and
+undated lot, and another product. Expired, quarantined, reserved, and
 wrong-product quantities are intentionally excluded from the as-of available
 total and planner. Explicit `required` policy uses FEFO; `not_applicable` uses
-receipt order; missing, blank, or unknown policy is `review` and blocks
-allocation. It demonstrates physical versus available quantity, FEFO
+receipt order and permits undated lots; missing, blank, or unknown policy is
+`review` and blocks allocation. It demonstrates physical versus available quantity, FEFO
 allocation, receipts, shortages, retained history, reversal, and reset.
 
 The planner is also directly usable:
@@ -52,18 +52,19 @@ reversal writes.
 
 The explicit mapping must name fictional item, register, and movement modules
 fields for IDs, organization, item, lot, unit, status, expiry, received date,
-verified opening quantity, verified `baselineDate` and nonnegative
-`baselineSequence` watermark, item expiry policy, movement key/type/quantity/date/sequence, and
-optional reversal reference. A movement must be strictly after its lot's
-verified opening boundary by date and sequence; missing or contradictory
+item expiry policy, movement key/type/quantity/date/sequence, and optional
+reversal reference. Verified opening and reservation evidence is deliberately
+separate under `evidenceByBatchId`; it is joined by canonical scalar batch ID,
+canonical item ID, and compatible unit. A movement must be strictly after its
+lot's verified opening boundary by date and sequence; missing or contradictory
 boundary evidence fails closed. Lookup normalization is deliberately narrow:
-the native fixture uses flat `cf_demo_*` fields, scalar lookup IDs, canonical
-policy in `custom_fields[{api_name,value}]`, and separate verified opening and
-reservation evidence. Missing, ambiguous, or unresolved lookups, missing units
-or baselines, and unknown movement encodings are rejected; no names, default
-conversion, fabricated dates/sequences, aggregate stock, or absent-reservation
-zero is guessed. See `fixtures/native-books-pages.synthetic.json`. A fixture
-does not establish how a live tenant encodes movement lookups.
+the native fixture uses flat `cf_demo_*` fields and canonical policy in
+`custom_fields[{api_name,value}]`. Missing, ambiguous, or unresolved lookups,
+missing units or baselines, and unknown movement encodings are rejected; no
+names, default conversion, fabricated dates/sequences, aggregate stock, or
+absent-reservation zero is guessed. See
+`fixtures/native-books-pages.synthetic.json`. A fixture does not establish how
+a live tenant encodes movement lookups.
 
 Every requested lot needs an explicit verified opening baseline and boundary. A
 verified zero is valid; absent or unverified baseline blocks the preview. The
@@ -78,6 +79,13 @@ result is marked `synthetic`,
 `connected: false`, and `readOnly: true`, and includes physical/available
 quantities, exclusions, proposed split, shortage, and blockers.
 
+The native transport is pure and injected: it performs no HTTP, fetch, file,
+environment, credential, network, or live-data access. A transport instance
+is single-use per source; page state is intentionally not reset or reused
+after completion. Input cloning, mapper execution, result validation, and
+output cloning are one bounded failure boundary. Errors expose only a stable
+`native <source> mapping failed` message and never raw native values or causes.
+
 `buildExpiryReview({ items, batches, asOfDate })` is also synthetic and
 read-only. It treats `items` as the canonical item source, validates nonblank
 batch/item/lot identities and finite nonnegative decimal quantities (maximum
@@ -88,7 +96,7 @@ explicit numeric or decimal-string zero remains a valid non-alert row. The
 report does not aggregate quantities or perform floating-point repairs.
 
 Status: configured synthetic mapping and mock-verified adapter only. The
-accepted 39 focused tests remain green, with native page integration coverage
+focused suite contains 46 tests, with native page integration and redaction coverage
 in `node-tests/zoho-batch-register-native-pages.test.mjs`. Live tenant field
 mapping, opening/reservation proof, movement lookup encoding, authenticated
 binding, durable concurrency/recovery, and all-channel enforcement remain
@@ -144,8 +152,7 @@ Before any live integration, separately prove and approve:
   encodings.
 
 The relevant Zoho references are the widget `on_pre_save` documentation and
-Books custom modules API. Strict OpenSpec validation was attempted but the
-`openspec` CLI is unavailable in this environment (`openspec: command not
-found`); no dependency was added. Expiry alerts are not activated. No
+Books custom modules API. OpenSpec CLI validation is not claimed for this
+synthetic bridge. Expiry alerts are not activated. No
 deployment, OAuth, live write, real record export, authenticated integration,
 deployed report, operational enforcement, or client data is included.

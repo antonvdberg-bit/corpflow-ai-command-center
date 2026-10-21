@@ -14,6 +14,14 @@ function clone(value) {
   return structuredClone(value);
 }
 
+function safeClone(value, source, stage) {
+  try {
+    return clone(value);
+  } catch {
+    throw nativeFailure(source, stage);
+  }
+}
+
 function safeIdentifier(value, name) {
   if (typeof value !== 'string' || !SAFE_IDENTIFIER.test(value)) fail(`unsafe ${name}`);
   return value;
@@ -80,14 +88,15 @@ export function createNativeBooksPageTransport({ readPage, sources, orgId }) {
       const records = [];
       for (const nativeRecord of body[config.recordsKey]) {
         if (!plainObject(nativeRecord)) throw nativeFailure(source, 'record');
+        const clonedRecord = safeClone(nativeRecord, source, 'mapping');
         let mapped;
         try {
-          mapped = config.mapRecord(clone(nativeRecord), { source, orgId, module, page });
+          mapped = config.mapRecord(clonedRecord, { source, orgId, module, page });
         } catch {
           throw nativeFailure(source, 'mapping');
         }
-        if (!plainObject(mapped)) throw nativeFailure(source, 'mapping');
-        records.push(clone(mapped));
+        if (!plainObject(mapped) || mapped === clonedRecord) throw nativeFailure(source, 'mapping');
+        records.push(safeClone(mapped, source, 'mapping'));
       }
       if (body.page_context.has_more_page) {
         if (page === Number.MAX_SAFE_INTEGER) throw nativeFailure(source, 'page increment');

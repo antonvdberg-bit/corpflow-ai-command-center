@@ -4,6 +4,21 @@
       "code": 0,
       "items": [
         {
+          "cf_demo_id": "item-other",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_item": "other-item",
+          "cf_demo_unit": "each",
+          "custom_fields": [
+            { "api_name": "cf_demo_expiry_policy", "value": "required" }
+          ]
+        }
+      ],
+      "page_context": { "page": 1, "has_more_page": true }
+    },
+    {
+      "code": 0,
+      "items": [
+        {
           "cf_demo_id": "item-1",
           "cf_demo_org": "synthetic-org",
           "cf_demo_item": "synthetic-item",
@@ -13,7 +28,7 @@
           ]
         }
       ],
-      "page_context": { "page": 1, "has_more_page": false }
+      "page_context": { "page": 2, "has_more_page": false }
     }
   ],
   "register": [
@@ -28,11 +43,6 @@
           "cf_demo_unit": "each",
           "cf_demo_status": "available",
           "cf_demo_expiry": "2026-12-01",
-          "cf_demo_opening": 6,
-          "cf_demo_opening_verified": true,
-          "cf_demo_opening_date": "2026-09-01",
-          "cf_demo_opening_sequence": 0,
-          "cf_demo_reserved": 0,
           "cf_demo_received": "2026-09-01"
         }
       ],
@@ -49,11 +59,6 @@
           "cf_demo_unit": "each",
           "cf_demo_status": "available",
           "cf_demo_expiry": "2027-03-01",
-          "cf_demo_opening": 10,
-          "cf_demo_opening_verified": true,
-          "cf_demo_opening_date": "2026-10-01",
-          "cf_demo_opening_sequence": 0,
-          "cf_demo_reserved": 0,
           "cf_demo_received": "2026-10-01"
         }
       ],
@@ -64,7 +69,57 @@
     {
       "code": 0,
       "module_records": [],
-      "page_context": { "page": 1, "has_more_page": false }
+      "page_context": { "page": 1, "has_more_page": true }
+    },
+    {
+      "code": 0,
+      "module_records": [
+        {
+          "cf_demo_id": "move-a-receipt",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_key": "move-a-receipt",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_lot": "A",
+          "cf_demo_unit": "each",
+          "cf_demo_type": "receipt",
+          "cf_demo_quantity": 2,
+          "cf_demo_date": "2026-10-02",
+          "cf_demo_sequence": 1
+        },
+        {
+          "cf_demo_id": "move-b-receipt",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_key": "move-b-receipt",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_lot": "B",
+          "cf_demo_unit": "each",
+          "cf_demo_type": "receipt",
+          "cf_demo_quantity": 3,
+          "cf_demo_date": "2026-10-02",
+          "cf_demo_sequence": 1
+        }
+      ],
+      "page_context": { "page": 2, "has_more_page": false }
     }
-  ]
+  ],
+  "evidenceByBatchId": {
+    "lot-a": {
+      "canonicalItemId": "synthetic-item",
+      "unit": "each",
+      "openingQuantity": 4,
+      "verified": true,
+      "date": "2026-09-01",
+      "sequence": 0,
+      "reservedQuantity": 0
+    },
+    "lot-b": {
+      "canonicalItemId": "synthetic-item",
+      "unit": "each",
+      "openingQuantity": 7,
+      "verified": true,
+      "date": "2026-10-01",
+      "sequence": 0,
+      "reservedQuantity": 0
+    }
+  }
 }
