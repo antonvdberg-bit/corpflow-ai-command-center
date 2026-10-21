@@ -31,16 +31,24 @@ import { BatchLedger, planAllocation } from './core.mjs';
 ## Synthetic Books-record adapter
 
 `previewBooksRecords({ transport, orgId, asOfDate, itemId, unit, quantity, map })`
-is a read-only adapter around `core.mjs`. The caller injects a transport with
-only `fetchPage({ source, module, orgId, page, cursor })`, returning
-`{ records, hasMore, nextCursor }`. The explicit mapping includes a canonical
-item source as well as register and movement sources. The adapter fetches every
-page, rejects loops, duplicate IDs, malformed envelopes,
-organization/item/unit mismatches, missing or conflicting canonical item
-records, future dates, and ambiguous movement sequences. Policy is normalized
-only from the canonical item record; caller policy context is ignored and
-cannot turn review-required stock into an exemption. It never performs HTTP,
-OAuth, POST, PUT, commit, receipt, or reversal writes.
+is a read-only adapter around `core.mjs`. The native page bridge is created as
+`createNativeBooksPageTransport({ readPage, sources, orgId })` and exposes only
+`fetchPage({ source, module, orgId, page, cursor })`. `sources` explicitly maps
+`item`, `register`, and `movement` to `{ module, recordsKey, mapRecord }`;
+`items` is used for items and `module_records` for the fictional
+`cm_demo_lots`/`cm_demo_moves` custom modules. `readPage` is the only injected
+I/O and returns `{ orgId, module, page, body }`, where the body must have
+numeric `code: 0`, the configured collection, and matching `page_context`.
+Pages and cursors are ordered and fail closed. Mapping receives a structured
+clone and only `{ source, orgId, module, page }`, never raw headers,
+authentication, or response metadata.
+
+The organization claim in a caller-supplied request or receipt is not proof
+that a native API response came from that organization. A future live binding
+must provide verifiable request/response provenance; this synthetic bridge does
+not manufacture it from body content. It performs no HTTP, OAuth, filesystem,
+environment, credentials, timers, retries, POST, PUT, commit, receipt, or
+reversal writes.
 
 The explicit mapping must name fictional item, register, and movement modules
 fields for IDs, organization, item, lot, unit, status, expiry, received date,
@@ -49,9 +57,13 @@ verified opening quantity, verified `baselineDate` and nonnegative
 optional reversal reference. A movement must be strictly after its lot's
 verified opening boundary by date and sequence; missing or contradictory
 boundary evidence fails closed. Lookup normalization is deliberately narrow:
-only the documented synthetic fields and units (`each`, `kg`, `g`, `l`, `ml`,
-`box`) are accepted; no Zoho response shape or conversion is guessed. See
-`fixtures/books-records.synthetic.json` for a fully fictional example.
+the native fixture uses flat `cf_demo_*` fields, scalar lookup IDs, canonical
+policy in `custom_fields[{api_name,value}]`, and separate verified opening and
+reservation evidence. Missing, ambiguous, or unresolved lookups, missing units
+or baselines, and unknown movement encodings are rejected; no names, default
+conversion, fabricated dates/sequences, aggregate stock, or absent-reservation
+zero is guessed. See `fixtures/native-books-pages.synthetic.json`. A fixture
+does not establish how a live tenant encodes movement lookups.
 
 Every requested lot needs an explicit verified opening baseline and boundary. A
 verified zero is valid; absent or unverified baseline blocks the preview. The
@@ -75,8 +87,11 @@ required missing/invalid expiry dates make the report `complete: false`; an
 explicit numeric or decimal-string zero remains a valid non-alert row. The
 report does not aggregate quantities or perform floating-point repairs.
 
-Status: configured synthetic mapping and mock-verified adapter only; live API
-readback, durable concurrency/recovery, and all-channel enforcement remain
+Status: configured synthetic mapping and mock-verified adapter only. The
+accepted 39 focused tests remain green, with native page integration coverage
+in `node-tests/zoho-batch-register-native-pages.test.mjs`. Live tenant field
+mapping, opening/reservation proof, movement lookup encoding, authenticated
+binding, durable concurrency/recovery, and all-channel enforcement remain
 unverified. This adapter is not operational stock control and has no posting
 authority. Do not describe native record locking, uniqueness, or a re-read
 before write as an atomic multi-lot allocation guarantee.
@@ -123,8 +138,14 @@ Before any live integration, separately prove and approve:
   API-bypass paths;
 - durable reservations, server-side atomicity, safe concurrency, and
   partial-save recovery;
-- authentication, tenancy, audit retention, and expiry-alert ownership.
+- authentication, tenancy, audit retention, expiry-alert ownership, and
+  verifiable request/response provenance for every native page;
+- tenant mapping and UAT evidence for real opening, reservation, and movement
+  encodings.
 
 The relevant Zoho references are the widget `on_pre_save` documentation and
-Books custom modules API. Expiry alerts are not activated. No deployment,
-OAuth, live write, real record export, or client data is included.
+Books custom modules API. Strict OpenSpec validation was attempted but the
+`openspec` CLI is unavailable in this environment (`openspec: command not
+found`); no dependency was added. Expiry alerts are not activated. No
+deployment, OAuth, live write, real record export, authenticated integration,
+deployed report, operational enforcement, or client data is included.

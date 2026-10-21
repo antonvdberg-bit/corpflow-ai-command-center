@@ -17,11 +17,18 @@
   revalidation, and the pure deterministic expiry review report.
 - [x] 1.9 Add acceptance coverage for policies, report boundaries, zero stock,
   quarantine, invalid dates, stale plans, and deterministic repeat.
+- [x] 1.10 Add a transport-injected native Books page bridge, synthetic
+  `items`/`module_records` pages, and direct page-to-preview integration
+  coverage for provenance, pagination, mappings, and fail-closed envelopes.
 
 ## 2. Verification
 
 - [x] 2.1 Run the focused Node test file.
-- [ ] 2.2 Run strict OpenSpec validation.
+- [ ] 2.2 Run strict OpenSpec validation (blocked: `openspec` CLI unavailable,
+  `openspec: command not found`; no dependency install permitted).
 - [x] 2.3 Run `git diff --check`.
 - [ ] 2.4 Record that live Zoho field translation, UAT, concurrency, posting,
   scheduling, sends, and production stock control remain unverified.
+- [x] 2.5 Record that native live binding, tenant mapping, opening/reservation
+  proof, movement lookup encoding, and operational enforcement remain
+  unverified.

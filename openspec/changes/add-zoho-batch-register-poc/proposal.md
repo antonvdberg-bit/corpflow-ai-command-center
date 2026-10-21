@@ -17,6 +17,9 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
 - Add one canonical item expiry policy (`required`, `not_applicable`, or
   `review`) to planning, commit rechecks, the synthetic adapter, and a
   deterministic read-only daily review report.
+- Add a synthetic native-shaped Books page bridge that translates validated
+  `items`/`module_records` envelopes into the existing preview adapter without
+  adding live transport or provenance claims.
 
 ## Impact
 
@@ -26,4 +29,6 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
   behavior changes. This stage remains synthetic and unconnected; live
   response mapping, posting authority, durable concurrency/recovery, and
   all-channel enforcement are not accepted. No scheduler, reminder, email,
-  persistence, or live stock-control behavior is enabled.
+  persistence, or live stock-control behavior is enabled. Native page mapping,
+  tenant field translation, opening/reservation evidence, movement encoding,
+  UAT, and live binding remain incomplete.

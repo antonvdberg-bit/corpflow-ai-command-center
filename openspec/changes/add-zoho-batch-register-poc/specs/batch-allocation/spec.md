@@ -102,3 +102,33 @@ allocation. Plans and commits MUST carry and recheck policy.
   an explicit Gregorian as-of date
 - **THEN** it returns deterministic excluded, classification, missing/invalid,
   and mutually exclusive expiry-age buckets without sending or scheduling
+
+### Requirement: Native-shaped Books page bridge
+
+The prototype SHALL expose a transport-injected bridge that validates
+synthetic native `items` and `module_records` page envelopes, maps records
+through explicit source callbacks, and returns only the normalized pages
+consumed by the existing preview adapter. It MUST reject provenance,
+organization, module, page, cursor, collection, lookup, baseline, unit, and
+movement-encoding failures without fallback or raw-response disclosure.
+
+#### Scenario: Native pages feed the preview
+
+- **WHEN** multi-page synthetic item, lot-register, and movement envelopes are
+  read through the bridge
+- **THEN** the existing preview adapter consumes every page and produces the
+  same exact FEFO split as direct normalized records without any write method
+
+#### Scenario: Native evidence is incomplete
+
+- **WHEN** a native page lacks verified opening, reservation, canonical lookup,
+  unit, or supported movement evidence
+- **THEN** the bridge or existing adapter blocks the preview rather than
+  guessing a zero, conversion, identity, date, sequence, or movement meaning
+
+#### Scenario: Native envelope is malformed or out of order
+
+- **WHEN** code, page context, collection, organization, module, page, cursor,
+  record shape, or mapping output is invalid
+- **THEN** the bridge rejects the page safely and never returns a successful
+  partial report

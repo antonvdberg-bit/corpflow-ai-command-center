@@ -1,0 +1,70 @@
+{
+  "item": [
+    {
+      "code": 0,
+      "items": [
+        {
+          "cf_demo_id": "item-1",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_unit": "each",
+          "custom_fields": [
+            { "api_name": "cf_demo_expiry_policy", "value": "required" }
+          ]
+        }
+      ],
+      "page_context": { "page": 1, "has_more_page": false }
+    }
+  ],
+  "register": [
+    {
+      "code": 0,
+      "module_records": [
+        {
+          "cf_demo_id": "lot-a",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_lot": "A",
+          "cf_demo_unit": "each",
+          "cf_demo_status": "available",
+          "cf_demo_expiry": "2026-12-01",
+          "cf_demo_opening": 6,
+          "cf_demo_opening_verified": true,
+          "cf_demo_opening_date": "2026-09-01",
+          "cf_demo_opening_sequence": 0,
+          "cf_demo_reserved": 0,
+          "cf_demo_received": "2026-09-01"
+        }
+      ],
+      "page_context": { "page": 1, "has_more_page": true }
+    },
+    {
+      "code": 0,
+      "module_records": [
+        {
+          "cf_demo_id": "lot-b",
+          "cf_demo_org": "synthetic-org",
+          "cf_demo_item": "synthetic-item",
+          "cf_demo_lot": "B",
+          "cf_demo_unit": "each",
+          "cf_demo_status": "available",
+          "cf_demo_expiry": "2027-03-01",
+          "cf_demo_opening": 10,
+          "cf_demo_opening_verified": true,
+          "cf_demo_opening_date": "2026-10-01",
+          "cf_demo_opening_sequence": 0,
+          "cf_demo_reserved": 0,
+          "cf_demo_received": "2026-10-01"
+        }
+      ],
+      "page_context": { "page": 2, "has_more_page": false }
+    }
+  ],
+  "movement": [
+    {
+      "code": 0,
+      "module_records": [],
+      "page_context": { "page": 1, "has_more_page": false }
+    }
+  ]
+}
