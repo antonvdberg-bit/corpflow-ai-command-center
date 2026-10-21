@@ -39,6 +39,28 @@ These statements are **intentionally absent** from
 `lib/server/postgres-ensure-schema-statements.js` so a Vercel Production build
 cannot create the tables as a side effect of merge.
 
+## Cross-instance transitions
+
+Durable writes do not use an in-process lock. Each bind, webhook, issuance,
+and retrieval runs in one Postgres transaction that:
+
+1. takes `pg_advisory_xact_lock` on the webhook event, checkout intent, and/or
+   Paddle transaction **before** reading;
+2. updates `bad_purchase_ownership` with a compare-and-set that cannot move a
+   row out of `refunded` or `revoked`;
+3. inserts the webhook receipt with `ON CONFLICT DO NOTHING`;
+4. retries a deadlock or lost update at most three times, then fails closed.
+
+Lock order is event, then intent, then transaction. The adapter never takes
+an intent lock after a transaction lock. A database trigger in the prepared
+migration rejects owner/intent replacement and any status transition out of a
+tombstone, and forces `fulfilment_entitled` false while the row is terminal.
+
+The automated concurrency test uses two simulated connections and a lock
+manager. It is **not** a live multi-instance Postgres run. That proof stays
+inside the separate migration-execution approval, on a disposable database,
+never on shared or production Postgres from this change.
+
 ## Apply (separate approval required)
 
 1. Confirm Anton has approved **this** migration execution against the intended
@@ -56,7 +78,8 @@ cannot create the tables as a side effect of merge.
 ## Rollback
 
 - **Before any live buyer row:** the DROP statements in the migration header
-  may be used. This is destructive to empty tables only.
+  may be used, including the terminal-guard trigger and function. This is
+  destructive to empty tables only.
 - **After any live buyer row:** do **not** drop the tables. Turn the flag off,
   keep the audit rows, and revoke fulfilment entitlement. Deleting ownership
   evidence is not an allowed rollback.

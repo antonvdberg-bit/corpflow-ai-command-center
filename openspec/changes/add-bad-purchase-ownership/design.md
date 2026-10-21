@@ -21,6 +21,11 @@ not applying it.
   DDL cannot create tables on merge.
 - Decision: `paddle_transaction_id` nullable unique until a trusted server
   association. Webhooks match only an already-bound provider reference.
+- Decision: cross-instance mutations use one Postgres transaction,
+  `pg_advisory_xact_lock`, and a terminal compare-and-set. An in-process
+  serial lock is not the durability mechanism. The prepared migration also
+  installs a trigger that rejects leaving `refunded`/`revoked` and rejects
+  owner, tenant, brand, intent, or order-reference replacement.
 
 ## Risks / Trade-offs
 
@@ -28,6 +33,9 @@ not applying it.
   supply a trusted Paddle transaction id. Server-created Paddle transactions
   remain a later gate. Bind still records the authenticated owner and intent.
 - Missing table with flag on → Prisma errors. Flag stays off until migrate.
+- Advisory-lock hashes can theoretically collide and serialise two unrelated
+  purchases. That delays one writer; it does not merge their rows. A live
+  Postgres concurrency check is still required before the flag is enabled.
 
 ## Migration Plan
 

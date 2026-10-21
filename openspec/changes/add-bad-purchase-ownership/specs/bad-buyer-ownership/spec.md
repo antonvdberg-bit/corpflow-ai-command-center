@@ -35,3 +35,19 @@ migration is applied under a separate approval and
 #### Scenario: Flag off
 - **WHEN** the durable flag is unset or `0`
 - **THEN** bind and retrieve routes return a disabled error and webhooks do not write ownership rows
+
+### Requirement: Terminal ownership transitions are atomic across processes
+The durable adapter SHALL apply buyer binding, webhook deduplication, unbound
+reversals, and confirmation issuance inside one database transaction. A
+refunded or revoked purchase MUST stay terminal if a completion event is
+processed at the same time on another process. Payment webhooks MUST NOT
+establish the buyer, and a caller-supplied session object MUST NOT replace
+the server session on the production route.
+
+#### Scenario: Concurrent completion cannot clear a refund
+- **WHEN** one connection records a refund and another connection records a later completion for the same Paddle transaction
+- **THEN** the stored purchase remains refunded, fulfilment stays off, and the confirmation cannot be issued or retrieved
+
+#### Scenario: Production route does not accept an injected session
+- **WHEN** the checkout-intent route is called with a session object supplied by the caller and without the explicit test-only opt-in
+- **THEN** the handler resolves the owner from the request cookie session and refuses an unauthenticated request

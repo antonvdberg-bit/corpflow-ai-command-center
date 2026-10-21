@@ -27,6 +27,9 @@ and `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE=1` is set.
   second database or login system.
 - Follow-up: migration execution, flag enablement, and live verification are
   separate approvals. See `docs/operations/BAD_BUYER_OWNERSHIP_MIGRATION.md`.
+- Cross-instance writes use a Postgres transaction, advisory lock, and a
+  terminal compare-and-set. Passing single-process tests is not live
+  multi-instance proof. The migration remains unapplied.
 
 ## Links
 

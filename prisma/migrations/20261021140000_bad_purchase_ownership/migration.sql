@@ -5,6 +5,8 @@
 -- until that same approval; Vercel build DDL would otherwise create the tables.
 --
 -- ROLLBACK (only before any live buyer rows exist):
+--   DROP TRIGGER IF EXISTS "bad_purchase_ownership_terminal_guard" ON "bad_purchase_ownership";
+--   DROP FUNCTION IF EXISTS bad_purchase_ownership_keep_terminal();
 --   DROP TABLE IF EXISTS "bad_purchase_webhook_events";
 --   DROP TABLE IF EXISTS "bad_purchase_unbound_reversals";
 --   DROP TABLE IF EXISTS "bad_purchase_ownership";
@@ -90,3 +92,42 @@ CREATE UNIQUE INDEX "bad_purchase_webhook_events_event_id_key"
   ON "bad_purchase_webhook_events"("event_id");
 CREATE INDEX "bad_purchase_webhook_events_paddle_transaction_id_idx"
   ON "bad_purchase_webhook_events"("paddle_transaction_id");
+
+-- Reject owner replacement and any transition out of a refund/revocation
+-- tombstone, including from a writer that bypasses the application guard.
+CREATE OR REPLACE FUNCTION bad_purchase_ownership_keep_terminal()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  IF NEW.auth_user_id IS DISTINCT FROM OLD.auth_user_id
+     OR NEW.tenant_id IS DISTINCT FROM OLD.tenant_id
+     OR NEW.brand IS DISTINCT FROM OLD.brand
+     OR NEW.checkout_intent_id IS DISTINCT FROM OLD.checkout_intent_id
+     OR NEW.order_confirmation_ref IS DISTINCT FROM OLD.order_confirmation_ref
+  THEN
+    RAISE EXCEPTION 'bad_purchase_ownership_immutable' USING ERRCODE = '23514';
+  END IF;
+  IF OLD.status = 'revoked' AND NEW.status IS DISTINCT FROM 'revoked' THEN
+    RAISE EXCEPTION 'bad_purchase_ownership_terminal' USING ERRCODE = '23514';
+  END IF;
+  IF OLD.status = 'refunded' AND NEW.status NOT IN ('refunded', 'revoked') THEN
+    RAISE EXCEPTION 'bad_purchase_ownership_terminal' USING ERRCODE = '23514';
+  END IF;
+  IF OLD.refunded_at IS NOT NULL AND NEW.refunded_at IS NULL THEN
+    RAISE EXCEPTION 'bad_purchase_ownership_terminal' USING ERRCODE = '23514';
+  END IF;
+  IF OLD.revoked_at IS NOT NULL AND NEW.revoked_at IS NULL THEN
+    RAISE EXCEPTION 'bad_purchase_ownership_terminal' USING ERRCODE = '23514';
+  END IF;
+  IF NEW.status IN ('refunded', 'revoked') THEN
+    NEW.fulfilment_entitled := false;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER "bad_purchase_ownership_terminal_guard"
+  BEFORE UPDATE ON "bad_purchase_ownership"
+  FOR EACH ROW
+  EXECUTE PROCEDURE bad_purchase_ownership_keep_terminal();
