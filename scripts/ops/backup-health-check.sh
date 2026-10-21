@@ -536,11 +536,18 @@ run_checks() {
   fi
 }
 
+check_maintenance_status() {
+  local verdict
+  verdict="$(python3 /usr/local/lib/corpflowai-maintenance/forge-maintenance-collect.py --health)" || verdict="Maintenance receipt parser failed"
+  [[ -z "${verdict}" ]] || add_failure "${verdict}"
+}
+
 main() {
   log "start dry_run=${DRY_RUN} force_fail=${FORCE_FAIL} max_age_h=${MAX_AGE_HOURS} min_snapshots=${MIN_SNAPSHOT_COUNT}"
 
   check_erp_backup_status
   check_erp_laptop_copy
+  check_maintenance_status
   run_checks
 
   if [[ "${#FAILURES[@]}" -eq 0 ]]; then

@@ -1,0 +1,21 @@
+[Unit]
+Description=CorpFlowAI bounded read-only maintenance collection and Forge review
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/lib/corpflowai-maintenance/forge-maintenance-collect.py
+TimeoutStartSec=300
+Nice=15
+MemoryMax=128M
+IOSchedulingClass=idle
+UMask=0022
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/lib/corpflowai-maintenance
+NoNewPrivileges=yes
+# Collector runs as root for fixed Docker metadata probes only.
+# It launches the model reviewer through runuser -u anton; generated text is never executed.
+
