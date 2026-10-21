@@ -49,15 +49,11 @@ integration paths and local-only rollback.
 
 ### Requirement: Synthetic read-only register adapter
 
-The prototype SHALL adapt fully synthetic paginated register and movement
-records through an injected read-only transport and explicit field map. It
-MUST require verified opening baselines, preserve core quantity precision,
-replay receipts, allocations and supported allocation reversals
-deterministically, and return synthetic physical/available quantities,
-exclusions, proposed splits, shortages, and blockers. It MUST reject
-malformed pagination, duplicate/conflicting identities or keys, invalid
-dates/sequences, incompatible units, dangling or unsupported reversals, and
-negative balances without mutating fetched records.
+The prototype SHALL adapt synthetic paginated register and movement records
+through an injected read-only transport and explicit field map. It MUST
+require verified openings, preserve exact quantities, replay supported
+movements, and reject malformed or conflicting evidence without mutating
+fetched records.
 
 #### Scenario: Paginated synthetic preview
 
