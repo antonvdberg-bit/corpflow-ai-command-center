@@ -31,9 +31,9 @@ const productLinks = {
 };
 
 const descriptions = {
-  lead: 'For one business and one supported enquiry source, up to 500 enquiry records per month. We map the enquiry path, configure agreed capture and alerts, test it with you and obtain acceptance. Your team replies to prospects and closes sales.',
-  website: 'Starting setup covers one premium landing page or a similarly bounded repair, mobile and enquiry-path checks, and two consolidated review rounds. Larger rebuilds, e-commerce and extra functions receive a separate quote.',
-  automation: 'We scope your workflow and agree a fixed price for deliverables, testing and handover. Access, dependencies, acceptance and separate software costs are confirmed before work starts.',
+  lead: 'Software for one business and one supported enquiry source, up to 500 enquiry records per month. It maps the enquiry path, configures agreed capture and alerts, and is tested with you before acceptance. Your team replies to prospects and closes sales.',
+  website: 'Starting setup covers one premium landing page or a similarly bounded website repair, mobile and enquiry-path checks, and two consolidated review rounds. Larger rebuilds, e-commerce and extra functions receive a separate quote.',
+  automation: 'A configured workflow with agreed outcomes, testing and handover. The written quote states milestones, access, dependencies, acceptance and any separate software costs before work starts.',
 };
 
 export default function PricingPage({ host = '' }) {
@@ -56,9 +56,9 @@ export default function PricingPage({ host = '' }) {
   const rate = APPROVED_REGIONAL_PRICES[currency];
   const title = products[product];
   const meta = buildPublicPageMeta({
-    title: 'Service pricing',
+    title: 'Software package pricing',
     description:
-      'Choose the business problem, review setup and optional monthly care, then request an assessment.',
+      'CorpFlowAI Ltd software and workflow automation packages. Choose Lead Rescue, Website Rescue or business automation, review the approved regional price, then request an assessment.',
     path: '/pricing',
     ogImage: '/assets/visuals/lead-rescue-property-reception-hero-v1.jpg',
   });
@@ -93,13 +93,13 @@ export default function PricingPage({ host = '' }) {
       </Head>
       <CorpFlowPublicHeader />
       <HeroGlassBlock style={{ marginTop: 32, minWidth: 0, boxSizing: 'border-box' }}>
-        <p>Standard business services</p>
+        <p>CorpFlowAI Ltd · software and workflow automation</p>
         <h1 style={{ overflowWrap: 'anywhere' }}>
           Make enquiries and website problems easier to act on.
         </h1>
         <p style={{ overflowWrap: 'anywhere' }}>
-          Choose the problem you want to solve. Review the scope and regional fees, then ask us to
-          confirm fit and delivery timing.
+          These are the current configured software packages. Choose one, review the approved regional
+          price and what is included, then ask us to confirm fit and delivery timing.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 12, marginTop: 20 }}>
           {Object.entries(products).map(([key, label]) => (
@@ -200,7 +200,8 @@ export default function PricingPage({ host = '' }) {
             <p>
               Paid media, third-party licences, hosting changes, major new work and after-hours
               support are quoted separately. We do not guarantee rankings, revenue or complete legal
-              compliance. No 24/7 staffed response is included.
+              compliance. Round-the-clock response is not included. Support follows the hours in the
+              written package.
             </p>
             <p>
               <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a> ·{' '}

@@ -27,8 +27,9 @@ function CorpFlowPrivacyPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Overview</h2>
         <p style={ps.p}>
-          CorpFlowAI provides AI-assisted workflow setup and monitoring services. This policy describes how we handle
-          information collected through our public website, intake forms, and service delivery communications.
+          CorpFlowAI Ltd provides software and workflow automation packages, including the implementation, setup
+          and support agreed in writing. This policy describes how we handle information collected through our
+          public website, intake forms, and delivery of those packages.
           Business Admin Desk has its own privacy notice at{' '}
           <a href="https://businessadmindesk.co.za/privacy" style={{ color: '#7dd3fc' }}>
             businessadmindesk.co.za/privacy
@@ -60,9 +61,11 @@ function CorpFlowPrivacyPage() {
       <section style={ps.section}>
         <h2 style={ps.h2}>Payment-card transmission</h2>
         <p style={ps.p}>
-          This website does not capture, transmit, or store card data. When CorpFlowAI offers a hosted payment-link or
-          hosted-checkout option, card details are entered on the payment provider&apos;s hosted page over TLS. Card
-          details are never transmitted to or stored on CorpFlowAI servers. See the{' '}
+          This website does not capture, transmit, or store card data, and it does not offer live checkout. If a
+          hosted payment page is later approved, card details are entered on that provider&apos;s page over TLS. If
+          that provider is Paddle, Paddle is merchant of record for that transaction only and card details stay on
+          Paddle&apos;s hosted page. Card details are never transmitted to or stored on CorpFlowAI servers. Naming
+          Paddle here does not mean Paddle checkout is active. See the{' '}
           <Link href="/payment-security" style={{ color: '#7dd3fc' }}>
             payment security policy
           </Link>{' '}
