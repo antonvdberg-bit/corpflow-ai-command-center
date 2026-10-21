@@ -2,8 +2,26 @@ import React from 'react';
 import Link from 'next/link';
 import PublicPolicyLayout, { policyStyles as ps } from '../components/PublicPolicyLayout.js';
 import { MERCHANT_LEGAL_NAME } from '../lib/public/merchant-identity.js';
+import BusinessAdminDeskPolicyPage from '../components/BusinessAdminDeskPolicyPage.js';
+import { resolveBusinessAdminDeskSurface } from '../lib/public/business-admin-desk-packages.js';
+import { BAD_DELIVERY_SECTIONS } from '../lib/public/business-admin-desk-policies.js';
 
-export default function DeliveryPolicyPage() {
+export default function DeliveryPolicyPage({ surface = 'other' }) {
+  if (surface === 'public' || surface === 'staging') {
+    return (
+      <BusinessAdminDeskPolicyPage
+        title="Delivery"
+        description="Delivery notice for Business Admin Desk packages operated by CorpFlowAI Ltd. No delivery window is promised on this page."
+        path="/delivery-policy"
+        review={surface === 'staging'}
+        sections={BAD_DELIVERY_SECTIONS}
+      />
+    );
+  }
+  return <CorpFlowDeliveryPolicyPage />;
+}
+
+function CorpFlowDeliveryPolicyPage() {
   return (
     <PublicPolicyLayout title="Delivery Policy">
       <section style={ps.section}>
@@ -11,7 +29,11 @@ export default function DeliveryPolicyPage() {
         <p style={ps.p}>
           All services sold by {MERCHANT_LEGAL_NAME} through this website are digital and operationally
           delivered. There is no physical shipment, courier, or postal delivery. You will not receive goods by
-          mail or freight.
+          mail or freight. Business Admin Desk delivery wording is published separately at{' '}
+          <a href="https://businessadmindesk.co.za/delivery-policy" style={{ color: '#7dd3fc' }}>
+            businessadmindesk.co.za/delivery-policy
+          </a>
+          .
         </p>
       </section>
       <section style={ps.section}>
@@ -69,4 +91,8 @@ export default function DeliveryPolicyPage() {
       </section>
     </PublicPolicyLayout>
   );
+}
+
+export function getServerSideProps({ req }) {
+  return { props: { surface: resolveBusinessAdminDeskSurface(req?.headers?.host) } };
 }

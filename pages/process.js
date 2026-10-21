@@ -63,7 +63,7 @@ const DONT_LIST = [
 export default function ProcessPage() {
   const meta = buildPublicPageMeta({
     title: 'How a CorpFlowAI engagement runs',
-    description: 'Lead Rescue starts with a 15-minute diagnosis and a written offer. MUR 85,000 fixed. First visible preview follows the agreed commercial, access, and asset conditions.',
+    description: `Lead Rescue starts with a 15-minute diagnosis and a written offer. ${ENQUIRY_RECOVERY_PRICE_LINE}. Delivery timing follows the agreed scope, access and acceptance conditions.`,
     path: '/process',
     ogImage: '/assets/visuals/corpflow-process-hero.jpg',
   });

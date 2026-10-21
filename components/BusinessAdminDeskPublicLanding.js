@@ -24,18 +24,18 @@ import {
   cfSection,
 } from './public/corpflow-public-styles.js';
 
-const PAGE_TITLE = 'Business Admin Desk · Company administration support';
+const PAGE_TITLE = 'Business Admin Desk · Software-managed company administration';
 const PAGE_DESCRIPTION =
-  'Business Admin Desk helps South African businesses and professional service providers with practical company administration, plus white-label and fractional support.';
+  'Business Admin Desk sells defined, software-managed company-administration packages for South Africa. CorpFlowAI Ltd operates the service. Online checkout is not open yet.';
 
 const DIRECT_CONTACT = {
-  label: "Tell us what's going on",
-  subject: 'Business Admin Desk enquiry',
+  label: 'Ask about a package',
+  subject: 'Business Admin Desk package question',
   body: `Hi Business Admin Desk,
 
-I need help with a company-administration matter.
+I want to ask about a published company-administration package.
 
-What has happened / what I need help with:
+Package:
 
 Company name:
 
@@ -48,14 +48,14 @@ const PARTNER_CTA = {
 };
 
 const serviceLabels = [
-  ['Company registrations', null],
-  ['Director changes', '/director-changes'],
-  ['Registered-address changes', null],
-  ['Annual returns', '/annual-returns'],
-  ['Beneficial ownership', '/beneficial-ownership'],
-  ['Company amendments', null],
-  ['Statutory records', null],
-  ['Ongoing administration', null],
+  ['Company registrations', '/pricing#BAD-REG-ONBOARD-BUNDLE', '/pricing#BAD-REG-ONBOARD-BUNDLE'],
+  ['Director changes', '/director-changes', '/pricing#BAD-DIRECTOR-APPT-RESIGN'],
+  ['Registered-address changes', '/pricing#BAD-ADDRESS-CHANGE', '/pricing#BAD-ADDRESS-CHANGE'],
+  ['Annual returns', '/annual-returns', '/pricing#BAD-ANNUAL-RETURN-BO-CURRENT'],
+  ['Beneficial ownership', '/beneficial-ownership', '/pricing#BAD-BO-SIMPLE'],
+  ['Company amendments', '/pricing#BAD-FYE-CHANGE', '/pricing#BAD-FYE-CHANGE'],
+  ['Statutory records', '/pricing#BAD-SHARE-CERT-VERIFIED', '/pricing#BAD-SHARE-CERT-VERIFIED'],
+  ['Existing-company onboarding', '/pricing#BAD-ONBOARD-EXISTING', '/pricing#BAD-ONBOARD-EXISTING'],
 ];
 
 export const BUSINESS_ADMIN_DESK_HEYGEN_EMBED_URL = 'https://app.heygen.com/embeds/dd040650d267488485a7c2eb8188f592';
@@ -109,7 +109,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
               <BusinessAdminDeskBrand compact href="/" />
             </div>
             <p style={{ ...cfBody, margin: 0, fontSize: 13.5 }}>
-              Independent company-administration support. Not a government or regulatory service, and not a law firm.
+              Business Admin Desk is a service brand operated by CorpFlowAI Ltd. Software-managed company-administration packages for South Africa. Not a government or regulatory service, and not a law firm.
             </p>
             <BusinessAdminDeskLegalFooter internalReview={internalReview} />
           </div>
@@ -126,8 +126,17 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             marginBottom: 20,
           }}
         >
-          <BusinessAdminDeskBrand subtitle="Company administration · South Africa" priority />
-          <BusinessAdminDeskContactActions {...DIRECT_CONTACT} compact internalReview={internalReview} />
+          <BusinessAdminDeskBrand subtitle="Software-managed packages · South Africa" priority />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
+            <a href="/pricing" style={cfBtnSecondary}>Pricing</a>
+            <BusinessAdminDeskContactActions
+              {...DIRECT_CONTACT}
+              compact
+              priority={false}
+              showHint={false}
+              internalReview={internalReview}
+            />
+          </div>
         </nav>
 
         {internalReview ? <BusinessAdminDeskSectionNav currentPath="/" /> : null}
@@ -135,7 +144,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
         <HeroGlassBlock
           eyebrow={
             <p style={{ ...cfKicker, marginBottom: 10 }}>
-              {internalReview ? 'Internal review · not published' : 'Company administration, without the admin burden'}
+              {internalReview ? 'Internal review · not published' : 'Software-managed packages · South Africa'}
             </p>
           }
           title={
@@ -149,20 +158,21 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
                 maxWidth: 760,
               }}
             >
-              You run the business. We help with the administration.
+              Company administration, managed as one process.
             </h1>
           }
           lead={
             <p style={{ ...cfLead, marginBottom: 0, maxWidth: 760 }}>
-              Practical, human company-administration support for your own business — or reliable white-label and fractional capacity behind your team, firm or service business.
+              Business Admin Desk sells defined, software-managed company-administration packages. You choose a published service, we confirm the company and required information, then that workflow runs through to the named outcome. The package list and one-time fees are published. Online checkout and fully automated filing are not live on this website.
             </p>
           }
           actions={
-            <div style={{ marginTop: 18 }}>
+            <div style={{ marginTop: 18, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start' }}>
+              <a href="/pricing" style={cfBtnPrimary}>See package prices</a>
               <BusinessAdminDeskContactActions
                 {...DIRECT_CONTACT}
                 internalReview={internalReview}
-                secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
+                priority={false}
               />
             </div>
           }
@@ -172,7 +182,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <p style={cfKicker}>A quick introduction</p>
           <h2 id="bad-video-title" style={cfH2}>What Business Admin Desk is here to do</h2>
           <p style={{ ...cfBody, maxWidth: 780 }}>
-            Watch the short overview first. It explains the service more clearly than a wall of compliance text.
+            The short video introduces the service. The current offer is the published package list on the pricing page. The video is not a claim that automated filing or online checkout is live.
           </p>
 
           <GlassPanel variant={{ padding: 14, elevation: 2 }} style={{ marginTop: 14 }}>
@@ -191,22 +201,22 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
 
         <section style={cfSection} aria-labelledby="bad-audience-title">
           <p style={cfKicker}>Two ways we can help</p>
-          <h2 id="bad-audience-title" style={cfH2}>Your business, or capacity behind your business</h2>
+          <h2 id="bad-audience-title" style={cfH2}>Your company, or packages behind your firm</h2>
           <GlassCardGrid minColWidth={300} style={{ marginTop: 16 }}>
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
               <p style={{ ...cfKicker, marginBottom: 8 }}>For individual businesses</p>
-              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>Get the company administration handled</h3>
+              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>Choose a published package</h3>
               <p style={{ ...cfBody, marginBottom: 16 }}>
-                Tell us the company matter you are dealing with. We help clarify what is needed, scope the work and handle the agreed administration while keeping you informed.
+                Start with a named package and its one-time service fee. Government and statutory fees are charged separately. We confirm the company and the information required before any work starts.
               </p>
-              <BusinessAdminDeskContactActions {...DIRECT_CONTACT} internalReview={internalReview} />
+              <a href="/pricing" style={cfBtnPrimary}>See package prices</a>
             </GlassPanel>
 
             <GlassPanel as="article" variant={{ padding: 24, elevation: 2 }}>
               <p style={{ ...cfKicker, marginBottom: 8 }}>For companies and service providers</p>
-              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>White-label or fractional admin capacity</h3>
+              <h3 style={{ ...cfH2, fontSize: 21, marginBottom: 10 }}>White-label packages behind your firm</h3>
               <p style={{ ...cfBody, marginBottom: 16 }}>
-                Add experienced company-administration capacity without adding permanent headcount. We can work behind accounting, tax, advisory and other professional-service firms, or support an internal team that needs extra specialist capacity.
+                The same published packages can sit behind a firm or an internal team. Partner and portfolio rates are confirmed in writing. They are not an automatic discount, and online checkout is not open.
               </p>
               <a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>
             </GlassPanel>
@@ -217,7 +227,7 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <p style={cfKicker}>What we help with</p>
           <h2 id="bad-services-title" style={cfH2}>Common company-administration matters</h2>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 16 }}>
-            {serviceLabels.map(([label, href]) => {
+            {serviceLabels.map(([label, reviewHref, publicHref]) => {
               const chipStyle = {
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -231,12 +241,8 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
                 fontWeight: 650,
                 textDecoration: 'none',
               };
-
-              if (internalReview && href) {
-                return <a key={label} href={href} style={chipStyle}>{label}</a>;
-              }
-
-              return <span key={label} style={chipStyle}>{label}</span>;
+              const href = internalReview ? reviewHref : publicHref;
+              return <a key={label} href={href} style={chipStyle}>{label}</a>;
             })}
           </div>
         </section>
@@ -246,9 +252,9 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
           <h2 id="bad-process-title" style={cfH2}>One clear step at a time</h2>
           <GlassCardGrid minColWidth={220} style={{ marginTop: 16 }}>
             {[
-              ['1', 'Tell us what you need help with', 'Give us the situation in plain English. You do not need to diagnose the process first.'],
-              ['2', 'We review and scope it', 'We confirm what information is needed, what we can handle and any boundaries before work begins.'],
-              ['3', 'We handle the agreed administration', 'You receive clear status and next-step communication instead of being left to chase the process.'],
+              ['1', 'Choose a package', 'Review the published one-time service fee and what that package covers.'],
+              ['2', 'Confirm the instruction', 'We agree the company, the information required, the service fee and any separate government or statutory fee before work starts.'],
+              ['3', 'Carry out the agreed package', 'The software-managed package is carried through to the named outcome. We confirm status with you. This website does not yet run fully automated filing or a live card checkout.'],
             ].map(([number, title, detail]) => (
               <GlassPanel key={number} as="article" variant={{ padding: 20, elevation: 1 }}>
                 <div
@@ -283,14 +289,16 @@ export default function BusinessAdminDeskPublicLanding({ videoEmbedUrl = BUSINES
             }}
           >
             <p style={cfKicker}>Next step</p>
-            <h2 id="bad-cta-title" style={cfH2}>Start with the problem, not the paperwork</h2>
+            <h2 id="bad-cta-title" style={cfH2}>See the package before you instruct us</h2>
             <p style={{ ...cfBody, maxWidth: 760 }}>
-              If it is your own company, tell us what you need help with. If you need capacity behind your firm or team, tell us what work you want handled and how you want us to operate alongside you.
+              Start with the published package and fee. If the matter sits outside those packages, ask us and we will confirm whether it needs a separate quote. Online checkout is not available.
             </p>
-            <div style={{ marginTop: 10 }}>
+            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'flex-start' }}>
+              <a href="/pricing" style={cfBtnPrimary}>See package prices</a>
               <BusinessAdminDeskContactActions
                 {...DIRECT_CONTACT}
                 internalReview={internalReview}
+                priority={false}
                 secondary={<a href={PARTNER_CTA.href} style={cfBtnSecondary}>{PARTNER_CTA.label}</a>}
               />
             </div>
