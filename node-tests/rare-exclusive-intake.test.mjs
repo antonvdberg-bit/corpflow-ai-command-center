@@ -196,3 +196,44 @@ test('R&E intake persists ERPNext exception as pending state', async () => {
   assert.equal(prisma.rows[0].qualificationJson.erpnext.state, 'pending');
   assert.equal(prisma.rows[0].qualificationJson.erpnext.error, 'ERP bridge exploded');
 });
+
+
+test('R&E intake lead-only runtime adapter creates ERPNext Lead without Opportunity', async () => {
+  const prisma = makePrisma();
+  const res = makeRes();
+  const calls = [];
+  const client = {
+    async list(doctype, options) {
+      calls.push({ kind: 'list', doctype, options });
+      return { ok: true, http: 200, rows: [] };
+    },
+    async create(doctype, payload) {
+      calls.push({ kind: 'create', doctype, payload });
+      return { ok: true, http: 200, row: { name: 'CRM-LEAD-2026-01001', ...payload } };
+    },
+    async update(doctype, name, payload) {
+      calls.push({ kind: 'update', doctype, name, payload });
+      return { ok: true, http: 200, row: { name, ...payload } };
+    },
+  };
+
+  await handleRareExclusiveIntake(request(), res, {
+    prisma,
+    getSharedSecret: () => 'test-secret',
+    getErpnextClient: () => client,
+    recordAutomationEvent: async () => {},
+  });
+
+  assert.equal(res.code, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.erpnext_synced, true);
+  assert.equal(res.body.erpnext_lead, 'CRM-LEAD-2026-01001');
+  assert.equal(calls.filter((c) => c.kind === 'create' && c.doctype === 'Lead').length, 1);
+  assert.equal(calls.some((c) => c.doctype === 'Opportunity'), false);
+  assert.equal(calls.some((c) => c.doctype === 'Customer'), false);
+
+  const created = calls.find((c) => c.kind === 'create' && c.doctype === 'Lead');
+  assert.equal(created.payload.status, 'Open');
+  assert.equal(created.payload.email_id, 'alex@example.com');
+  assert.match(created.payload.utm_content, /^corpflow\.sales_lifecycle\.v1:lead=rne-1$/);
+});
