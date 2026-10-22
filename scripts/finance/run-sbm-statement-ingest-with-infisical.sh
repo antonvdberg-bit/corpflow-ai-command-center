@@ -7,6 +7,7 @@ readonly FINANCE_CODE_ROOT="${RUNTIME_ROOT}/code"
 readonly FINANCE_DATA_ROOT="${RUNTIME_ROOT}/data"
 readonly INFISICAL_BIN="${RUNTIME_ROOT}/infisical/node_modules/.bin/infisical"
 readonly CREDENTIAL_NAME="infisical-client-secret"
+readonly DEFAULT_RUNTIME_CONFIG="${RUNTIME_ROOT}/config/infisical-runtime.env"
 
 usage() {
   echo "usage: $0 --verify-secrets | --accept-one | --process-batch" >&2
@@ -21,12 +22,38 @@ require() {
   fi
 }
 
+load_non_secret_config() {
+  local config_path="${INFISICAL_RUNTIME_CONFIG:-${DEFAULT_RUNTIME_CONFIG}}"
+  [[ -r "${config_path}" ]] || return 0
+
+  local line key value
+  while IFS= read -r line || [[ -n "${line}" ]]; do
+    [[ -z "${line//[[:space:]]/}" || "${line}" == \#* ]] && continue
+    [[ "${line}" == *=* ]] || {
+      echo "INVALID_RUNTIME_CONFIGURATION_LINE" >&2
+      exit 2
+    }
+    key="${line%%=*}"
+    value="${line#*=}"
+    case "${key}" in
+      INFISICAL_PROJECT_ID|INFISICAL_ENVIRONMENT|INFISICAL_UNIVERSAL_AUTH_CLIENT_ID)
+        [[ -n "${!key:-}" ]] || printf -v "${key}" '%s' "${value}"
+        ;;
+      *)
+        echo "UNSUPPORTED_RUNTIME_CONFIGURATION_KEY:${key}" >&2
+        exit 2
+        ;;
+    esac
+  done < "${config_path}"
+}
+
 [[ $# -eq 1 ]] || usage
 case "$1" in
   --verify-secrets|--accept-one|--process-batch) ;;
   *) usage ;;
 esac
 
+load_non_secret_config
 require CREDENTIALS_DIRECTORY
 require INFISICAL_UNIVERSAL_AUTH_CLIENT_ID
 require INFISICAL_PROJECT_ID
