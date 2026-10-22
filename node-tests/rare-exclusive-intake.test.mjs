@@ -156,6 +156,8 @@ test('R&E intake acknowledges captured lead when ERPNext is temporarily unavaila
   assert.equal(res.body.erpnext_synced, false);
   assert.equal(res.body.erpnext_pending, true);
   assert.equal(prisma.rows.length, 1);
+  assert.equal(prisma.rows[0].qualificationJson.erpnext.state, 'pending');
+  assert.equal(prisma.rows[0].qualificationJson.erpnext.error, 'ERPNEXT_NOT_CONFIGURED');
 });
 
 test('bridge event never contains ERPNext credentials and uses stable private-client identity', () => {
