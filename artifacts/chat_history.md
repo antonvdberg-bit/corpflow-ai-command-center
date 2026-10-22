@@ -30,6 +30,10 @@
 
 ---
 
+## 2026-10-21 — **BAD buyer-ownership disposable Postgres verification PASSED (PR #1513, not merged).** Real PostgreSQL 16.15 on loopback only, two independent connections, ten concurrency cases: a refund stayed terminal, duplicates were rejected, and the other buyer was denied the confirmation. Shared Neon `POSTGRES_URL` was not used. `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE` stays off. Prisma could not read the `void` advisory lock; the fix returns an integer and is on branch `cursor/bad-ownership-pg-verification-0762`, commit `b2fad83d4f11969b33c48762492e2875f778988c`. Paths: `lib/server/paddle-sandbox/bad-buyer-ownership-durable.js`, `node-tests/paddle-bad-buyer-ownership-disposable-pg.test.mjs`, `docs/operations/BAD_BUYER_OWNERSHIP_MIGRATION.md`. Issues #1512 and #1504 updated. **Verdict: verification PASSED — production migration, flag, deploy, and customer journey still not authorised. Delivery PARTIAL.**
+
+<!-- BAD_BUYER_OWNERSHIP_DISPOSABLE_PG_2026_10_21_HIST -->
+
 ## 2026-08-19 — **#899 fresh Factory Automation re-probe: ERPNext API PASS; `MASTER_ADMIN_KEY` still PRESENT.** Wake `bc-c67a9751-28cb-47e6-918a-29a13c213561` (handoff `32233151156`). Direct Frappe token auth as `integrations@corpflowai.com` HTTP 200. Three ERPNext secret names present; factory-master name still injected into this Automation worker after the 2026-08-13 Cloud Agents Secrets delete confirmation. No values recorded. Canonical: `docs/erpnext/ERPNEXT_CURSOR_CLOUD_SECURITY_CORRECTION_899.md`. Remaining Anton action: UI-only delete of secret **name** `MASTER_ADMIN_KEY` from the remaining Cursor store, then a fresh wake.
 
 ## 2026-08-14 — **#920 ERPNext Prestige foundation READY.** After Anton’s Sales Manager grant, live re-run as `integrations@corpflowai.com`: Project Template `CF920 Independent Website 12-phase`; Project `PROJ-0001`; Tasks `TASK-2026-00013`–`00024`; Timesheet `TS-2026-00001` linked; Issue `ISS-2026-00001` Open. CRM + draft `SAL-QTN-2026-00004` reused. No Prestige Procurement customer. No send/submit/payment. Canonical: `docs/erpnext/ERPNEXT_PRESTIGE_FOUNDATION_V1.md`.
