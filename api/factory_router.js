@@ -31,6 +31,7 @@ import tenantSiteHandler from '../lib/server/tenant-site.js';
 import tenantSiteReadHandler from '../lib/server/tenant-site-read.js';
 import tenantIntakeHandler from '../lib/server/tenant-intake.js';
 import productAIntakeHandler from '../lib/server/product-a-intake.js';
+import rareExclusiveIntakeHandler from '../lib/server/rare-exclusive-intake.js';
 import tenantSitePublicHandler from '../lib/server/tenant-site-public.js';
 import { handleTenantLeadCreate, handleTenantLeadQualify } from '../lib/server/tenant-leads.js';
 import {
@@ -1185,6 +1186,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'product-a/intake') {
     return productAIntakeHandler(req, res);
+  }
+  if (pathSeg === 'intake/rare-exclusive') {
+    return rareExclusiveIntakeHandler(req, res, { prisma });
   }
   if (pathSeg === 'tenant/site') {
     return tenantSitePublicHandler(req, res);
