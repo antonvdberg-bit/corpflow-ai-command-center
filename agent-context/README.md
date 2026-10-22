@@ -92,3 +92,7 @@ Fresh authorised agents must:
 4. promote material state-changing discoveries out of chat into Git, Postgres Context / Agent Learning, GitHub, or ERPNext as appropriate.
 
 When durable sources conflict, do not silently blend them. Prefer current runtime evidence for runtime state, then current GitHub evidence, then current provenance-backed Context / Agent Learning records, then canonical repo doctrine; mark stale sources for reconciliation.
+
+## Reviewed technical evidence
+
+[Read-only adapter acceptance lessons, 21 October 2026](read-only-adapter-acceptance-lessons-20261021.md) records the generic mapping/error-boundary regression patterns and their verification limits. It does not certify live integration or database persistence and does not alter the rules above.
