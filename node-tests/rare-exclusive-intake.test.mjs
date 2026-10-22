@@ -172,3 +172,27 @@ test('bridge event never contains ERPNext credentials and uses stable private-cl
   assert.equal(event.intake.working_email, 'alex@example.com');
   assert.equal(JSON.stringify(event).includes('ERPNEXT_API_SECRET'), false);
 });
+
+
+test('R&E intake persists ERPNext exception as pending state', async () => {
+  const prisma = makePrisma();
+  const res = makeRes();
+
+  await handleRareExclusiveIntake(request(), res, {
+    prisma,
+    getSharedSecret: () => 'test-secret',
+    getErpnextClient: () => ({ kind: 'memory' }),
+    recordAutomationEvent: async () => {},
+    reconcileSalesLifecycle: async () => {
+      throw new Error('ERP bridge exploded');
+    },
+  });
+
+  assert.equal(res.code, 200);
+  assert.equal(res.body.ok, true);
+  assert.equal(res.body.erpnext_synced, false);
+  assert.equal(res.body.erpnext_pending, true);
+  assert.equal(prisma.rows.length, 1);
+  assert.equal(prisma.rows[0].qualificationJson.erpnext.state, 'pending');
+  assert.equal(prisma.rows[0].qualificationJson.erpnext.error, 'ERP bridge exploded');
+});
