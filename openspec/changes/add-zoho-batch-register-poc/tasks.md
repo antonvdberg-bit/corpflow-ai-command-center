@@ -32,3 +32,6 @@
 - [x] 2.5 Record that native live binding, tenant mapping, opening/reservation
   proof, movement lookup encoding, and operational enforcement remain
   unverified.
+- [x] 2.6 Add the disabled native identity readback diagnostic with explicit
+  private-binding schema, bounded callback transport, redacted output, and
+  end-to-end mock connector tests.

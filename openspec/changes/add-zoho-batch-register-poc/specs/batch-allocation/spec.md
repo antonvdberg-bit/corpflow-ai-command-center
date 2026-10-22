@@ -132,3 +132,34 @@ movement-encoding failures without fallback or raw-response disclosure.
   record shape, or mapping output is invalid
 - **THEN** the bridge rejects the page safely and never returns a successful
   partial report
+
+### Requirement: Disabled native identity readback diagnostic
+
+The prototype SHALL provide a disabled, dependency-free CommonJS diagnostic
+that uses only an explicitly reviewed private configuration and a native
+GET-only callback connector to read complete register, movement, and item
+pages. It MUST require independently attested organization identity, exact
+configured collection keys, bounded pages and bodies, scalar identity
+lookups, exact opening metadata, register status/date, and canonical item
+unit. Reports MUST remain read-only, non-operational, allocation-unready,
+and redacted.
+
+#### Scenario: Exact later-page identity chain
+
+- **WHEN** the selected movement, register, and item occur on later pages and
+  the movement lot and register item are exact scalar IDs
+- **THEN** the diagnostic returns an `ok` identity readback with the selected
+  values while claiming no stock-control or allocation readiness
+
+#### Scenario: Ambiguous native evidence
+
+- **WHEN** a lookup is missing, blank, object-shaped, mismatched, duplicated,
+  or the exact collection/pagination envelope is invalid
+- **THEN** the complete diagnostic fails with only bounded category/stage/source
+  details and no raw response or private marker
+
+#### Scenario: No activation by construction
+
+- **WHEN** the module is required or the factory is constructed
+- **THEN** no request is made; network access occurs only after explicit native
+  invocation with a private reviewed binding

@@ -175,3 +175,46 @@ Books custom modules API. OpenSpec CLI validation is not claimed for this
 synthetic bridge. Expiry alerts are not activated. No
 deployment, OAuth, live write, real record export, authenticated integration,
 deployed report, operational enforcement, or client data is included.
+
+## Disabled native identity readback diagnostic
+
+`native-readback-diagnostic.cjs` exports `createNativeReadbackDiagnostic(config)`.
+Requiring the module and constructing the factory perform no network requests.
+The returned function performs requests only when explicitly invoked with the
+native `context` and `basicIO` objects:
+
+```js
+const { createNativeReadbackDiagnostic } = require('./native-readback-diagnostic.cjs');
+const run = createNativeReadbackDiagnostic(privateReviewedConfig);
+await run(context, basicIO); // basicIO.write(JSON.stringify(report))
+```
+
+The native wrapper must bundle this same source and receive a separately
+reviewed private configuration. The repository contains no tenant binding,
+connection token, credential, or live field map. The connector interface is
+`context.getConnection(connectionName)` followed by
+`makeRequest({ url, method: 'GET' }, callback)`, with request `on/end/destroy`
+and response `statusCode/data/error/end` events. No package, fetch, headers,
+auth, environment, writes, retries, or caller URL/method are used.
+
+The configuration explicitly provides `organizationId`, `connectionName`,
+`cm_` register/movement/item modules, exact `collections`, exact `fields`, and
+expected movement/register/item IDs, plus opening `type/date/key/quantity`,
+register status/date, and item unit. The fixed API base is
+`https://www.zohoapis.com/books/v3/`; each source is read sequentially with
+`per_page=200`, a ten-page cap, 15-second request timeout, one MiB response
+limit, HTTP 200, `code: 0`, an independently attested `organization_id`, and
+the exact configured collection key. `module_records` is an example only; the
+private binding must match the observed live shape. See the [custom modules](https://www.zoho.com/books/api/v3/custom-modules/)
+and [pagination](https://www.zoho.com/books/api/v3/pagination/) references.
+
+Reports are always `readOnly: true`, `stockChanged: false`, `operational:
+false`, `sampleOnly: false`, and `allocationReady: false`. A successful report
+only proves a selected movement -> register -> canonical item identity chain,
+metadata, and unit readback. It does not prove stock control, account scope,
+physical count, allocation, posting, replay, or concurrency. Errors expose
+only bounded category/stage/source/page details.
+
+Native execution remains separately protected: private binding review,
+authenticated execution, raw response encoding, and operator approval are
+required before any live run. The diagnostic is mock-verified only.

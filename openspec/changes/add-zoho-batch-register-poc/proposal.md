@@ -20,6 +20,9 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
 - Add a synthetic native-shaped Books page bridge that translates validated
   `items`/`module_records` envelopes into the existing preview adapter without
   adding live transport or provenance claims.
+- Add a disabled, GET-only native readback diagnostic template that compares
+  movement, register, and canonical item identities through a reviewed private
+  binding, with bounded pagination and redacted reports.
 
 ## Impact
 
@@ -31,4 +34,5 @@ earliest-expiry allocation before any live Zoho Books integration is considered.
   all-channel enforcement are not accepted. No scheduler, reminder, email,
   persistence, or live stock-control behavior is enabled. Native page mapping,
   tenant field translation, opening/reservation evidence, movement encoding,
-  UAT, and live binding remain incomplete.
+  UAT, and live binding remain incomplete. The diagnostic is mock-verified
+  preparation only and cannot be activated by this repository.

@@ -26,6 +26,11 @@ enforcement or locking behavior.
 - Keep the daily review pure and explicit-date driven. It reports positive
   replayed lot balances only and has no scheduler, transport, persistence, or
   send side effect.
+- Keep native readback separately disabled and private-configured. The
+  diagnostic uses only the native callback connector, fixed GET URLs, complete
+  sequential pages, exact configured collection keys, independently attested
+  organization IDs, and bounded redacted output. It proves identity readback
+  only; it does not assert operational stock control.
 
 ## Non-goals
 
@@ -33,6 +38,8 @@ This change does not add Zoho authentication, API calls, persistence, schema,
 reservations outside memory, expiry alerts, or production stock enforcement.
 The adapter does not prove live Zoho response fields, API readback, durable
 concurrency/recovery, or enforcement across alternate write channels.
+The native readback template does not contain credentials, tenant bindings,
+live execution, writes, retries, or a fallback data centre.
 
 ## Rollback
 

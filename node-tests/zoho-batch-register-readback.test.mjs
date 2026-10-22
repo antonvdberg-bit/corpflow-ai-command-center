@@ -1,0 +1,142 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { createNativeReadbackDiagnostic } = require('../tools/zoho-batch-register-poc/native-readback-diagnostic.cjs');
+
+const config = {
+  organizationId: 'cf_demo_org',
+  connectionName: 'cf_demo_connection',
+  modules: { register: 'cm_demo_lots', movement: 'cm_demo_moves', item: 'cm_demo_items' },
+  collections: { register: 'module_records', movement: 'module_records', item: 'items' },
+  fields: {
+    register: { id: 'cf_demo_id', itemId: 'cf_demo_item', status: 'cf_demo_status', date: 'cf_demo_date' },
+    movement: { id: 'cf_demo_id', lotId: 'cf_demo_lot', itemId: 'cf_demo_item', key: 'cf_demo_key',
+      type: 'cf_demo_type', quantity: 'cf_demo_quantity', date: 'cf_demo_date', reversal: 'cf_demo_reversal' },
+    item: { id: 'cf_demo_id', unit: 'cf_demo_unit' },
+  },
+  expected: {
+    movementId: 'cf_demo_movement_target', registerId: 'cf_demo_register_target', itemId: 'cf_demo_item_target',
+    itemUnit: 'each', registerStatus: 'quarantine', registerDate: '2026-10-01',
+    opening: { type: 'Opening Balance', date: '2026-09-30', key: 'cf_demo_opening_key', quantity: 0 },
+  },
+};
+
+function page(organization_id, key, rows, number, more = false) {
+  return { organization_id, code: 0, [key]: rows, page_context: { page: number, has_more_page: more } };
+}
+
+function connector(responses, calls = []) {
+  return {
+    calls,
+    makeRequest(options, callback) {
+      calls.push(options);
+      const response = responses.shift();
+      const request = {
+        on(event, handler) { if (event === 'error') this.error = handler; if (event === 'timeout') this.timeout = handler; return this; },
+        end() {
+          queueMicrotask(() => {
+            if (response instanceof Error) return request.error?.();
+            const chunks = typeof response === 'string' ? [response] : [JSON.stringify(response)];
+            const res = { statusCode: 200, on(event, handler) {
+              if (event === 'data') chunks.forEach(handler);
+              if (event === 'end') queueMicrotask(handler);
+              return this;
+            } };
+            callback(res);
+          });
+        },
+        destroy() {},
+      };
+      return request;
+    },
+  };
+}
+
+function records() {
+  return {
+    register: [
+      page(config.organizationId, 'module_records', [{ cf_demo_id: 'cf_demo_register_other', cf_demo_item: 'cf_demo_other',
+        cf_demo_status: 'available', cf_demo_date: '2026-09-01' }], 1, true),
+      page(config.organizationId, 'module_records', [{ cf_demo_id: config.expected.registerId, cf_demo_item: config.expected.itemId,
+        cf_demo_status: config.expected.registerStatus, cf_demo_date: config.expected.registerDate }], 2),
+    ],
+    movement: [
+      page(config.organizationId, 'module_records', [{ cf_demo_id: 'cf_demo_movement_other', cf_demo_lot: 'cf_demo_other',
+        cf_demo_key: 'cf_demo_other_key', cf_demo_type: 'Receipt', cf_demo_quantity: 1,
+        cf_demo_date: '2026-09-01', cf_demo_reversal: '' }], 1, true),
+      page(config.organizationId, 'module_records', [{ cf_demo_id: 'cf_demo_opening', cf_demo_lot: config.expected.registerId,
+        cf_demo_key: config.expected.opening.key, cf_demo_type: config.expected.opening.type, cf_demo_quantity: 0,
+        cf_demo_date: config.expected.opening.date, cf_demo_reversal: '' },
+      { cf_demo_id: config.expected.movementId, cf_demo_lot: config.expected.registerId, cf_demo_key: 'cf_demo_move_key',
+        cf_demo_type: 'Receipt', cf_demo_quantity: 3, cf_demo_date: '2026-10-02', cf_demo_reversal: '' }], 2),
+    ],
+    item: [
+      page(config.organizationId, 'items', [{ cf_demo_id: 'cf_demo_item_other', cf_demo_unit: 'each' }], 1, true),
+      page(config.organizationId, 'items', [{ cf_demo_id: config.expected.itemId, cf_demo_unit: config.expected.itemUnit }], 2),
+    ],
+  };
+}
+
+async function run(overrides = {}, mutate = () => {}) {
+  const source = records();
+  for (const rows of Object.values(source)) {
+    for (const body of rows) {
+      mutate(body);
+      for (const key of ['items', 'module_records']) for (const record of body[key] ?? []) mutate(record);
+    }
+  }
+  const responses = [source.register, source.movement, source.item].flat();
+  const calls = [];
+  const context = { getConnection: (name) => name === config.connectionName ? connector(responses, calls) : null };
+  let output;
+  const diagnostic = createNativeReadbackDiagnostic({ ...config, ...overrides });
+  const result = await diagnostic(context, { write(value) { output = JSON.parse(value); } });
+  return { result, output, calls };
+}
+
+test('native connector reads later pages sequentially and proves the explicit zero opening chain', async () => {
+  const { result, output, calls } = await run();
+  assert.equal(result.ok, true);
+  assert.equal(output.identityReadbackPassed, true);
+  assert.equal(output.selected.itemUnit, 'each');
+  assert.equal(output.selected.movement.quantity, 3);
+  assert.equal(calls.every((call) => call.method === 'GET'), true);
+  assert.equal(calls.every((call) => call.url.startsWith('https://www.zohoapis.com/books/v3/')), true);
+  assert.equal(calls.length, 6);
+});
+
+test('wrong scalar lookup and wrong unit are blocked without raw values', async () => {
+  const wrongLookup = await run({}, (body) => {
+    if (body.cf_demo_lot === config.expected.registerId) body.cf_demo_lot = 'private-marker';
+  });
+  assert.equal(wrongLookup.result.ok, false);
+  assert.equal(wrongLookup.result.error.category, 'identity_mismatch');
+  assert.doesNotMatch(JSON.stringify(wrongLookup.output), /private-marker/);
+  const wrongUnit = await run({}, (body) => { if (body.cf_demo_unit) body.cf_demo_unit = 'box'; });
+  assert.equal(wrongUnit.result.ok, false);
+  assert.equal(wrongUnit.result.error.category, 'metadata_mismatch');
+});
+
+test('missing, object, duplicate, wrong envelope, later failure and cap fail closed', async () => {
+  const missing = await run({}, (body) => { if (body.cf_demo_quantity === 0) delete body.cf_demo_quantity; });
+  assert.equal(missing.result.ok, false);
+  const objectLookup = await run({}, (body) => { if (body.cf_demo_lot) body.cf_demo_lot = {}; });
+  assert.equal(objectLookup.result.ok, false);
+  const duplicate = await run({}, (body) => { if (body.cf_demo_id === config.expected.registerId) body.cf_demo_id = 'cf_demo_opening'; });
+  assert.equal(duplicate.result.ok, false);
+  const malformed = await run({}, (body) => { if (body.page_context) body.page_context.has_more_page = 'false'; });
+  assert.equal(malformed.result.ok, false);
+  const cap = await run({}, (body) => { if (body.page_context) body.page_context.has_more_page = true; });
+  assert.equal(cap.result.ok, false);
+  assert.equal(typeof cap.result.error.category, 'string');
+});
+
+test('construction does not request and validation rejects unsafe or unknown config', async () => {
+  let called = false;
+  const diagnostic = createNativeReadbackDiagnostic(config);
+  assert.equal(called, false);
+  await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, unknown: true }));
+  await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, connectionName: '../token' }));
+});
