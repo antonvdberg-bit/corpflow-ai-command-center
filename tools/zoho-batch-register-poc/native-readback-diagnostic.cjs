@@ -2,20 +2,25 @@
 
 const BASE_URL = 'https://www.zohoapis.com/books/v3/';
 const SOURCES = ['register', 'movement', 'item'];
+const MODULE_SOURCES = ['register', 'movement'];
 const MAX_PAGES = 10;
 const MAX_BODY = 1024 * 1024;
 const TIMEOUT_MS = 15_000;
 const SAFE = /^[A-Za-z0-9_:-]+$/;
 const MODULE = /^cm_[A-Za-z0-9_]+$/;
 
-function scalar(value, name) {
-  if (typeof value !== 'string' || value.length === 0 || value.length > 200 || !SAFE.test(value)) {
-    throw new TypeError(`${name} must be a safe scalar`);
+function ownDataObject(value, name) {
+  if (!value || typeof value !== 'object' || Array.isArray(value) ||
+      (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+    throw new TypeError(`${name} must be a plain object`);
+  }
+  for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(value))) {
+    if (!('value' in descriptor)) throw new TypeError(`${name} must not contain accessors`);
   }
   return value;
 }
 
-function expectedScalar(value, name) {
+function scalar(value, name) {
   if (typeof value !== 'string' || value.length === 0 || value.length > 200 || /[\u0000-\u001f\u007f]/.test(value)) {
     throw new TypeError(`${name} must be a safe scalar`);
   }
@@ -29,35 +34,80 @@ function pathPart(value, name) {
 }
 
 function copyConfig(input) {
-  if (!input || typeof input !== 'object' || Array.isArray(input)) throw new TypeError('config must be an object');
+  ownDataObject(input, 'config');
   const allowed = new Set(['organizationId', 'connectionName', 'modules', 'collections', 'fields', 'expected']);
-  for (const key of Object.keys(input)) if (!allowed.has(key)) throw new TypeError('unknown config value');
-  const config = structuredClone(input);
+  for (const key of Reflect.ownKeys(input)) if (typeof key !== 'string' || !allowed.has(key)) throw new TypeError('unknown config value');
+  const config = {};
+  for (const key of allowed) config[key] = input[key];
   scalar(config.organizationId, 'organizationId');
-  scalar(config.connectionName, 'connectionName');
-  for (const source of SOURCES) {
+  pathPart(config.connectionName, 'connectionName');
+  ownDataObject(config.modules, 'modules');
+  ownDataObject(config.collections, 'collections');
+  ownDataObject(config.fields, 'fields');
+  ownDataObject(config.expected, 'expected');
+  for (const key of Reflect.ownKeys(config.modules)) if (!MODULE_SOURCES.includes(key)) throw new TypeError('unknown module');
+  for (const key of Reflect.ownKeys(config.collections)) if (!SOURCES.includes(key)) throw new TypeError('unknown collection');
+  for (const key of Reflect.ownKeys(config.fields)) if (!SOURCES.includes(key)) throw new TypeError('unknown fields');
+  for (const source of MODULE_SOURCES) {
     if (!config.modules || typeof config.modules[source] !== 'string' || !MODULE.test(config.modules[source])) {
       throw new TypeError(`module ${source} must be a cm_ identifier`);
     }
     pathPart(config.collections?.[source], `collection ${source}`);
-    if (!config.fields?.[source] || typeof config.fields[source] !== 'object') throw new TypeError(`fields ${source} required`);
-    for (const name of Object.values(config.fields[source])) pathPart(name, `field ${source}`);
+  }
+  pathPart(config.collections.item, 'collection item');
+  for (const source of SOURCES) {
+    if (!config.fields[source]) throw new TypeError(`fields ${source} required`);
+    ownDataObject(config.fields[source], `fields ${source}`);
+    const required = source === 'register' ? ['id', 'itemId', 'status', 'date'] :
+      source === 'movement' ? ['id', 'lotId', 'itemId', 'key', 'type', 'quantity', 'date', 'reversal'] : ['id', 'unit'];
+    const allowedFields = new Set(required);
+    for (const key of Reflect.ownKeys(config.fields[source])) {
+      if (typeof key !== 'string' || !allowedFields.has(key)) throw new TypeError(`unknown field ${source}`);
+    }
+    for (const name of required) pathPart(config.fields[source][name], `field ${source}.${name}`);
   }
   const expected = config.expected;
-  if (!expected || typeof expected !== 'object' || Array.isArray(expected)) throw new TypeError('expected values required');
-  for (const name of ['movementId', 'registerId', 'itemId', 'itemUnit', 'registerStatus']) expectedScalar(expected[name], `expected ${name}`);
+  const expectedKeys = new Set(['movementId', 'registerId', 'itemId', 'itemUnit', 'registerStatus', 'registerDate', 'opening']);
+  for (const key of Reflect.ownKeys(expected)) if (typeof key !== 'string' || !expectedKeys.has(key)) throw new TypeError('unknown expected value');
+  for (const name of ['movementId', 'registerId', 'itemId', 'itemUnit', 'registerStatus']) scalar(expected[name], `expected ${name}`);
   const opening = expected.opening;
-  if (!opening || typeof opening !== 'object' || Array.isArray(opening)) throw new TypeError('expected opening required');
-  for (const name of ['type', 'date', 'key']) expectedScalar(opening[name], `expected opening ${name}`);
-  if (typeof opening.quantity !== 'number' || !Number.isFinite(opening.quantity) || opening.quantity < 0) {
-    throw new TypeError('expected opening quantity must be a number');
-  }
-  for (const name of ['registerDate']) expectedScalar(expected[name], `expected ${name}`);
+  ownDataObject(opening, 'expected opening');
+  for (const key of Reflect.ownKeys(opening)) if (!['type', 'date', 'key', 'quantity', 'reversal'].includes(key)) throw new TypeError('unknown opening value');
+  for (const name of ['type', 'date', 'key']) scalar(opening[name], `expected opening ${name}`);
+  if (opening.reversal !== '') scalar(opening.reversal, 'expected opening reversal');
+  if (opening.type !== 'Opening Balance' || opening.quantity !== 0 || opening.reversal !== '') throw new TypeError('opening must be explicit zero balance');
+  if (typeof expected.registerDate !== 'string' || expected.registerDate.length > 200) throw new TypeError('expected register date required');
   return Object.freeze(config);
 }
 
+const ERROR_MARKER = Symbol('native-readback-error');
+function internalError(category, stage, source, page, extra = {}) {
+  return Object.assign({ [ERROR_MARKER]: true, category, stage, ...(source ? { source } : {}), ...(page ? { page } : {}) }, extra);
+}
+function projectError(error) {
+  try {
+    if (!error || error[ERROR_MARKER] !== true) return { category: 'diagnostic', stage: 'execution' };
+    const allowed = new Set(['category', 'stage', 'source', 'page', 'identity']);
+    const result = {};
+    for (const key of allowed) {
+      const descriptor = Object.getOwnPropertyDescriptor(error, key);
+      if (!descriptor || !('value' in descriptor)) continue;
+      const value = descriptor.value;
+      if (key === 'page' ? Number.isInteger(value) && value > 0 : typeof value === 'string' && value.length <= 40 && SAFE.test(value)) {
+        result[key] = value;
+      } else if (key === 'identity' && ownSafeIdentity(value)) result.identity = value;
+    }
+    return result.category ? result : { category: 'diagnostic', stage: 'execution' };
+  } catch {
+    return { category: 'diagnostic', stage: 'execution' };
+  }
+}
 function safeError(category, stage, source, page, extra = {}) {
-  return { category, stage, ...(source ? { source } : {}), ...(page ? { page } : {}), ...extra };
+  return internalError(category, stage, source, page, extra);
+}
+function ownSafeIdentity(value) {
+  return value && typeof value === 'object' && Object.keys(value).every((key) => ['type', 'equal'].includes(key)) &&
+    (value.type === 'string' || value.type === 'null') && typeof value.equal === 'boolean';
 }
 
 function requestPage(context, config, source, page) {
@@ -70,7 +120,8 @@ function requestPage(context, config, source, page) {
     page: String(page),
     per_page: '200',
   });
-  const url = `${BASE_URL}${encodeURIComponent(config.modules[source])}?${query.toString()}`;
+  const resource = source === 'item' ? 'items' : encodeURIComponent(config.modules[source]);
+  const url = `${BASE_URL}${resource}?${query.toString()}`;
   return new Promise((resolve, reject) => {
     let settled = false;
     let request;
@@ -97,18 +148,26 @@ function requestPage(context, config, source, page) {
           return;
         }
         response.on('data', (chunk) => {
-          if (settled) return;
-          const value = Buffer.isBuffer(chunk) ? chunk : String(chunk);
-          bytes += Buffer.byteLength(value);
-          if (bytes > MAX_BODY) fail(safeError('response_too_large', 'response', source, page));
-          else body += value;
+          try {
+            if (settled) return;
+            const value = Buffer.isBuffer(chunk) ? chunk : String(chunk);
+            bytes += Buffer.byteLength(value);
+            if (bytes > MAX_BODY) fail(safeError('response_too_large', 'response', source, page));
+            else body += value;
+          } catch {
+            fail(safeError('response', 'response', source, page));
+          }
         });
         response.on('error', () => fail(safeError('http', 'response', source, page)));
         response.on('end', () => {
-          if (settled) return;
-          let parsed;
-          try { parsed = JSON.parse(body); } catch { fail(safeError('parse', 'response', source, page)); return; }
-          succeed({ parsed, statusCode: response.statusCode });
+          try {
+            if (settled) return;
+            let parsed;
+            try { parsed = JSON.parse(body); } catch { fail(safeError('parse', 'response', source, page)); return; }
+            succeed({ parsed, statusCode: response.statusCode });
+          } catch {
+            fail(safeError('response', 'response', source, page));
+          }
         });
       });
       if (!request || typeof request.on !== 'function' || typeof request.end !== 'function') {
@@ -134,7 +193,7 @@ function readSource(context, config, source, provenance) {
     const pageContext = parsed && parsed.page_context;
     const rows = parsed && parsed[collection];
     const attestedOrg = parsed && parsed.organization_id;
-    if (parsed?.code !== 0 || typeof attestedOrg !== 'string' || attestedOrg !== config.organizationId ||
+    if (parsed?.code !== 0 || (attestedOrg !== undefined && (typeof attestedOrg !== 'string' || attestedOrg !== config.organizationId)) ||
         !Array.isArray(rows) || !pageContext || pageContext.page !== page ||
         typeof pageContext.has_more_page !== 'boolean') {
       throw safeError('schema', 'envelope', source, page);
@@ -147,7 +206,8 @@ function readSource(context, config, source, provenance) {
       ids.add(id);
       records.push(row);
     }
-    pages.push({ requestedOrganizationId: config.organizationId, attestedOrganizationId: attestedOrg,
+    pages.push({ requestedOrganizationId: config.organizationId, attestedOrganizationId: typeof attestedOrg === 'string' ? attestedOrg : null,
+      accountScopeVerified: false,
       module: config.modules[source], page, method: 'GET', responseHttpStatus: statusCode,
       hasMorePage: pageContext.has_more_page });
     if (pageContext.has_more_page) {
@@ -171,6 +231,7 @@ function createNativeReadbackDiagnostic(inputConfig) {
   const config = copyConfig(inputConfig);
   return async function nativeReadback(context, basicIO) {
     const base = { readOnly: true, stockChanged: false, operational: false, sampleOnly: false,
+      accountScopeVerified: false,
       allocationReady: false, identityReadbackPassed: false, ok: false, provenance: [] };
     try {
       if (!basicIO || typeof basicIO.write !== 'function') throw safeError('io', 'output');
@@ -213,6 +274,10 @@ function createNativeReadbackDiagnostic(inputConfig) {
         registerDate: typeEquality(value(selected.register, rf, 'date'), config.expected.registerDate),
       };
       if (Object.values(checks).some((check) => !check.equal)) throw safeError('metadata_mismatch', 'metadata', 'movement', undefined, { checks });
+      if (selected.movement[config.fields.movement.id] !== config.expected.movementId ||
+          selected.movement[config.fields.movement.type] !== config.expected.opening.type) {
+        throw safeError('identity_mismatch', 'selected_movement', 'movement');
+      }
       base.selected = {
         movementId: config.expected.movementId, registerId: config.expected.registerId, itemId: config.expected.itemId,
         itemUnit, movement: { quantity: value(selected.movement, mf, 'quantity'), type: value(selected.movement, mf, 'type'),
@@ -223,9 +288,15 @@ function createNativeReadbackDiagnostic(inputConfig) {
       base.identityReadbackPassed = true;
       base.ok = true;
     } catch (error) {
-      base.error = error && typeof error.category === 'string' ? error : safeError('diagnostic', 'execution');
+      base.error = projectError(error);
     }
-    try { basicIO.write(JSON.stringify(base)); } catch { /* native host owns output failures */ }
+    try {
+      basicIO.write(JSON.stringify(base));
+    } catch {
+      base.ok = false;
+      base.identityReadbackPassed = false;
+      base.error = { category: 'io', stage: 'output' };
+    }
     return base;
   };
 }

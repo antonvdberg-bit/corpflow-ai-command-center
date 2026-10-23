@@ -35,3 +35,6 @@
 - [x] 2.6 Add the disabled native identity readback diagnostic with explicit
   private-binding schema, bounded callback transport, redacted output, and
   end-to-end mock connector tests.
+- [x] 2.7 Correct native routing, selected-opening identity, strict config
+  copying, bounded error projection, absent organization attestation handling,
+  and regression coverage without enabling live execution.

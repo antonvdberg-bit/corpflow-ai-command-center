@@ -138,7 +138,9 @@ movement-encoding failures without fallback or raw-response disclosure.
 The prototype SHALL provide a disabled, dependency-free CommonJS diagnostic
 that uses only an explicitly reviewed private configuration and a native
 GET-only callback connector to read complete register, movement, and item
-pages. It MUST require independently attested organization identity, exact
+pages. It MUST reject a mismatched or malformed organization attestation,
+record an absent attestation as unknown, and keep account scope unverified;
+it MUST also require exact
 configured collection keys, bounded pages and bodies, scalar identity
 lookups, exact opening metadata, register status/date, and canonical item
 unit. Reports MUST remain read-only, non-operational, allocation-unready,

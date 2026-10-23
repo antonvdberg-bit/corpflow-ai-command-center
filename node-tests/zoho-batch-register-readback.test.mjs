@@ -8,7 +8,7 @@ const { createNativeReadbackDiagnostic } = require('../tools/zoho-batch-register
 const config = {
   organizationId: 'cf_demo_org',
   connectionName: 'cf_demo_connection',
-  modules: { register: 'cm_demo_lots', movement: 'cm_demo_moves', item: 'cm_demo_items' },
+  modules: { register: 'cm_demo_lots', movement: 'cm_demo_moves' },
   collections: { register: 'module_records', movement: 'module_records', item: 'items' },
   fields: {
     register: { id: 'cf_demo_id', itemId: 'cf_demo_item', status: 'cf_demo_status', date: 'cf_demo_date' },
@@ -19,7 +19,7 @@ const config = {
   expected: {
     movementId: 'cf_demo_movement_target', registerId: 'cf_demo_register_target', itemId: 'cf_demo_item_target',
     itemUnit: 'each', registerStatus: 'quarantine', registerDate: '2026-10-01',
-    opening: { type: 'Opening Balance', date: '2026-09-30', key: 'cf_demo_opening_key', quantity: 0 },
+    opening: { type: 'Opening Balance', date: '2026-09-30', key: 'cf_demo_opening_key', quantity: 0, reversal: '' },
   },
 };
 
@@ -67,10 +67,11 @@ function records() {
         cf_demo_key: 'cf_demo_other_key', cf_demo_type: 'Receipt', cf_demo_quantity: 1,
         cf_demo_date: '2026-09-01', cf_demo_reversal: '' }], 1, true),
       page(config.organizationId, 'module_records', [{ cf_demo_id: 'cf_demo_opening', cf_demo_lot: config.expected.registerId,
-        cf_demo_key: config.expected.opening.key, cf_demo_type: config.expected.opening.type, cf_demo_quantity: 0,
+        cf_demo_key: 'cf_demo_receipt_key', cf_demo_type: 'Receipt', cf_demo_quantity: 1,
         cf_demo_date: config.expected.opening.date, cf_demo_reversal: '' },
-      { cf_demo_id: config.expected.movementId, cf_demo_lot: config.expected.registerId, cf_demo_key: 'cf_demo_move_key',
-        cf_demo_type: 'Receipt', cf_demo_quantity: 3, cf_demo_date: '2026-10-02', cf_demo_reversal: '' }], 2),
+      { cf_demo_id: config.expected.movementId, cf_demo_lot: config.expected.registerId, cf_demo_key: config.expected.opening.key,
+        cf_demo_type: config.expected.opening.type, cf_demo_quantity: 0, cf_demo_date: config.expected.opening.date,
+        cf_demo_reversal: '' }], 2),
     ],
     item: [
       page(config.organizationId, 'items', [{ cf_demo_id: 'cf_demo_item_other', cf_demo_unit: 'each' }], 1, true),
@@ -101,9 +102,11 @@ test('native connector reads later pages sequentially and proves the explicit ze
   assert.equal(result.ok, true);
   assert.equal(output.identityReadbackPassed, true);
   assert.equal(output.selected.itemUnit, 'each');
-  assert.equal(output.selected.movement.quantity, 3);
+  assert.equal(output.selected.movement.quantity, 0);
   assert.equal(calls.every((call) => call.method === 'GET'), true);
   assert.equal(calls.every((call) => call.url.startsWith('https://www.zohoapis.com/books/v3/')), true);
+  assert.equal(calls.filter((call) => call.url.includes('/items?')).length, 2);
+  assert.equal(calls.filter((call) => call.url.includes('organization_id=cf_demo_org')).length, 6);
   assert.equal(calls.length, 6);
 });
 
@@ -139,4 +142,20 @@ test('construction does not request and validation rejects unsafe or unknown con
   assert.equal(called, false);
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, unknown: true }));
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, connectionName: '../token' }));
+});
+
+test('absent organization attestation is explicit and a selected receipt cannot pass as opening', async () => {
+  const unattested = await run({}, (body) => { delete body.organization_id; });
+  assert.equal(unattested.result.ok, true);
+  assert.equal(unattested.output.accountScopeVerified, false);
+  assert.equal(unattested.output.provenance.every((entry) => entry.attestedOrganizationId === null), true);
+
+  const receipt = await run({}, (body) => {
+    if (body.cf_demo_id === config.expected.movementId) {
+      body.cf_demo_type = 'Receipt';
+      body.cf_demo_quantity = 1;
+    }
+  });
+  assert.equal(receipt.result.ok, false);
+  assert.equal(receipt.result.error.category, 'opening_count');
 });

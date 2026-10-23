@@ -35,7 +35,7 @@ is a read-only adapter around `core.mjs`. The native page bridge is created as
 `createNativeBooksPageTransport({ readPage, sources, orgId })` and exposes only
 `fetchPage({ source, module, orgId, page, cursor })`. `sources` explicitly maps
 `item`, `register`, and `movement` to `{ module, recordsKey, mapRecord }`;
-`items` is used for items and `module_records` for the fictional
+`items` is used for canonical items and `module_records` for the fictional
 `cm_demo_lots`/`cm_demo_moves` custom modules. `readPage` is the only injected
 I/O and returns `{ orgId, module, page, body }`, where the body must have
 numeric `code: 0`, the configured collection, and matching `page_context`.
@@ -197,13 +197,15 @@ connection token, credential, or live field map. The connector interface is
 and response `statusCode/data/error/end` events. No package, fetch, headers,
 auth, environment, writes, retries, or caller URL/method are used.
 
-The configuration explicitly provides `organizationId`, `connectionName`,
-`cm_` register/movement/item modules, exact `collections`, exact `fields`, and
-expected movement/register/item IDs, plus opening `type/date/key/quantity`,
-register status/date, and item unit. The fixed API base is
+The configuration explicitly provides `organizationId`, `connectionName`, exact
+`cm_` register/movement modules, and the fixed canonical `/items` source, exact
+`collections`, exact `fields`, and expected movement/register/item IDs, plus
+opening `type/date/key/quantity/reversal`, register status/date, and item unit.
+The fixed API base is
 `https://www.zohoapis.com/books/v3/`; each source is read sequentially with
 `per_page=200`, a ten-page cap, 15-second request timeout, one MiB response
-limit, HTTP 200, `code: 0`, an independently attested `organization_id`, and
+limit, HTTP 200, `code: 0`, an optional independently attested
+`organization_id` (absence is reported as unknown), and
 the exact configured collection key. `module_records` is an example only; the
 private binding must match the observed live shape. See the [custom modules](https://www.zoho.com/books/api/v3/custom-modules/)
 and [pagination](https://www.zoho.com/books/api/v3/pagination/) references.
