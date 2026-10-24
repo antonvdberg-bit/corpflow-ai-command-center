@@ -113,7 +113,7 @@ explicit numeric or decimal-string zero remains a valid non-alert row. The
 report does not aggregate quantities or perform floating-point repairs.
 
 Status: configured synthetic mapping and mock-verified adapter only. The
-focused suite contains 49 tests, with native page integration and redaction coverage
+focused suite contains 56 tests, with native page integration and redaction coverage
 in `node-tests/zoho-batch-register-native-pages.test.mjs`. Live tenant field
 mapping, opening/reservation proof, movement lookup encoding, authenticated
 binding, durable concurrency/recovery, and all-channel enforcement remain

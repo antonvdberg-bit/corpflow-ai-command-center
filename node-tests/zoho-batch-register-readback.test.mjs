@@ -14,7 +14,7 @@ const config = {
     register: { id: 'cf_demo_id', itemId: 'cf_demo_item', status: 'cf_demo_status', date: 'cf_demo_date' },
     movement: { id: 'cf_demo_id', lotId: 'cf_demo_lot', itemId: 'cf_demo_item', key: 'cf_demo_key',
       type: 'cf_demo_type', quantity: 'cf_demo_quantity', date: 'cf_demo_date', reversal: 'cf_demo_reversal' },
-    item: { id: 'cf_demo_id', unit: 'cf_demo_unit' },
+    item: { id: 'item_id', unit: 'unit' },
   },
   expected: {
     movementId: 'cf_demo_movement_target', registerId: 'cf_demo_register_target', itemId: 'cf_demo_item_target',
@@ -74,8 +74,8 @@ function records() {
         cf_demo_reversal: '' }], 2),
     ],
     item: [
-      page(config.organizationId, 'items', [{ cf_demo_id: 'cf_demo_item_other', cf_demo_unit: 'each' }], 1, true),
-      page(config.organizationId, 'items', [{ cf_demo_id: config.expected.itemId, cf_demo_unit: config.expected.itemUnit }], 2),
+      page(config.organizationId, 'items', [{ item_id: 'cf_demo_item_other', unit: 'each' }], 1, true),
+      page(config.organizationId, 'items', [{ item_id: config.expected.itemId, unit: config.expected.itemUnit }], 2),
     ],
   };
 }
@@ -117,7 +117,7 @@ test('wrong scalar lookup and wrong unit are blocked without raw values', async 
   assert.equal(wrongLookup.result.ok, false);
   assert.equal(wrongLookup.result.error.category, 'identity_mismatch');
   assert.doesNotMatch(JSON.stringify(wrongLookup.output), /private-marker/);
-  const wrongUnit = await run({}, (body) => { if (body.cf_demo_unit) body.cf_demo_unit = 'box'; });
+  const wrongUnit = await run({}, (body) => { if (body.unit) body.unit = 'box'; });
   assert.equal(wrongUnit.result.ok, false);
   assert.equal(wrongUnit.result.error.category, 'metadata_mismatch');
 });
@@ -142,6 +142,20 @@ test('construction does not request and validation rejects unsafe or unknown con
   assert.equal(called, false);
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, unknown: true }));
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, connectionName: '../token' }));
+  await assert.rejects(async () => createNativeReadbackDiagnostic({
+    ...config, collections: { ...config.collections, item: 'private_rows' },
+  }));
+  await assert.rejects(async () => createNativeReadbackDiagnostic({
+    ...config, fields: { ...config.fields, item: { id: 'cf_demo_id', unit: 'unit' } },
+  }));
+  const unsafeFields = { ...config.fields.register };
+  Object.defineProperty(unsafeFields, '__proto__', { value: 'private_marker', enumerable: true });
+  await assert.rejects(async () => createNativeReadbackDiagnostic({
+    ...config, fields: { ...config.fields, register: unsafeFields },
+  }));
+  await assert.rejects(async () => createNativeReadbackDiagnostic({
+    ...config, expected: { ...config.expected, opening: { ...config.expected.opening, date: 'not-a-date' } },
+  }));
 });
 
 test('absent organization attestation is explicit and a selected receipt cannot pass as opening', async () => {
@@ -158,4 +172,56 @@ test('absent organization attestation is explicit and a selected receipt cannot 
   });
   assert.equal(receipt.result.ok, false);
   assert.equal(receipt.result.error.category, 'opening_count');
+});
+
+test('factory owns an immutable recursive configuration snapshot', async () => {
+  const mutable = {
+    ...config,
+    modules: { ...config.modules },
+    expected: { ...config.expected, opening: { ...config.expected.opening } },
+  };
+  const diagnostic = createNativeReadbackDiagnostic(mutable);
+  mutable.modules.register = 'cm_private_mutation';
+  mutable.expected.opening.date = 'not-a-date';
+  const source = records();
+  const responses = [source.register, source.movement, source.item].flat();
+  const calls = [];
+  const result = await diagnostic(
+    { getConnection: () => connector(responses, calls) },
+    { write() {} },
+  );
+  assert.equal(result.ok, true);
+  assert.match(calls[0].url, /cm_demo_lots/);
+  assert.doesNotMatch(calls[0].url, /private_mutation/);
+});
+
+test('response accessor failures become bounded rejections without uncaught events', async () => {
+  const events = [];
+  const onUncaught = (error) => events.push(error);
+  process.once('uncaughtException', onUncaught);
+  const request = {
+    on() { return this; },
+    end() {
+      queueMicrotask(() => diagnosticCallback({
+        get statusCode() { throw new Error('private status marker'); },
+        on() { return this; },
+      }));
+    },
+    destroy() {},
+  };
+  let diagnosticCallback;
+  const diagnostic = createNativeReadbackDiagnostic(config);
+  const resultPromise = diagnostic(
+    { getConnection: () => ({ makeRequest(_options, callback) {
+      diagnosticCallback = callback;
+      return request;
+    } }) },
+    { write() {} },
+  );
+  const result = await resultPromise;
+  await new Promise((resolve) => setImmediate(resolve));
+  process.removeListener('uncaughtException', onUncaught);
+  assert.equal(result.ok, false);
+  assert.equal(events.length, 0);
+  assert.doesNotMatch(JSON.stringify(result), /private status marker/);
 });

@@ -10,14 +10,23 @@ const SAFE = /^[A-Za-z0-9_:-]+$/;
 const MODULE = /^cm_[A-Za-z0-9_]+$/;
 
 function ownDataObject(value, name) {
-  if (!value || typeof value !== 'object' || Array.isArray(value) ||
-      (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+  try {
+    if (!value || typeof value !== 'object' || Array.isArray(value) ||
+        (Object.getPrototypeOf(value) !== Object.prototype && Object.getPrototypeOf(value) !== null)) {
+      throw new TypeError(`${name} must be a plain object`);
+    }
+    for (const key of Reflect.ownKeys(value)) {
+      if (typeof key !== 'string' || key === '__proto__' || key === 'prototype' || key === 'constructor') {
+        throw new TypeError(`${name} has unsafe property`);
+      }
+      const descriptor = Object.getOwnPropertyDescriptor(value, key);
+      if (!descriptor || !('value' in descriptor)) throw new TypeError(`${name} must not contain accessors`);
+    }
+    return value;
+  } catch (error) {
+    if (error instanceof TypeError) throw error;
     throw new TypeError(`${name} must be a plain object`);
   }
-  for (const descriptor of Object.values(Object.getOwnPropertyDescriptors(value))) {
-    if (!('value' in descriptor)) throw new TypeError(`${name} must not contain accessors`);
-  }
-  return value;
 }
 
 function scalar(value, name) {
@@ -25,6 +34,26 @@ function scalar(value, name) {
     throw new TypeError(`${name} must be a safe scalar`);
   }
   return value;
+}
+
+function dateValue(value, name, allowBlank = false) {
+  if (allowBlank && value === '') return value;
+  scalar(value, name);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new TypeError(`${name} must be a real date`);
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) {
+    throw new TypeError(`${name} must be a real date`);
+  }
+  return value;
+}
+
+function copyAndFreeze(value, name) {
+  if (typeof value !== 'object' || value === null) return value;
+  ownDataObject(value, name);
+  const copy = {};
+  for (const key of Object.keys(value)) copy[key] = copyAndFreeze(value[key], `${name}.${key}`);
+  return Object.freeze(copy);
 }
 
 function pathPart(value, name) {
@@ -38,7 +67,7 @@ function copyConfig(input) {
   const allowed = new Set(['organizationId', 'connectionName', 'modules', 'collections', 'fields', 'expected']);
   for (const key of Reflect.ownKeys(input)) if (typeof key !== 'string' || !allowed.has(key)) throw new TypeError('unknown config value');
   const config = {};
-  for (const key of allowed) config[key] = input[key];
+  for (const key of allowed) config[key] = copyAndFreeze(input[key], `config.${key}`);
   scalar(config.organizationId, 'organizationId');
   pathPart(config.connectionName, 'connectionName');
   ownDataObject(config.modules, 'modules');
@@ -48,6 +77,7 @@ function copyConfig(input) {
   for (const key of Reflect.ownKeys(config.modules)) if (!MODULE_SOURCES.includes(key)) throw new TypeError('unknown module');
   for (const key of Reflect.ownKeys(config.collections)) if (!SOURCES.includes(key)) throw new TypeError('unknown collection');
   for (const key of Reflect.ownKeys(config.fields)) if (!SOURCES.includes(key)) throw new TypeError('unknown fields');
+  if (config.collections.item !== 'items') throw new TypeError('collection item must be items');
   for (const source of MODULE_SOURCES) {
     if (!config.modules || typeof config.modules[source] !== 'string' || !MODULE.test(config.modules[source])) {
       throw new TypeError(`module ${source} must be a cm_ identifier`);
@@ -64,6 +94,10 @@ function copyConfig(input) {
     for (const key of Reflect.ownKeys(config.fields[source])) {
       if (typeof key !== 'string' || !allowedFields.has(key)) throw new TypeError(`unknown field ${source}`);
     }
+    if (source === 'item' &&
+        (config.fields.item.id !== 'item_id' || config.fields.item.unit !== 'unit')) {
+      throw new TypeError('item fields must use native names');
+    }
     for (const name of required) pathPart(config.fields[source][name], `field ${source}.${name}`);
   }
   const expected = config.expected;
@@ -76,7 +110,8 @@ function copyConfig(input) {
   for (const name of ['type', 'date', 'key']) scalar(opening[name], `expected opening ${name}`);
   if (opening.reversal !== '') scalar(opening.reversal, 'expected opening reversal');
   if (opening.type !== 'Opening Balance' || opening.quantity !== 0 || opening.reversal !== '') throw new TypeError('opening must be explicit zero balance');
-  if (typeof expected.registerDate !== 'string' || expected.registerDate.length > 200) throw new TypeError('expected register date required');
+  dateValue(expected.registerDate, 'expected register date', true);
+  dateValue(opening.date, 'expected opening date');
   return Object.freeze(config);
 }
 
@@ -111,7 +146,12 @@ function ownSafeIdentity(value) {
 }
 
 function requestPage(context, config, source, page) {
-  const connector = context?.getConnection?.(config.connectionName);
+  let connector;
+  try {
+    connector = context?.getConnection?.(config.connectionName);
+  } catch {
+    return Promise.reject(safeError('connection', 'connection', source, page));
+  }
   if (!connector || typeof connector.makeRequest !== 'function') {
     return Promise.reject(safeError('connection', 'connection', source, page));
   }
@@ -139,8 +179,8 @@ function requestPage(context, config, source, page) {
       clearTimeout(timer);
       resolve(value);
     };
-    try {
-      request = connector.makeRequest({ url, method: 'GET' }, (response) => {
+    const callback = (response) => {
+      try {
         let body = '';
         let bytes = 0;
         if (!response || response.statusCode !== 200 || typeof response.on !== 'function') {
@@ -169,7 +209,12 @@ function requestPage(context, config, source, page) {
             fail(safeError('response', 'response', source, page));
           }
         });
-      });
+      } catch {
+        fail(safeError('response', 'response', source, page));
+      }
+    };
+    try {
+      request = connector.makeRequest({ url, method: 'GET' }, callback);
       if (!request || typeof request.on !== 'function' || typeof request.end !== 'function') {
         fail(safeError('connector', 'request', source, page));
         return;
