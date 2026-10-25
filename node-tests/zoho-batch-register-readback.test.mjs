@@ -108,6 +108,11 @@ test('native connector reads later pages sequentially and proves the explicit ze
   assert.equal(calls.filter((call) => call.url.includes('/items?')).length, 2);
   assert.equal(calls.filter((call) => call.url.includes('organization_id=cf_demo_org')).length, 6);
   assert.equal(calls.length, 6);
+  const itemProvenance = output.provenance.filter((entry) => entry.resource === 'items');
+  assert.equal(itemProvenance.length, 2);
+  assert.equal(itemProvenance.every((entry) => entry.module === 'items' &&
+    typeof entry.requestStartedAt === 'string' && typeof entry.requestEndedAt === 'string'), true);
+  assert.equal(itemProvenance.every((entry) => entry.requestStartedAt <= entry.requestEndedAt), true);
 });
 
 test('wrong scalar lookup and wrong unit are blocked without raw values', async () => {
@@ -136,18 +141,24 @@ test('missing, object, duplicate, wrong envelope, later failure and cap fail clo
   assert.equal(typeof cap.result.error.category, 'string');
 });
 
-test('construction does not request and validation rejects unsafe or unknown config', async () => {
+test('construction does not request and rejects unknown top-level configuration', async () => {
   let called = false;
   const diagnostic = createNativeReadbackDiagnostic(config);
   assert.equal(called, false);
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, unknown: true }));
   await assert.rejects(async () => createNativeReadbackDiagnostic({ ...config, connectionName: '../token' }));
+});
+
+test('configuration rejects private collection and non-native item field aliases', async () => {
   await assert.rejects(async () => createNativeReadbackDiagnostic({
     ...config, collections: { ...config.collections, item: 'private_rows' },
   }));
   await assert.rejects(async () => createNativeReadbackDiagnostic({
     ...config, fields: { ...config.fields, item: { id: 'cf_demo_id', unit: 'unit' } },
   }));
+});
+
+test('configuration rejects unsafe field property names and invalid dates', async () => {
   const unsafeFields = { ...config.fields.register };
   Object.defineProperty(unsafeFields, '__proto__', { value: 'private_marker', enumerable: true });
   await assert.rejects(async () => createNativeReadbackDiagnostic({

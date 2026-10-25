@@ -207,6 +207,8 @@ The fixed API base is
 limit, HTTP 200, `code: 0`, an optional independently attested
 `organization_id` (absence is reported as unknown), and
 the exact configured collection key. `module_records` is an example only; the
+item source is always reported as the canonical `items` resource, and each
+successful page records bounded request start/end timestamps.
 private binding must match the observed live shape. See the [custom modules](https://www.zoho.com/books/api/v3/custom-modules/)
 and [pagination](https://www.zoho.com/books/api/v3/pagination/) references.
 

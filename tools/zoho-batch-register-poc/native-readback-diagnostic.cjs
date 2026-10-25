@@ -9,6 +9,14 @@ const TIMEOUT_MS = 15_000;
 const SAFE = /^[A-Za-z0-9_:-]+$/;
 const MODULE = /^cm_[A-Za-z0-9_]+$/;
 
+function timestamp() {
+  try {
+    return new Date().toISOString();
+  } catch {
+    return null;
+  }
+}
+
 function ownDataObject(value, name) {
   try {
     if (!value || typeof value !== 'object' || Array.isArray(value) ||
@@ -146,6 +154,7 @@ function ownSafeIdentity(value) {
 }
 
 function requestPage(context, config, source, page) {
+  const requestStartedAt = timestamp();
   let connector;
   try {
     connector = context?.getConnection?.(config.connectionName);
@@ -177,13 +186,14 @@ function requestPage(context, config, source, page) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      resolve(value);
+      resolve({ ...value, requestStartedAt, requestEndedAt: timestamp() });
     };
     const callback = (response) => {
       try {
         let body = '';
         let bytes = 0;
-        if (!response || response.statusCode !== 200 || typeof response.on !== 'function') {
+        const statusCode = response?.statusCode;
+        if (!response || statusCode !== 200 || typeof response.on !== 'function') {
           fail(safeError('http', 'response', source, page));
           return;
         }
@@ -204,7 +214,7 @@ function requestPage(context, config, source, page) {
             if (settled) return;
             let parsed;
             try { parsed = JSON.parse(body); } catch { fail(safeError('parse', 'response', source, page)); return; }
-            succeed({ parsed, statusCode: response.statusCode });
+            succeed({ parsed, statusCode });
           } catch {
             fail(safeError('response', 'response', source, page));
           }
@@ -233,7 +243,8 @@ function readSource(context, config, source, provenance) {
   const records = [];
   const ids = new Set();
   const pages = [];
-  const read = (page) => requestPage(context, config, source, page).then(({ parsed, statusCode }) => {
+  const read = (page) => requestPage(context, config, source, page).then(({ parsed, statusCode,
+    requestStartedAt, requestEndedAt }) => {
     const collection = config.collections[source];
     const pageContext = parsed && parsed.page_context;
     const rows = parsed && parsed[collection];
@@ -251,9 +262,11 @@ function readSource(context, config, source, provenance) {
       ids.add(id);
       records.push(row);
     }
+    const resource = source === 'item' ? 'items' : config.modules[source];
     pages.push({ requestedOrganizationId: config.organizationId, attestedOrganizationId: typeof attestedOrg === 'string' ? attestedOrg : null,
       accountScopeVerified: false,
-      module: config.modules[source], page, method: 'GET', responseHttpStatus: statusCode,
+      module: resource, resource, page, method: 'GET', responseHttpStatus: statusCode,
+      requestStartedAt, requestEndedAt,
       hasMorePage: pageContext.has_more_page });
     if (pageContext.has_more_page) {
       if (page >= MAX_PAGES) throw safeError('page_cap', 'pagination', source, page);
