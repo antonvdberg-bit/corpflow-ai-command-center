@@ -1,5 +1,6 @@
 // DISABLED PREPARATION DRAFT — do not activate, schedule, or attach to a send action.
-// Expected Books inputs: customer (Books contact map), organization (Books organization map).
+// Expected Books inputs: customer (Books contact map), organization (Books organization map),
+// preparation_currency_code (explicit currency scope when customer context does not include it).
 // Replace only the connection name after native compile and read-only verification.
 
 connection_name = "REPLACE_WITH_BOOKS_CONNECTION";
@@ -16,12 +17,16 @@ if(disabled)
 
 customer_id = customer.get("contact_id");
 organization_id = organization.get("organization_id");
-expected_currency = organization.get("currency_code");
-if(customer_id == null || organization_id == null || expected_currency == null || connection_name == "REPLACE_WITH_BOOKS_CONNECTION")
+expected_currency = customer.get("currency_code");
+if(expected_currency == null)
+{
+	expected_currency = preparation_currency_code;
+}
+if(customer_id == null || organization_id == null || expected_currency == null || expected_currency == "" || connection_name == "REPLACE_WITH_BOOKS_CONNECTION")
 {
 	fail_result = Map();
 	fail_result.put("result", "blocked");
-	fail_result.put("reason_code", "missing_native_context");
+	fail_result.put("reason_code", "missing_customer_currency_scope");
 	return fail_result;
 }
 
@@ -32,14 +37,29 @@ has_more = true;
 seen_ids = List();
 eligible_count = 0;
 earliest_date = null;
-while(has_more && page <= page_cap)
+as_of_date = zoho.currentdate;
+minimum_start_date = as_of_date.addDay(-90);
+page_numbers = {1,2,3,4,5,6,7,8,9,10};
+for each page_number in page_numbers
 {
-	response = invokeurl
-	[
-		url :"https://www.zohoapis.com/books/v3/invoices?organization_id=" + organization_id + "&customer_id=" + customer_id + "&page=" + page + "&per_page=" + per_page + "&filter_by=Status.All"
-		type :GET
-		connection :connection_name
-	];
+	if(has_more)
+	{
+		try
+		{
+			response = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/invoices?organization_id=" + organization_id + "&customer_id=" + customer_id + "&page=" + page_number + "&per_page=" + per_page + "&filter_by=Status.All"
+				type :GET
+				connection :connection_name
+			];
+		}
+		catch (transport_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "transport_or_conversion_error");
+			return blocked;
+		}
 	if(response == null || response.get("code") != 0 || response.get("page_context") == null || response.get("invoices") == null)
 	{
 		blocked = Map();
@@ -48,14 +68,14 @@ while(has_more && page <= page_cap)
 		return blocked;
 	}
 	context = response.get("page_context");
-	if(context.get("page") != page || context.get("per_page") == null || context.get("per_page") > per_page || context.get("has_more_page") == null)
+	if(context.get("page") != page_number || context.get("per_page") == null || context.get("per_page") < 1 || context.get("per_page") > per_page || context.get("has_more_page") == null || (context.get("has_more_page") != true && context.get("has_more_page") != false))
 	{
 		blocked = Map();
 		blocked.put("result", "blocked");
 		blocked.put("reason_code", "unattested_page_context");
 		return blocked;
 	}
-	if(page > 1 && response.get("invoices").isEmpty() && context.get("has_more_page") == true)
+	if(page_number > 1 && response.get("invoices").isEmpty() && context.get("has_more_page") == true)
 	{
 		blocked = Map();
 		blocked.put("result", "blocked");
@@ -66,14 +86,14 @@ while(has_more && page <= page_cap)
 	{
 		invoice_id = invoice.get("invoice_id");
 		invoice_customer_id = invoice.get("customer_id");
-		if(invoice_id == null || seen_ids.contains(invoice_id) || invoice_customer_id != customer_id)
+		if(invoice_id == null || seen_ids.contains(invoice_id.toString()) || invoice_customer_id == null || invoice_customer_id.toString() != customer_id.toString())
 		{
 			blocked = Map();
 			blocked.put("result", "blocked");
 			blocked.put("reason_code", "duplicate_or_customer_mismatch");
 			return blocked;
 		}
-		seen_ids.add(invoice_id);
+		seen_ids.add(invoice_id.toString());
 		status = invoice.get("status");
 		invoice_date = invoice.get("date");
 		balance = invoice.get("balance");
@@ -85,25 +105,37 @@ while(has_more && page <= page_cap)
 			blocked.put("reason_code", "malformed_invoice");
 			return blocked;
 		}
-		invoice_date_value = invoice_date.toDate();
-		if(invoice_date_value > zoho.currentdate || balance.toDecimal() < 0)
+		try
+		{
+			invoice_date_value = invoice_date.toDate();
+			balance_value = balance.toDecimal();
+		}
+		catch (conversion_error)
 		{
 			blocked = Map();
 			blocked.put("result", "blocked");
-			blocked.put("reason_code", "future_or_malformed_invoice");
+			blocked.put("reason_code", "malformed_invoice");
 			return blocked;
 		}
-		if((status == "sent" || status == "overdue" || status == "partially_paid") && balance.toDecimal() > 0)
+		if(balance_value < 0)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "malformed_invoice");
+			return blocked;
+		}
+		if(invoice_date_value <= as_of_date && (status == "sent" || status == "overdue" || status == "partially_paid") && balance_value > 0)
 		{
 			eligible_count = eligible_count + 1;
 			if(earliest_date == null || invoice_date < earliest_date)
 			{
-				earliest_date = invoice_date;
+				earliest_date = invoice_date_value;
 			}
 		}
 	}
 	has_more = context.get("has_more_page");
-	page = page + 1;
+	page = page_number + 1;
+	}
 }
 if(has_more)
 {
@@ -119,8 +151,22 @@ if(eligible_count > 0)
 {
 	prepared_result = "prepare_statement";
 }
+statement_start = null;
+statement_end = null;
+if(eligible_count > 0)
+{
+	statement_start = minimum_start_date;
+	if(earliest_date != null && earliest_date < statement_start)
+	{
+		statement_start = earliest_date;
+	}
+	statement_end = as_of_date;
+}
 prepared.put("result", prepared_result);
+prepared.put("statement_start", statement_start);
+prepared.put("statement_end", statement_end);
 prepared.put("eligible_invoice_count", eligible_count);
+prepared.put("currency_code", expected_currency);
 prepared.put("earliest_eligible_invoice_date", earliest_date);
 prepared.put("pages_read", page - 1);
 prepared.put("reconciliation_required", true);

@@ -5,8 +5,9 @@
 The preparation tooling MUST read an explicit, bounded pagination chain for one customer,
 validate page context and invoice ownership, select positive remaining balances from
 sent, overdue, and partially-paid invoices, and calculate a statement period ending at
-the caller's valid as-of date. It MUST keep currencies separate, preserve native invoice
-balances, and return `no_statement` when no eligible debt exists.
+the caller's valid as-of date. It MUST keep currencies separate using customer context or
+an explicit currency input, preserve native invoice balances, return bounded period and
+currency metadata, and return `no_statement` when no eligible debt exists.
 
 #### Scenario: Oldest debt is on a later unordered page
 - **WHEN** page one contains newer debt and a later page contains an older unpaid invoice
@@ -40,9 +41,11 @@ reaches the 10-page cap with more pages remaining. It MUST not mutate caller inp
 ### Requirement: Disabled native preparation draft
 
 The native draft MUST use only Books-supplied customer and organization context plus a
-configurable named connection. It MUST remain disabled and preparation-only: no statement
-or email POST, sendmail, update, schedule, activation toggle, live invocation, sensitive
-logging, or executable send path is permitted.
+configurable named connection. It MUST use a bounded supported Deluge iteration form,
+exclude valid future-dated invoices, and fail closed when customer currency scope is
+missing or mixed. It MUST remain disabled and preparation-only: no statement or email
+POST, sendmail, update, schedule, activation toggle, live invocation, sensitive logging,
+or executable send path is permitted.
 
 #### Scenario: Controller reviews the native draft
 - **WHEN** the controller installs the draft for review

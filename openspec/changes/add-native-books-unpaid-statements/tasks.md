@@ -6,6 +6,8 @@
   configurable named connection.
 - [x] 1.3 Document official source references, installation steps, limitations, and
   separate native activation gates.
+- [x] 1.4 Reconcile the native draft with the planner for the 90-day period, future-date
+  exclusion, explicit currency scope, bounded range iteration, and fixed failure codes.
 
 ## 2. Verification
 
@@ -16,3 +18,5 @@
   strict validation where the validator is available.
 - [x] 2.3 Record that native Deluge compilation and live/read-only Books verification
   remain unperformed.
+- [x] 2.4 Record the exact native verification gate: compile in the Books editor, then
+  perform one scoped read-only test; source checks and Node tests are not native proof.

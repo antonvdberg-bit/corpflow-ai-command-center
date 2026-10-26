@@ -12,14 +12,16 @@ without touching client data or creating a send path.
 - Add a pure, dependency-free planner that validates paginated invoice evidence and derives
   a complete unpaid-statement period.
 - Add a disabled native Deluge preparation draft using the Books-supplied customer and
-  organization context and a configurable named connection.
+  organization context, an explicit customer-currency scope, and a configurable named
+  connection. It returns the bounded statement period and excludes valid future invoices.
 - Add synthetic focused tests and operator installation/verification documentation.
 
 ## Non-Goals and Safety
 
 - No runtime service, database, dependency, schedule, credential, live API call, statement
   creation, customer mutation, email, or external send.
-- Native compilation and live/read-only verification remain explicit follow-up gates.
+- Native compilation and live/read-only verification remain explicit follow-up gates; the
+  repository does not claim native syntax or Books runtime proof.
 
 ## Impact
 

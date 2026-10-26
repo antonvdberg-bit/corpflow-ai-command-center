@@ -70,6 +70,17 @@ test('excludes paid, void, draft, future, zero-balance, and unsupported statuses
   assert.equal(result.result, 'no_statement');
 });
 
+test('keeps eligible debt when a later invoice is future-dated', () => {
+  const result = plan([page(1, [
+    invoice({ invoice_id: 'eligible', date: '2025-04-01', balance: 25 }),
+    invoice({ invoice_id: 'future', date: '2025-04-16', balance: 90 }),
+  ])]);
+  assert.equal(result.result, 'prepare_statement');
+  assert.equal(result.eligibleInvoiceCount, 1);
+  assert.equal(result.statementStart, '2025-01-15');
+  assert.equal(result.currencyCode, 'USD');
+});
+
 test('returns explicit no_statement and never invents a send result', () => {
   const result = plan([page(1, [invoice({ status: 'paid', balance: 0 })])]);
   assert.deepEqual(result, {
@@ -96,6 +107,7 @@ test('rejects malformed dates, balances, statuses, customer, currency, and dupli
   rejectsWith('CUSTOMER_MISMATCH', [page(1, [invoice({ customer_id: 'other' })])]);
   rejectsWith('CURRENCY_MISMATCH', [page(1, [invoice({ currency_code: 'EUR' })])]);
   rejectsWith('DUPLICATE_INVOICE', [page(1, [invoice()], true), page(2, [invoice()])]);
+  rejectsWith('MALFORMED_CURRENCY', [page(1, [invoice()])], { currencyCode: '' });
 });
 
 test('fails closed on missing, empty continuing, error, nonzero, and capped pages', () => {

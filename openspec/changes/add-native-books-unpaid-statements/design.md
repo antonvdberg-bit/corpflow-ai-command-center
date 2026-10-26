@@ -15,8 +15,12 @@ verification, not a new CorpFlowAI runtime or an autonomous communication path.
   Exclude future dates and non-unpaid statuses. Do not net credits into invoices.
 - Keep the Deluge artifact disabled and preparation-only. It returns bounded status
   metadata and never creates, updates, sends, schedules, or logs sensitive records.
-- Use the organisation-local native date only in the draft; use an explicit date in the
-  planner for deterministic tests.
+- Use the organisation-local native date only in the draft; capture it once, derive the
+  90-day minimum once, and use an explicit date in the planner for deterministic tests.
+- Establish currency from the Books customer context or an explicit custom-function
+  input. Never use the organisation base currency as a silent fallback.
+- Use a bounded numeric `for each` range in Deluge instead of JavaScript-style `while`;
+  native editor compilation remains a required manual gate.
 
 ## Risks and mitigations
 

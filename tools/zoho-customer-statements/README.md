@@ -18,18 +18,26 @@ Sources checked 2026-10-26 (accessed 2026-10-26):
   use `page_context.page`, `per_page`, and `has_more_page`; `per_page` supports the
   documented 200-item bound.
 - [Zoho Deluge invokeUrl](https://www.zoho.com/deluge/help/webhook/invokeurl-api-task.html)
-  — GET requests can use a named `connection`.
+  — GET requests can use a named `connection`; the draft uses the documented
+  `connection : connection_name` form.
 - [Zoho Books OAuth conversion](https://www.zoho.com/books/api/v3/convert-deluge-scripts/)
   — Books API calls use a named OAuth connection rather than embedded credentials.
 - [Zoho Books custom functions API](https://www.zoho.com/books/api/v3/custom-functions/)
-  — custom functions support Deluge and map return types.
+  — custom functions support Deluge, configured input arguments, and map return types.
+- [Zoho Deluge for each](https://www.zoho.com/deluge/help/list-manipulations/for-each-element.html)
+  — bounded iteration uses an explicit ten-item list rather than JavaScript-style
+  `while`; the numeric-range syntax is not assumed.
+- [Zoho Deluge date functions](https://www.zoho.com/deluge/help/functions/date-time/add-day.html)
+  — the organisation-local current date is captured once and shifted by 90 days.
 - [public schedule-statements example](https://help.zoho.com/portal/en-gb/community/topic/function-4-schedule-customer-statements)
   — reference only; its page-1 approach is intentionally not copied.
 
 Native compile and read-only execution have **not** been performed in this repository.
-The draft is therefore installation-ready as a review artifact, not proven native-compatible
-or live-delivery-ready. If Books rejects any syntax or supplied context map, stop and
-record the exact error; do not substitute another ERP or service.
+The draft is therefore a review artifact, not proven native-compatible or
+live-delivery-ready. The numeric-range loop, named connection, custom-function inputs,
+and map return shape must be checked in the Books editor; no source inspection is native
+compilation evidence. If Books rejects any syntax or supplied context map, stop and record
+the fixed reason code plus exact editor error; do not substitute another ERP or service.
 
 ## Planner contract
 
@@ -47,14 +55,18 @@ reconciliation. A debt-free customer returns `no_statement`.
 
 ## Manual controller procedure
 
-1. Create a disabled Books custom function with the parameters `customer` and
-   `organization`, return type `map`, and no schedule or send action.
+1. Create a disabled Books custom function with the parameters `customer`,
+   `organization`, and `preparation_currency_code`, return type `map`, and no schedule
+   or send action. `preparation_currency_code` is required when the customer context
+   does not provide `currency_code`; the organisation base currency is never a fallback.
 2. Paste `prepare-customer-statement.ds`; replace only
    `REPLACE_WITH_BOOKS_CONNECTION` with the reviewed named Books connection. Do not put
    credentials, customer IDs, organization IDs, names, addresses, invoice rows, or
    arbitrary error text in logs or function output.
-3. Compile it natively. Run one scoped read-only test against a synthetic/safe test
-   customer and inspect only bounded preparation metadata.
+3. Compile it natively in the Books editor. Confirm the numeric-range loop,
+   `invokeurl` named connection, `toDate`/`toDecimal` conversions, and custom-function
+   input/`map` return contract. Then run one scoped read-only test against a
+   synthetic/safe test customer and inspect only bounded preparation metadata.
 4. Independently reconcile examples covering old debt on a later page, partial payment,
    paid/void/draft/future exclusions, no debt, credits, multiple currencies, and the
    10-page cap.
