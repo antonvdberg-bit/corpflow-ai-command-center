@@ -6,7 +6,7 @@
  * buyer-ownership schema, and (only in execute mode) runs exactly one
  * `prisma migrate resolve --applied` command.
  *
- * It never prints connection strings, passwords, or secret values.
+ * It never prints connection strings, passwords, usernames, or hostnames.
  * It never derives a non-pooled URL from a pooler host.
  * It never runs `prisma migrate deploy`, `db push`, or `migrate reset`.
  */
@@ -18,23 +18,25 @@ import { fileURLToPath } from 'node:url';
 import { PrismaClient } from '@prisma/client';
 
 import {
-  EXPECTED_DATABASE,
-  EXPECTED_ROLE,
   LUXE_MIGRATION,
   RESOLVER_REPO_ROOT,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  evaluateExecutionGuard,
+  evaluatePostflight,
   evaluatePreflight,
   inspectResolverWorkflow,
+  publicConnectionReport,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
+  summarizeHistoryRows,
 } from './bad-ownership-history-resolver-lib.mjs';
 
 const ROOT = RESOLVER_REPO_ROOT;
 
 function printSafe(obj) {
-  console.log(JSON.stringify(obj, null, 2));
+  console.log(redactSecrets(JSON.stringify(obj, null, 2)));
 }
 
 function fail(code, payload) {
@@ -54,23 +56,11 @@ async function withPrisma(url, fn) {
   }
 }
 
-function fingerprintHistoryRow(row) {
-  if (!row) return { present: false };
-  return {
-    present: true,
-    migration_name: row.migration_name,
-    finished: Boolean(row.finished_at),
-    rolled_back: Boolean(row.rolled_back_at),
-    applied_steps_count: row.applied_steps_count ?? null,
-  };
-}
-
 async function readIdentity(prisma) {
   const rows = await prisma.$queryRawUnsafe(`
     SELECT current_database() AS database,
            current_user AS role,
-           pg_is_in_recovery() AS in_recovery,
-           current_setting('transaction_read_only') AS transaction_read_only
+           pg_is_in_recovery() AS in_recovery
   `);
   return rows[0] || {};
 }
@@ -103,14 +93,41 @@ async function readSchemaPresence(prisma) {
     ORDER BY indexname
   `);
   const fk = await prisma.$queryRawUnsafe(`
-    SELECT conname AS name, confdeltype, confupdtype
-    FROM pg_constraint
-    WHERE conname = 'bad_purchase_ownership_auth_user_id_fkey'
+    SELECT
+      c.conname AS name,
+      rel.relname AS table_name,
+      (
+        SELECT attname FROM pg_attribute
+        WHERE attrelid = c.conrelid AND attnum = c.conkey[1]
+      ) AS column_name,
+      conf.relname AS referenced_table,
+      (
+        SELECT attname FROM pg_attribute
+        WHERE attrelid = c.confrelid AND attnum = c.confkey[1]
+      ) AS referenced_column,
+      c.confupdtype AS on_update,
+      c.confdeltype AS on_delete
+    FROM pg_constraint c
+    JOIN pg_class rel ON rel.oid = c.conrelid
+    JOIN pg_class conf ON conf.oid = c.confrelid
+    JOIN pg_namespace n ON n.oid = rel.relnamespace
+    WHERE n.nspname = 'public'
+      AND c.contype = 'f'
+      AND c.conname = 'bad_purchase_ownership_auth_user_id_fkey'
   `);
   const trigger = await prisma.$queryRawUnsafe(`
-    SELECT tgname AS name, tgenabled
-    FROM pg_trigger
-    WHERE tgname = 'bad_purchase_ownership_terminal_guard'
+    SELECT
+      t.tgname AS name,
+      t.tgenabled,
+      c.relname AS table_name,
+      p.proname AS function_name
+    FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    JOIN pg_proc p ON p.oid = t.tgfoid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.tgname = 'bad_purchase_ownership_terminal_guard'
+      AND NOT t.tgisinternal
   `);
   const counts = await prisma.$queryRawUnsafe(`
     SELECT
@@ -131,21 +148,21 @@ async function readHistory(prisma, name) {
   if (name !== TARGET_MIGRATION && name !== LUXE_MIGRATION) {
     throw new Error('refusing unexpected migration name');
   }
-  const rows = await prisma.$queryRawUnsafe(
+  return prisma.$queryRawUnsafe(
     `SELECT migration_name, finished_at, rolled_back_at, applied_steps_count
      FROM _prisma_migrations
-     WHERE migration_name = $1`,
+     WHERE migration_name = $1
+     ORDER BY started_at ASC`,
     name,
   );
-  return rows[0] || null;
 }
 
 async function collectDatabaseEvidence(url) {
   return withPrisma(url, async (prisma) => {
     const identity = await readIdentity(prisma);
     const schema = await readSchemaPresence(prisma);
-    const target = fingerprintHistoryRow(await readHistory(prisma, TARGET_MIGRATION));
-    const luxe = fingerprintHistoryRow(await readHistory(prisma, LUXE_MIGRATION));
+    const target = summarizeHistoryRows(await readHistory(prisma, TARGET_MIGRATION));
+    const luxe = summarizeHistoryRows(await readHistory(prisma, LUXE_MIGRATION));
     return { identity, schema, target, luxe };
   });
 }
@@ -172,7 +189,7 @@ function runPrismaResolve(url) {
 }
 
 function parseArgs(argv) {
-  const out = { phase: 'inspect', mode: 'dry_run', confirm: '' };
+  const out = { phase: 'inspect', mode: '', confirm: '' };
   for (const arg of argv) {
     if (arg.startsWith('--phase=')) out.phase = arg.slice('--phase='.length);
     else if (arg.startsWith('--mode=')) out.mode = arg.slice('--mode='.length);
@@ -180,6 +197,7 @@ function parseArgs(argv) {
   }
   if (process.env.RESOLVER_MODE) out.mode = String(process.env.RESOLVER_MODE);
   if (process.env.CONFIRM_MIGRATION_ID) out.confirm = String(process.env.CONFIRM_MIGRATION_ID);
+  if (!out.mode) out.mode = 'dry_run';
   return out;
 }
 
@@ -201,21 +219,27 @@ async function run(args) {
       workflow,
       checksum,
       target_migration: TARGET_MIGRATION,
-      expected_database: EXPECTED_DATABASE,
-      expected_role: EXPECTED_ROLE,
       note: 'No database command ran.',
     });
     return;
   }
 
+  const guard = evaluateExecutionGuard({
+    mode: args.mode,
+    confirm: args.confirm,
+    githubRef: process.env.GITHUB_REF,
+    githubRepository: process.env.GITHUB_REPOSITORY,
+  });
+  if (!guard.ok) {
+    fail(1, {
+      step: 'execute_guard',
+      guard,
+      blocker: 'Mode, repository, branch, or confirmation is not authorised. No database connection was opened.',
+    });
+  }
+
   const selected = selectNonPooledConnection(process.env);
-  const selectedSafe = {
-    ok: selected.ok,
-    reason: selected.reason,
-    pooled_postgres_url_present: selected.pooled_postgres_url_present,
-    source_keys: selected.source_keys,
-    classified: selected.classified,
-  };
+  const selectedSafe = publicConnectionReport(selected);
   if (!selected.ok) {
     const payload = {
       step: 'select_connection',
@@ -244,16 +268,9 @@ async function run(args) {
     fail(1, { step: 'database_preflight', selected: selectedSafe, preflight });
   }
 
-  const alreadyApplied = Boolean(preflight.target.present && preflight.target.finished);
-  const unfinishedTarget = Boolean(preflight.target.present && !preflight.target.finished);
-  if (unfinishedTarget) {
-    fail(1, {
-      step: 'database_preflight',
-      selected: selectedSafe,
-      preflight,
-      blocker: 'Target history row exists but is unfinished. Do not resolve or repair it automatically.',
-    });
-  }
+  const alreadyApplied = Boolean(
+    preflight.target.count === 1 && preflight.target.finished && !preflight.target.rolled_back,
+  );
 
   if (args.mode !== 'execute') {
     printSafe({
@@ -265,23 +282,6 @@ async function run(args) {
       note: 'dry_run does not call prisma migrate resolve.',
     });
     return;
-  }
-
-  const ref = String(process.env.GITHUB_REF || '');
-  if (ref && ref !== 'refs/heads/main') {
-    fail(1, {
-      step: 'execute_guard',
-      selected: selectedSafe,
-      blocker: 'execute is allowed only from refs/heads/main after merge.',
-      github_ref_present: Boolean(ref),
-    });
-  }
-  if (args.confirm !== TARGET_MIGRATION) {
-    fail(1, {
-      step: 'execute_guard',
-      selected: selectedSafe,
-      blocker: 'confirm_migration_id must equal the fixed approved migration id.',
-    });
   }
 
   if (alreadyApplied) {
@@ -311,21 +311,14 @@ async function run(args) {
     });
   }
 
-  const postFailures = [];
-  if (!(post.target.present && post.target.finished && !post.target.rolled_back)) {
-    postFailures.push('target_history_not_completed');
-  }
-  if (JSON.stringify(post.luxe) !== JSON.stringify(preflight.luxe)) {
-    postFailures.push('luxe_history_changed');
-  }
-  if (postFailures.length) {
+  const postflight = evaluatePostflight(preflight, post);
+  if (!postflight.ok) {
     fail(1, {
       step: 'database_postflight',
       selected: selectedSafe,
       preflight,
       resolve,
-      postflight: post,
-      postFailures,
+      postflight,
     });
   }
 
@@ -338,7 +331,7 @@ async function run(args) {
     postflight: {
       target: post.target,
       luxe: post.luxe,
-      counts: post.schema.counts,
+      schema: post.schema,
     },
   });
 }

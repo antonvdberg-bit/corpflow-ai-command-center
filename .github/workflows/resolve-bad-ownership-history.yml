@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   resolve-history:
-    if: github.repository == 'antonvdberg-bit/corpflow-ai-command-center'
+    if: github.repository == 'antonvdberg-bit/corpflow-ai-command-center' && (github.event.inputs.mode != 'execute' || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:

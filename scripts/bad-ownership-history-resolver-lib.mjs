@@ -14,6 +14,9 @@ export const EXPECTED_MIGRATION_CHECKSUM =
   '71d68c39569a5859d7d8f12fb06c5c19f10781cb4d38050a4cb965cb0db9fa45';
 export const EXPECTED_DATABASE = 'neondb';
 export const EXPECTED_ROLE = 'neondb_owner';
+export const AUTHORIZED_REPOSITORY = 'antonvdberg-bit/corpflow-ai-command-center';
+export const AUTHORIZED_REF = 'refs/heads/main';
+export const ALLOWED_MODES = Object.freeze(['dry_run', 'execute']);
 export const NON_POOLED_KEYS = ['DIRECT_URL', 'POSTGRES_URL_NON_POOLING'];
 export const REQUIRED_TABLES = [
   'bad_purchase_ownership',
@@ -27,6 +30,21 @@ export const REQUIRED_UNIQUE_INDEXES = [
   'bad_purchase_unbound_reversals_paddle_transaction_id_key',
   'bad_purchase_webhook_events_event_id_key',
 ];
+export const EXPECTED_FK = Object.freeze({
+  name: 'bad_purchase_ownership_auth_user_id_fkey',
+  table: 'bad_purchase_ownership',
+  column: 'auth_user_id',
+  referenced_table: 'auth_users',
+  referenced_column: 'id',
+  on_update: 'c',
+  on_delete: 'r',
+});
+export const EXPECTED_TRIGGER = Object.freeze({
+  name: 'bad_purchase_ownership_terminal_guard',
+  table: 'bad_purchase_ownership',
+  function: 'bad_purchase_ownership_keep_terminal',
+  enabled: 'O',
+});
 export const WORKFLOW_RELATIVE_PATH = '.github/workflows/resolve-bad-ownership-history.yml';
 export const MIGRATION_RELATIVE_PATH =
   'prisma/migrations/20261021140000_bad_purchase_ownership/migration.sql';
@@ -44,6 +62,7 @@ function escapeRegExp(value) {
 export function redactSecrets(text) {
   return String(text || '')
     .replace(/postgres(?:ql)?:\/\/[^\s'"]+/gi, 'postgresql://[redacted]')
+    .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.neon\.tech/gi, '[redacted-host]')
     .replace(/[?&](password|pwd|user|username)=([^&\s'"]+)/gi, '$1=[redacted]');
 }
 
@@ -64,8 +83,28 @@ export function readApprovedMigrationChecksum(root = ROOT) {
   return { ok: true, reason: 'checksum_ok', checksum };
 }
 
+function connectionIdentity(protocol, user, host, database) {
+  return createHash('sha256')
+    .update(`${protocol}\0${user}\0${host}\0${database}`)
+    .digest('hex');
+}
+
+function publicShape(shape) {
+  if (!shape) return { present: false, ok: false, reason: 'missing' };
+  return {
+    present: Boolean(shape.present),
+    ok: Boolean(shape.ok),
+    reason: shape.reason,
+    protocol_postgresql: Boolean(shape.protocol_postgresql),
+    neon_host: Boolean(shape.neon_host),
+    has_pooler: Boolean(shape.has_pooler),
+    has_prisma_io: Boolean(shape.has_prisma_io),
+    database_matches_expected: Boolean(shape.database_matches_expected),
+  };
+}
+
 /**
- * Shape-only classification. Never returns the URL or password.
+ * Shape-only classification. Never returns URL, password, username, or hostname.
  * @param {string} value
  */
 export function classifyConnectionUrl(value) {
@@ -86,32 +125,34 @@ export function classifyConnectionUrl(value) {
   const out = {
     present: true,
     ok: false,
-    protocol,
-    host_suffix: host.split('.').slice(-2).join('.'),
+    protocol_postgresql: /^postgres(ql)?$/.test(protocol),
+    neon_host: host.endsWith('neon.tech'),
     has_pooler: host.includes('-pooler'),
     has_prisma_io: host.includes('prisma.io'),
-    database,
-    has_user: Boolean(user),
-    has_password: Boolean(parsed.password),
-    sslmode: parsed.searchParams.get('sslmode'),
-    fingerprint: `${protocol}://${user}@${host}/${database}`,
+    database_matches_expected: database === EXPECTED_DATABASE,
   };
-  if (!/^postgres(ql)?$/.test(protocol)) {
+  Object.defineProperty(out, 'identity', {
+    value: connectionIdentity(protocol, user, host, database),
+    enumerable: false,
+  });
+  if (!out.protocol_postgresql) {
     return { ...out, reason: 'unsupported_protocol' };
   }
   if (out.has_prisma_io) {
     return { ...out, reason: 'prisma_postgres_host' };
   }
-  if (!host.endsWith('neon.tech')) {
+  if (!out.neon_host) {
     return { ...out, reason: 'non_neon_host' };
   }
   if (out.has_pooler) {
     return { ...out, reason: 'pooled_endpoint' };
   }
-  if (database !== EXPECTED_DATABASE) {
+  if (!out.database_matches_expected) {
     return { ...out, reason: 'unexpected_database' };
   }
-  return { ...out, ok: true, reason: 'non_pooled_neon_neondb' };
+  out.ok = true;
+  out.reason = 'non_pooled_neon_neondb';
+  return out;
 }
 
 /**
@@ -150,8 +191,8 @@ export function selectNonPooledConnection(env = process.env) {
       source_keys: present.map((row) => row.key),
     };
   }
-  const fingerprints = new Set(present.map((row) => row.shape.fingerprint));
-  if (fingerprints.size > 1) {
+  const identities = new Set(present.map((row) => row.shape.identity));
+  if (identities.size > 1) {
     return {
       ok: false,
       reason: 'non_pooled_aliases_disagree',
@@ -168,6 +209,20 @@ export function selectNonPooledConnection(env = process.env) {
     classified,
     url: present[0].value,
     source_keys: present.map((row) => row.key),
+  };
+}
+
+export function publicConnectionReport(selected) {
+  const classified = {};
+  for (const [key, shape] of Object.entries(selected.classified || {})) {
+    classified[key] = publicShape(shape);
+  }
+  return {
+    ok: Boolean(selected.ok),
+    reason: selected.reason,
+    pooled_postgres_url_present: Boolean(selected.pooled_postgres_url_present),
+    source_keys: selected.source_keys || [],
+    classified,
   };
 }
 
@@ -200,6 +255,7 @@ export function inspectResolverWorkflow(yamlText) {
   requireMatch(/default:\s*dry_run/, 'default_dry_run');
   requireMatch(/confirm_migration_id/, 'confirm_input');
   requireMatch(/cancel-in-progress:\s*false/, 'non_cancelling_concurrency');
+  requireMatch(/github\.ref == 'refs\/heads\/main'/, 'execute_requires_main');
   forbidMatch(/prisma migrate deploy/, 'contains_migrate_deploy');
   forbidMatch(/prisma db push/, 'contains_db_push');
   forbidMatch(/prisma migrate reset/, 'contains_migrate_reset');
@@ -207,29 +263,171 @@ export function inspectResolverWorkflow(yamlText) {
   return { ok: failures.length === 0, failures };
 }
 
+/**
+ * @param {{ mode?: string, confirm?: string, githubRef?: string, githubRepository?: string }} input
+ */
+export function evaluateExecutionGuard(input = {}) {
+  const mode = String(input.mode || '').trim();
+  const confirm = String(input.confirm || '').trim();
+  const githubRef = String(input.githubRef || '').trim();
+  const githubRepository = String(input.githubRepository || '').trim();
+  const failures = [];
+
+  if (!ALLOWED_MODES.includes(mode)) failures.push('invalid_mode');
+  if (mode === 'execute') {
+    if (!githubRef) failures.push('missing_github_ref');
+    else if (githubRef !== AUTHORIZED_REF) failures.push('ref_not_main');
+    if (confirm !== TARGET_MIGRATION) failures.push('confirm_mismatch');
+    if (githubRepository && githubRepository !== AUTHORIZED_REPOSITORY) {
+      failures.push('unexpected_repository');
+    }
+    if (!githubRepository) failures.push('missing_github_repository');
+  }
+  return {
+    ok: failures.length === 0,
+    failures,
+    mode: ALLOWED_MODES.includes(mode) ? mode : null,
+  };
+}
+
+export function summarizeHistoryRows(rows) {
+  const list = Array.isArray(rows) ? rows : rows ? [rows] : [];
+  if (list.length === 0) {
+    return { present: false, count: 0, ambiguous: false, finished: false, rolled_back: false };
+  }
+  if (list.length > 1) {
+    return {
+      present: true,
+      count: list.length,
+      ambiguous: true,
+      finished: false,
+      rolled_back: list.some((row) => Boolean(row.rolled_back_at)),
+    };
+  }
+  const row = list[0];
+  return {
+    present: true,
+    count: 1,
+    ambiguous: false,
+    finished: Boolean(row.finished_at),
+    rolled_back: Boolean(row.rolled_back_at),
+    applied_steps_count: row.applied_steps_count ?? null,
+  };
+}
+
+export function publicSchemaReport(schema = {}) {
+  const fk = schema.fk || null;
+  const trigger = schema.trigger || null;
+  return {
+    tables_present: REQUIRED_TABLES.every((name) => (schema.tables || []).includes(name)),
+    unique_indexes_present: REQUIRED_UNIQUE_INDEXES.every((name) =>
+      (schema.indexes || []).includes(name),
+    ),
+    fk: {
+      present: Boolean(fk),
+      name_matches: fk?.name === EXPECTED_FK.name,
+      table_matches: fk?.table_name === EXPECTED_FK.table,
+      column_matches: fk?.column_name === EXPECTED_FK.column,
+      referenced_table_matches: fk?.referenced_table === EXPECTED_FK.referenced_table,
+      referenced_column_matches: fk?.referenced_column === EXPECTED_FK.referenced_column,
+      on_update_cascade: fk?.on_update === EXPECTED_FK.on_update,
+      on_delete_restrict: fk?.on_delete === EXPECTED_FK.on_delete,
+    },
+    trigger: {
+      present: Boolean(trigger),
+      name_matches: trigger?.name === EXPECTED_TRIGGER.name,
+      table_matches: trigger?.table_name === EXPECTED_TRIGGER.table,
+      function_matches: trigger?.function_name === EXPECTED_TRIGGER.function,
+      enabled: trigger?.tgenabled === EXPECTED_TRIGGER.enabled,
+    },
+  };
+}
+
+export function publicIdentityReport(identity = {}) {
+  return {
+    database_matches_expected: identity.database === EXPECTED_DATABASE,
+    role_matches_expected: identity.role === EXPECTED_ROLE,
+    is_primary: identity.in_recovery === false,
+  };
+}
+
 export function evaluatePreflight(evidence) {
   const failures = [];
   const identity = evidence.identity || {};
   const schema = evidence.schema || { tables: [], indexes: [] };
+  const target = evidence.target || summarizeHistoryRows([]);
+  const luxe = evidence.luxe || summarizeHistoryRows([]);
+
   if (identity.database !== EXPECTED_DATABASE) failures.push('unexpected_database');
   if (identity.role !== EXPECTED_ROLE) failures.push('unexpected_role');
   if (identity.in_recovery === true) failures.push('replica_not_primary');
+  if (identity.in_recovery !== false && identity.in_recovery !== true) {
+    failures.push('primary_state_unknown');
+  }
   for (const table of REQUIRED_TABLES) {
-    if (!schema.tables.includes(table)) failures.push(`missing_table:${table}`);
+    if (!(schema.tables || []).includes(table)) failures.push(`missing_table:${table}`);
   }
   for (const index of REQUIRED_UNIQUE_INDEXES) {
-    if (!schema.indexes.includes(index)) failures.push(`missing_index:${index}`);
+    if (!(schema.indexes || []).includes(index)) failures.push(`missing_index:${index}`);
   }
-  if (!schema.fk) failures.push('missing_auth_users_fk');
-  if (!schema.trigger) failures.push('missing_terminal_trigger');
+
+  const fk = schema.fk;
+  if (!fk) failures.push('missing_auth_users_fk');
+  else {
+    if (fk.name !== EXPECTED_FK.name) failures.push('fk_name_mismatch');
+    if (fk.table_name !== EXPECTED_FK.table) failures.push('fk_table_mismatch');
+    if (fk.column_name !== EXPECTED_FK.column) failures.push('fk_column_mismatch');
+    if (fk.referenced_table !== EXPECTED_FK.referenced_table) failures.push('fk_referenced_table_mismatch');
+    if (fk.referenced_column !== EXPECTED_FK.referenced_column) {
+      failures.push('fk_referenced_column_mismatch');
+    }
+    if (fk.on_update !== EXPECTED_FK.on_update) failures.push('fk_on_update_not_cascade');
+    if (fk.on_delete !== EXPECTED_FK.on_delete) failures.push('fk_on_delete_not_restrict');
+  }
+
+  const trigger = schema.trigger;
+  if (!trigger) failures.push('missing_terminal_trigger');
+  else {
+    if (trigger.name !== EXPECTED_TRIGGER.name) failures.push('trigger_name_mismatch');
+    if (trigger.table_name !== EXPECTED_TRIGGER.table) failures.push('trigger_table_mismatch');
+    if (trigger.function_name !== EXPECTED_TRIGGER.function) failures.push('trigger_function_mismatch');
+    if (trigger.tgenabled !== EXPECTED_TRIGGER.enabled) failures.push('trigger_not_enabled');
+  }
+
+  if (target.ambiguous) failures.push('target_history_ambiguous');
+  if (luxe.ambiguous) failures.push('luxe_history_ambiguous');
+  if (target.present && !target.finished && !target.rolled_back) {
+    failures.push('target_history_unfinished');
+  }
+
   return {
     ok: failures.length === 0,
     failures,
-    identity,
-    schema,
-    target: evidence.target,
-    luxe: evidence.luxe,
+    identity: publicIdentityReport(identity),
+    schema: publicSchemaReport(schema),
+    target,
+    luxe,
   };
+}
+
+export function evaluatePostflight(preflight, postflight) {
+  const failures = [];
+  if (!postflight?.ok) failures.push(...(postflight?.failures || ['postflight_invalid']));
+  if (postflight?.target?.ambiguous) failures.push('target_history_ambiguous');
+  if (postflight?.luxe?.ambiguous) failures.push('luxe_history_ambiguous');
+  if (
+    !(
+      postflight?.target?.count === 1 &&
+      postflight.target.finished &&
+      !postflight.target.rolled_back
+    )
+  ) {
+    failures.push('target_history_not_completed');
+  }
+  if (JSON.stringify(postflight?.luxe) !== JSON.stringify(preflight?.luxe)) {
+    failures.push('luxe_history_changed');
+  }
+  return { ok: failures.length === 0, failures };
 }
 
 export { ROOT as RESOLVER_REPO_ROOT };
