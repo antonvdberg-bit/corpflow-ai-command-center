@@ -91,10 +91,34 @@ Disposable verification on 21 October 2026 passed against a local PostgreSQL 16.
   keep the audit rows, and revoke fulfilment entitlement. Deleting ownership
   evidence is not an allowed rollback.
 
+## Prisma history registration (separate from SQL apply)
+
+Issue [#1517](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1517) authorises **only**
+
+`npx prisma migrate resolve --applied 20261021140000_bad_purchase_ownership`
+
+after the SQL file was already applied. Do **not** run `prisma migrate deploy`
+(unrelated unfinished `20260514120000_lux_listings`), do not reapply the SQL,
+and do not edit `_prisma_migrations` by hand.
+
+The prepared L2 path is the manual workflow
+`.github/workflows/resolve-bad-ownership-history.yml`. It reuses the existing
+Infisical OIDC identity from Agent CI, requires `DIRECT_URL` or
+`POSTGRES_URL_NON_POOLING`, and stays inert when those names are absent. It
+does not derive a direct URL from pooled `POSTGRES_URL`.
+
+Do not dispatch `execute` until:
+
+1. this workflow is merged with Anton’s approval;
+2. Infisical production already contains a non-pooled Neon `neondb` URL under one of those two names;
+3. the operator chooses `execute` from `main` and types the exact migration id.
+
+Default dispatch mode is `dry_run`. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report only shape booleans (pooled vs direct, expected database match); they do not print usernames or hostnames.
+
 ## Outstanding approvals
 
 - Merge the real-Postgres lock correction (advisory lock must return an integer Prisma can read)
-- Execute the migration on shared/production Postgres
+- Register the already-applied ownership migration in Prisma history (this workflow, after merge + Infisical direct URL)
 - Enable the durable flag in a live runtime
 - Merge/deploy of the integration
 - Live Paddle / ERPNext end-to-end against real or authorised test parties
