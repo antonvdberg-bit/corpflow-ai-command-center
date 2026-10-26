@@ -111,9 +111,9 @@ Do not dispatch `execute` until:
 
 1. this workflow is merged with Anton’s approval;
 2. Infisical production already contains a non-pooled Neon `neondb` URL under one of those two names;
-3. the operator chooses `execute` and types the exact migration id.
+3. the operator chooses `execute` from `main` and types the exact migration id.
 
-Default dispatch mode is `dry_run`.
+Default dispatch mode is `dry_run`. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report only shape booleans (pooled vs direct, expected database match); they do not print usernames or hostnames.
 
 ## Outstanding approvals
 
