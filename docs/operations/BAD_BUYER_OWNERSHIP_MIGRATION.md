@@ -113,7 +113,9 @@ Do not dispatch `execute` until:
 2. Infisical production already contains a non-pooled Neon `neondb` URL under one of those two names;
 3. the operator chooses `execute` from `main` and types the exact migration id.
 
-Default dispatch mode is `dry_run`. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report only shape booleans (pooled vs direct, expected database match); they do not print usernames or hostnames.
+Default dispatch mode is `dry_run`. `diagnose` is read-only: it re-reads target/Luxe history and Prisma’s migration advisory lock (`pg_advisory_lock(72707369)` in Prisma 6.19.2 schema-engine) via `pg_locks` / `pg_stat_activity`. It never calls `migrate resolve`, never terminates sessions, and never disables advisory locking. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report only shape booleans, PIDs, wait events, ages, and application labels; they do not print SQL, usernames, or hostnames.
+
+If `diagnose` reports the Prisma lock **absent**, re-run `dry_run` and confirm the target marker is still missing before any gated `execute` retry under the original history-write approval. If the lock is **held**, identify the holder and stop for a separate session-mutation approval. Do not retry `execute` while the lock is held.
 
 ## Outstanding approvals
 

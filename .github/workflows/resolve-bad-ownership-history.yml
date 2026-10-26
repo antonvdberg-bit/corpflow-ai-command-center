@@ -2,21 +2,23 @@
 # Manual only. Does not run on push, pull_request, or schedule.
 # Does not apply SQL, deploy the app, or repair the unfinished Luxe migration.
 #
-# Default mode is dry_run. Execute is inert until Infisical injects an existing
-# non-pooled Neon URL (DIRECT_URL or POSTGRES_URL_NON_POOLING). This workflow
-# never derives a direct URL from pooled POSTGRES_URL.
+# Default mode is dry_run. diagnose is read-only lock/history inspect.
+# Execute is inert until Infisical injects an existing non-pooled Neon URL
+# (DIRECT_URL or POSTGRES_URL_NON_POOLING). This workflow never derives a
+# direct URL from pooled POSTGRES_URL and never terminates sessions.
 name: Resolve BAD ownership Prisma history
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: dry_run never writes. execute runs only the approved resolve command.
+        description: dry_run never writes. diagnose is read-only lock and history inspect. execute runs only the approved resolve command.
         type: choice
         required: true
         default: dry_run
         options:
           - dry_run
+          - diagnose
           - execute
       confirm_migration_id:
         description: Must equal 20261021140000_bad_purchase_ownership

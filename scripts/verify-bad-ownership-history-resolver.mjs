@@ -22,11 +22,14 @@ import {
   RESOLVER_REPO_ROOT,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  discoverPrismaMigrateAdvisoryLock,
   evaluateExecutionGuard,
   evaluatePostflight,
   evaluatePreflight,
   inspectResolverWorkflow,
+  omitSqlFromError,
   publicConnectionReport,
+  publicLockReport,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
@@ -167,6 +170,54 @@ async function collectDatabaseEvidence(url) {
   });
 }
 
+async function collectLockEvidence(url, discovery) {
+  if (!discovery?.ok) {
+    return publicLockReport({ discovery });
+  }
+  return withPrisma(url, async (prisma) => {
+    const selfRows = await prisma.$queryRawUnsafe(`SELECT pg_backend_pid() AS pid`);
+    const selfPid = selfRows[0]?.pid;
+    const columns = {
+      classid: discovery.classid,
+      objid: discovery.objid,
+      objsubid: discovery.objsubid,
+    };
+    const rows = await prisma.$queryRawUnsafe(
+      `SELECT
+         l.pid,
+         l.granted,
+         l.mode,
+         a.state,
+         a.wait_event_type,
+         a.wait_event,
+         a.application_name,
+         a.backend_type,
+         EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
+         CASE
+           WHEN a.xact_start IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.xact_start))::int
+         END AS xact_age_seconds,
+         CASE
+           WHEN a.state_change IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.state_change))::int
+         END AS state_age_seconds,
+         (a.usename = current_user) AS role_matches_current,
+         (a.datname = current_database()) AS database_matches_current
+       FROM pg_locks l
+       LEFT JOIN pg_stat_activity a ON a.pid = l.pid
+       WHERE l.locktype = 'advisory'
+         AND l.classid = $1
+         AND l.objid = $2
+         AND l.objsubid = $3
+       ORDER BY l.granted DESC, l.pid`,
+      columns.classid,
+      columns.objid,
+      columns.objsubid,
+    );
+    return publicLockReport({ discovery, rows, selfPid });
+  });
+}
+
 function runPrismaResolve(url) {
   const result = spawnSync(
     'npx',
@@ -219,6 +270,7 @@ async function run(args) {
       workflow,
       checksum,
       target_migration: TARGET_MIGRATION,
+      advisory_lock: discoverPrismaMigrateAdvisoryLock(),
       note: 'No database command ran.',
     });
     return;
@@ -259,7 +311,7 @@ async function run(args) {
     fail(1, {
       step: 'database_preflight',
       selected: selectedSafe,
-      error: redactSecrets(error && error.message),
+      error: omitSqlFromError(error && error.message),
     });
   }
 
@@ -271,6 +323,28 @@ async function run(args) {
   const alreadyApplied = Boolean(
     preflight.target.count === 1 && preflight.target.finished && !preflight.target.rolled_back,
   );
+
+  if (args.mode === 'diagnose') {
+    let lock;
+    try {
+      lock = await collectLockEvidence(selected.url, discoverPrismaMigrateAdvisoryLock());
+    } catch (error) {
+      lock = publicLockReport({
+        discovery: discoverPrismaMigrateAdvisoryLock(),
+        queryError: error && error.message,
+      });
+    }
+    printSafe({
+      ok: true,
+      step: 'diagnose',
+      selected: selectedSafe,
+      preflight,
+      lock,
+      resolve: 'skipped',
+      note: 'diagnose does not call prisma migrate resolve, terminate sessions, or disable advisory locking.',
+    });
+    return;
+  }
 
   if (args.mode !== 'execute') {
     printSafe({
@@ -307,7 +381,7 @@ async function run(args) {
     fail(1, {
       step: 'database_postflight',
       selected: selectedSafe,
-      error: redactSecrets(error && error.message),
+      error: omitSqlFromError(error && error.message),
     });
   }
 
@@ -340,6 +414,6 @@ const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURL
 if (isDirectRun) {
   const args = parseArgs(process.argv.slice(2));
   run(args).catch((error) => {
-    fail(1, { step: 'unhandled', error: redactSecrets(error && error.message) });
+    fail(1, { step: 'unhandled', error: omitSqlFromError(error && error.message) });
   });
 }
