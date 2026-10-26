@@ -36,6 +36,7 @@ import {
   inspectResolverWorkflow,
   inspectTerminateScript,
   omitSqlFromError,
+  parseExactBackendStart,
   parsePrismaAdvisoryLockIdFromEngineText,
   prismaAdvisoryLockColumns,
   publicCandidateLogView,
@@ -44,6 +45,7 @@ import {
   publicLockLogView,
   publicLockReport,
   publicReleaseAttemptLogView,
+  publicReleaseGuardLogView,
   publicTerminateLogView,
   sessionFingerprint,
   readApprovedMigrationChecksum,
@@ -57,6 +59,8 @@ const DIRECT =
   'postgresql://neondb_owner:secret@ep-example.c-6.us-east-1.aws.neon.tech:5432/neondb?sslmode=require';
 const POOLED =
   'postgresql://neondb_owner:secret@ep-example-pooler.c-6.us-east-1.aws.neon.tech:5432/neondb?sslmode=require';
+const BACKEND_START = '2026-10-26T12:00:00.123456Z';
+const BACKEND_START_SAME_SECOND = '2026-10-26T12:00:00.123457Z';
 
 function validEvidence(overrides = {}) {
   const identity = {
@@ -445,7 +449,7 @@ describe('BAD ownership Prisma history resolver', () => {
       wait_event: 'ClientRead',
       application_name: 'pgbouncer',
       backend_type: 'client backend',
-      backend_start_epoch: 1761470000,
+      backend_start: BACKEND_START,
       session_age_seconds: 2205,
       xact_age_seconds: null,
       state_age_seconds: 12,
@@ -458,7 +462,7 @@ describe('BAD ownership Prisma history resolver', () => {
       prisma_version: '6.19.2',
     };
     const lock = publicLockReport({ discovery, selfPid: 99, rows: [holderRow] });
-    const target = { pid: 4242, backend_start_epoch: 1761470000 };
+    const target = { pid: 4242, backend_start: BACKEND_START };
     const ok = evaluateReleaseCandidate(lock, target, identity);
     assert.equal(ok.ok, true, ok.failures.join(','));
     assert.equal(ok.pooler.likely_neon_transaction_pooler_backend, true);
@@ -479,15 +483,18 @@ describe('BAD ownership Prisma history resolver', () => {
     assert.ok(evaluateReleaseCandidate(waiter, target, identity).failures.includes('waiters_present'));
 
     assert.ok(
-      evaluateReleaseCandidate(lock, { pid: 1, backend_start_epoch: 1761470000 }, identity).failures.includes(
+      evaluateReleaseCandidate(lock, { pid: 1, backend_start: BACKEND_START }, identity).failures.includes(
         'pid_mismatch',
       ),
     );
     assert.ok(
-      evaluateReleaseCandidate(lock, { pid: 4242, backend_start_epoch: 1 }, identity).failures.includes(
+      evaluateReleaseCandidate(lock, { pid: 4242, backend_start: BACKEND_START_SAME_SECOND }, identity).failures.includes(
         'backend_start_mismatch',
       ),
     );
+    assert.equal(parseExactBackendStart('1761470000'), null);
+    assert.equal(parseExactBackendStart('2026-10-26T12:00:00Z'), null);
+    assert.equal(parseExactBackendStart(BACKEND_START), BACKEND_START);
 
     const busy = publicLockReport({
       discovery,
@@ -535,7 +542,7 @@ describe('BAD ownership Prisma history resolver', () => {
       evaluateReleaseGuard({
         mode: 'release_preview',
         confirmPid: '4242',
-        confirmBackendStartEpoch: '1761470000',
+        confirmBackendStart: BACKEND_START,
       }).ok,
       true,
     );
@@ -543,7 +550,7 @@ describe('BAD ownership Prisma history resolver', () => {
       evaluateReleaseGuard({
         mode: 'release_preview',
         confirmPid: '4242',
-        confirmBackendStartEpoch: '1761470000',
+        confirmBackendStart: BACKEND_START,
         confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
       }).failures.includes('terminate_confirm_not_allowed_in_preview'),
     );
@@ -551,14 +558,14 @@ describe('BAD ownership Prisma history resolver', () => {
       evaluateReleaseGuard({
         mode: 'release_lock',
         confirmPid: '4242',
-        confirmBackendStartEpoch: '1761470000',
+        confirmBackendStart: BACKEND_START,
       }).failures.includes('confirm_terminate_mismatch'),
     );
     assert.equal(
       evaluateReleaseGuard({
         mode: 'release_lock',
         confirmPid: '4242',
-        confirmBackendStartEpoch: '1761470000',
+        confirmBackendStart: BACKEND_START,
         confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
       }).ok,
       true,
@@ -567,9 +574,17 @@ describe('BAD ownership Prisma history resolver', () => {
       evaluateReleaseGuard({
         mode: 'release_lock',
         confirmPid: 'pgbouncer',
-        confirmBackendStartEpoch: '1761470000',
+        confirmBackendStart: BACKEND_START,
         confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
       }).failures.includes('missing_or_invalid_confirm_pid'),
+    );
+    assert.ok(
+      evaluateReleaseGuard({
+        mode: 'release_lock',
+        confirmPid: '4242',
+        confirmBackendStart: '1761470000',
+        confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
+      }).failures.includes('missing_or_invalid_confirm_backend_start'),
     );
 
     assert.ok(
@@ -603,7 +618,7 @@ describe('BAD ownership Prisma history resolver', () => {
 
   it('fails closed at the guarded terminate boundary and does not log raw PIDs', () => {
     const identity = { database: 'neondb', role: 'neondb_owner', database_oid: 16384 };
-    const target = { pid: 4242, backend_start_epoch: 1761470000 };
+    const target = { pid: 4242, backend_start: BACKEND_START };
     const discovery = {
       ok: true,
       lock_id: EXPECTED_PRISMA_ADVISORY_LOCK_ID,
@@ -627,18 +642,20 @@ describe('BAD ownership Prisma history resolver', () => {
       EXPECTED_PRISMA_ADVISORY_LOCK_ID,
       1,
       4242,
-      1761470000,
+      BACKEND_START,
       16384,
       'neondb',
       'neondb_owner',
       'pgbouncer',
     ]);
     assert.ok(
-      buildGuardedTerminateParams(discovery, { pid: 4243, backend_start_epoch: 1761470000 }, identity)
+      buildGuardedTerminateParams(discovery, { pid: 4243, backend_start: BACKEND_START }, identity)
         .ok,
     );
     assert.ok(
-      buildGuardedTerminateParams(discovery, { pid: 4242, backend_start_epoch: 1 }, identity).ok,
+      buildGuardedTerminateParams(discovery, { pid: 4242, backend_start: '1761470000' }, identity).failures.includes(
+        'missing_or_invalid_confirm_backend_start',
+      ),
     );
     assert.ok(
       buildGuardedTerminateParams({ ok: true, lock_id: 1 }, target, identity).failures.includes(
@@ -688,7 +705,7 @@ describe('BAD ownership Prisma history resolver', () => {
       wait_event: 'ClientRead',
       application_name: 'pgbouncer',
       backend_type: 'client backend',
-      backend_start_epoch: 1761470000,
+      backend_start: BACKEND_START,
       session_age_seconds: 2205,
       xact_age_seconds: null,
       state_age_seconds: 12,
@@ -715,8 +732,39 @@ describe('BAD ownership Prisma history resolver', () => {
     assert.equal(logView.includes('"pid":'), false);
     assert.equal(logView.includes('"pid":4242'), false);
     assert.equal(logView.includes('"pid": 4242'), false);
-    assert.equal(publicHolderLogView(candidate.holder).pid_fingerprint, sessionFingerprint(4242, 1761470000));
+    assert.equal(publicHolderLogView(candidate.holder).pid_fingerprint, sessionFingerprint(4242, BACKEND_START));
     assert.match(logView, /pid_fingerprint/);
+
+    const failedConfirmGuard = evaluateReleaseGuard({
+      mode: 'release_lock',
+      confirmPid: '4242',
+      confirmBackendStart: BACKEND_START,
+      confirmTerminate: 'wrong',
+    });
+    assert.equal(failedConfirmGuard.ok, false);
+    assert.ok(failedConfirmGuard.failures.includes('confirm_terminate_mismatch'));
+    assert.equal(failedConfirmGuard.confirm_pid, 4242);
+    const failedConfirmPayload = JSON.stringify({
+      ok: false,
+      step: 'release_guard',
+      release_guard: publicReleaseGuardLogView(failedConfirmGuard),
+      blocker: 'Release targeting is incomplete or not authorised. No session was terminated.',
+    });
+    assert.doesNotMatch(failedConfirmPayload, /"confirm_pid":/);
+    assert.doesNotMatch(failedConfirmPayload, /"confirm_backend_start":/);
+    assert.equal(JSON.parse(failedConfirmPayload).release_guard.confirm_pid_present, true);
+    assert.equal(JSON.parse(failedConfirmPayload).release_guard.confirm_backend_start_present, true);
+    const missingTerminatePayload = JSON.stringify({
+      release_guard: publicReleaseGuardLogView(
+        evaluateReleaseGuard({
+          mode: 'release_lock',
+          confirmPid: '4242',
+          confirmBackendStart: BACKEND_START,
+        }),
+      ),
+    });
+    assert.doesNotMatch(missingTerminatePayload, /"confirm_pid":/);
+    assert.ok(JSON.parse(missingTerminatePayload).release_guard.failures.includes('confirm_terminate_mismatch'));
 
     const verifySrc = readFileSync(
       path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
@@ -725,6 +773,8 @@ describe('BAD ownership Prisma history resolver', () => {
     assert.match(verifySrc, /GUARDED_SINGLE_SESSION_TERMINATE_SQL/);
     assert.match(verifySrc, /evaluateGuardedTerminateOutcome/);
     assert.match(verifySrc, /publicLockLogView/);
+    assert.match(verifySrc, /publicReleaseGuardLogView/);
+    assert.doesNotMatch(verifySrc, /release_guard:\s*releaseGuard/);
     assert.doesNotMatch(verifySrc, /terminateConfirmedSession\(selected\.url, target\.pid\)/);
   });
 });

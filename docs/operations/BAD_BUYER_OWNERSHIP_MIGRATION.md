@@ -113,9 +113,9 @@ Do not dispatch `execute` until:
 2. Infisical production already contains a non-pooled Neon `neondb` URL under one of those two names;
 3. the operator chooses `execute` from `main` and types the exact migration id.
 
-Default dispatch mode is `dry_run`. `diagnose` is read-only: it re-reads target/Luxe history and Prisma’s migration advisory lock (`pg_advisory_lock(72707369)` in Prisma 6.19.2 schema-engine) via `pg_locks` / `pg_stat_activity`, scoped to the current database OID so a same-key lock in another database cannot look held here. Diagnose exits unsuccessful when lock identity or session inspect is unavailable; it never treats that as “lock absent”. It never calls `migrate resolve`, never terminates sessions, and never disables advisory locking. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report shape booleans, occupancy, wait events, ages, application labels, and a `pid_fingerprint` of `pid:backend_start_epoch`. They do not print raw PIDs, SQL, usernames, or hostnames. Operator `confirm_pid` / `confirm_backend_start_epoch` still come from the already-captured diagnose runs on #1517; GitHub may show those workflow inputs in the Actions UI.
+Default dispatch mode is `dry_run`. `diagnose` is read-only: it re-reads target/Luxe history and Prisma’s migration advisory lock (`pg_advisory_lock(72707369)` in Prisma 6.19.2 schema-engine) via `pg_locks` / `pg_stat_activity`, scoped to the current database OID so a same-key lock in another database cannot look held here. Diagnose exits unsuccessful when lock identity or session inspect is unavailable; it never treats that as “lock absent”. It never calls `migrate resolve`, never terminates sessions, and never disables advisory locking. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report shape booleans, occupancy, wait events, ages, application labels, the exact UTC `backend_start` string (microseconds), and a `pid_fingerprint` of `pid:backend_start`. They do not print raw PIDs, SQL, usernames, or hostnames. Failed release-guard logs use the same public projection (failure codes and fingerprint only). GitHub may still show operator-typed `confirm_pid` in the Actions UI. Do **not** reuse whole-second epoch values from earlier diagnose runs; take a fresh precise `diagnose` after this workflow is on `main`.
 
-If `diagnose` reports the Prisma lock **absent**, re-run `dry_run` and confirm the target marker is still missing before any gated `execute` retry under the original history-write approval. If the lock is **held**, do not retry `execute`. Use `release_preview` on `main` with the diagnose PID and `backend_start_epoch` to re-identify the holder. A separate CEO approval is required before `release_lock`.
+If `diagnose` reports the Prisma lock **absent**, re-run `dry_run` and confirm the target marker is still missing before any gated `execute` retry under the original history-write approval. If the lock is **held**, do not retry `execute`. Use `release_preview` on `main` with the diagnose PID and the exact `backend_start` string. A separate CEO approval is required before `release_lock`.
 
 ### Guarded single-session lock release
 
@@ -125,7 +125,7 @@ The mutating statement builds a CTE of advisory locks on the current database OI
 
 1. current database is `neondb` / role `neondb_owner` and the live database OID equals the confirmed OID;
 2. exactly one granted holder and zero waiters for that key;
-3. confirmed PID and `backend_start` epoch;
+3. confirmed PID and exact `backend_start` UTC string (`YYYY-MM-DDTHH:MM:SS.ffffffZ`), compared without whole-second rounding;
 4. holder `idle` with `xact_start` null;
 5. holder database and role match `current_database()` / `current_user`;
 6. application label equals `pgbouncer` (additional predicate, never the sole selector);
@@ -135,7 +135,13 @@ If that CTE is empty, the statement returns **zero rows** and the workflow fails
 
 Never terminate by application label. Never disable advisory locking. Never run `migrate resolve` from `release_lock`.
 
-**Residual race (not claimed atomic).** `pg_locks` and `pg_stat_activity` are shared-memory views, not MVCC tables. PostgreSQL’s `pg_terminate_backend(pid)` identifies a backend by PID only; there is no `backend_start` argument. This statement materialises the gated PID in a CTE, then calls `pg_terminate_backend` on that PID in the same query. That removes the previous **second-connection** TOCTOU (JS checks, then a later `pg_terminate_backend($1)`). A remaining window exists if, after the CTE is materialised and before the signal is sent, the original backend exits and the kernel reuses that PID for a new backend. That window is in-statement, not a new client round trip, and is not formally zero. `pg_terminate_backend` returning `false`, or a later post-check that the Prisma lock is still held, both fail closed. Do not treat a failed release as proof the lock is gone.
+**Residual race (not claimed atomic).** `pg_locks` and `pg_stat_activity` are shared-memory views, not MVCC tables. PostgreSQL’s `pg_terminate_backend(pid)` identifies a backend by PID only; there is no `backend_start` argument. This statement materialises the gated PID in a CTE, then calls `pg_terminate_backend` on that PID in the same query. That removes the previous **second-connection** TOCTOU (JS checks, then a later `pg_terminate_backend($1)`). Remaining windows still exist after that observation:
+
+- the holder can become active, open a transaction, drop the lock, or be replaced before the CTE is evaluated;
+- after the CTE is materialised and before the signal is sent, the original backend can exit and the kernel can reuse that PID;
+- `pg_terminate_backend` can return `false` if the backend disappeared or the role is not allowed to signal it.
+
+Those windows are not formally zero. Exact microsecond `backend_start` comparison rejects a new backend that reused the PID in the same wall-clock second; it does not make termination atomic. `pg_terminate_backend` returning `false`, or a later post-check that the Prisma lock is still held, both fail closed. Do not treat a failed release as proof the lock is gone.
 
 **PgBouncer / Neon blast radius.** Neon pooled endpoints use PgBouncer in transaction mode. Session-level `pg_advisory_lock` can remain on an idle pooled backend after the client transaction ends. Diagnoses #40298825546 and #40300233884 match that pattern: one idle `pgbouncer`-labelled holder, no open transaction, persistent PID. Terminating that **one** backend:
 
@@ -148,7 +154,7 @@ After an approved `release_lock` success: rerun `diagnose`, then `dry_run` (targ
 ## Outstanding approvals
 
 - Merge the real-Postgres lock correction (advisory lock must return an integer Prisma can read)
-- CEO merge of the guarded `release_lock` workflow, then a separate approval to dispatch `release_lock` on `main` with the diagnose PID / `backend_start_epoch` / `terminate_one_session`
+- CEO merge of the guarded `release_lock` workflow, then a separate approval to dispatch `release_lock` on `main` with a **fresh** diagnose PID / exact `backend_start` / `terminate_one_session`
 - Register the already-applied ownership migration in Prisma history (`diagnose` → `dry_run` → `execute` after the lock is absent)
 - Enable the durable flag in a live runtime
 - Merge/deploy of the integration

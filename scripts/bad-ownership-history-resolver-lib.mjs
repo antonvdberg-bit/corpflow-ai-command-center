@@ -29,6 +29,9 @@ export const TERMINATE_ONE_SESSION_CONFIRM = 'terminate_one_session';
 export const RECOGNISED_POOLER_APPLICATION_LABEL = 'pgbouncer';
 export const PRISMA_ADVISORY_LOCK_OBJSUBID = 1;
 export const P1002_TIMEOUT_MS_OBSERVED = 10000;
+export const BACKEND_START_UTC_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+export const BACKEND_START_UTC_SQL =
+  `to_char(a.backend_start AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US') || 'Z'`;
 export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
          l.pid,
          l.granted,
@@ -38,7 +41,7 @@ export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
          a.wait_event,
          a.application_name,
          a.backend_type,
-         EXTRACT(EPOCH FROM a.backend_start)::bigint AS backend_start_epoch,
+         ${BACKEND_START_UTC_SQL} AS backend_start,
          EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
          CASE
            WHEN a.xact_start IS NULL THEN NULL
@@ -77,7 +80,7 @@ export const GUARDED_SINGLE_SESSION_TERMINATE_SQL = `WITH scoped_locks AS (
          WHERE l.granted IS TRUE
            AND a.pid = $4::int
            AND a.pid IS DISTINCT FROM pg_backend_pid()
-           AND EXTRACT(EPOCH FROM a.backend_start)::bigint = $5::bigint
+           AND ${BACKEND_START_UTC_SQL} = $5::text
            AND a.state = 'idle'
            AND a.xact_start IS NULL
            AND a.datname = current_database()
@@ -261,7 +264,7 @@ export function classifyAdvisoryLockRow(row, selfPid) {
     wait_event: String(row?.wait_event || ''),
     application_label: sanitizeApplicationLabel(row?.application_name),
     backend_type: String(row?.backend_type || ''),
-    backend_start_epoch: intOrNull(row?.backend_start_epoch),
+    backend_start: parseExactBackendStart(row?.backend_start),
     session_age_seconds: intOrNull(row?.session_age_seconds),
     xact_age_seconds: intOrNull(row?.xact_age_seconds),
     state_age_seconds: intOrNull(row?.state_age_seconds),
@@ -339,7 +342,12 @@ export function inspectLockQuerySql(sql) {
     failures.push('missing_database_oid_filter');
   }
   if (!/locktype = 'advisory'/.test(text)) failures.push('missing_advisory_locktype');
-  if (!/backend_start_epoch/.test(text)) failures.push('missing_backend_start_epoch');
+  if (!/to_char\(a\.backend_start AT TIME ZONE 'UTC'/.test(text) || !/HH24:MI:SS\.US/.test(text)) {
+    failures.push('missing_exact_backend_start');
+  }
+  if (/backend_start_epoch/.test(text) || /EXTRACT\(EPOCH FROM a\.backend_start\)::bigint/.test(text)) {
+    failures.push('coarse_backend_start_epoch');
+  }
   if (/a\.query\b/.test(text)) failures.push('selects_query_text');
   if (/pg_terminate_backend/.test(text)) failures.push('contains_terminate_backend');
   return { ok: failures.length === 0, failures };
@@ -363,6 +371,12 @@ export function parsePositiveInt(value) {
   return Number.isSafeInteger(num) ? num : null;
 }
 
+export function parseExactBackendStart(value) {
+  const raw = String(value ?? '').trim();
+  if (!BACKEND_START_UTC_RE.test(raw)) return null;
+  return raw;
+}
+
 export function assessPoolerHolder(applicationLabel) {
   const label = sanitizeApplicationLabel(applicationLabel).toLowerCase();
   const matches_pgbouncer_label = label === RECOGNISED_POOLER_APPLICATION_LABEL;
@@ -382,9 +396,11 @@ export function evaluateReleaseGuard(input = {}) {
   const failures = [];
   if (!RELEASE_MODES.includes(mode)) failures.push('invalid_release_mode');
   const pid = parsePositiveInt(input.confirmPid);
-  const backendStartEpoch = parsePositiveInt(input.confirmBackendStartEpoch);
+  const backendStart = parseExactBackendStart(
+    input.confirmBackendStart ?? input.confirmBackendStartEpoch,
+  );
   if (pid === null) failures.push('missing_or_invalid_confirm_pid');
-  if (backendStartEpoch === null) failures.push('missing_or_invalid_confirm_backend_start_epoch');
+  if (backendStart === null) failures.push('missing_or_invalid_confirm_backend_start');
   const terminate = String(input.confirmTerminate || '').trim();
   if (mode === 'release_preview' && terminate) {
     failures.push('terminate_confirm_not_allowed_in_preview');
@@ -397,7 +413,7 @@ export function evaluateReleaseGuard(input = {}) {
     failures,
     mode: RELEASE_MODES.includes(mode) ? mode : null,
     confirm_pid: pid,
-    confirm_backend_start_epoch: backendStartEpoch,
+    confirm_backend_start: backendStart,
     mutation_requested: mode === 'release_lock' && terminate === TERMINATE_ONE_SESSION_CONFIRM,
   };
 }
@@ -434,9 +450,9 @@ export function evaluateReleaseCandidate(lock, target = {}, identity = {}) {
     return { ok: false, failures, pooler, holder: null };
   }
   const expectedPid = parsePositiveInt(target.pid);
-  const expectedStart = parsePositiveInt(target.backend_start_epoch);
+  const expectedStart = parseExactBackendStart(target.backend_start ?? target.backend_start_epoch);
   if (expectedPid === null || holder.pid !== expectedPid) failures.push('pid_mismatch');
-  if (expectedStart === null || holder.backend_start_epoch !== expectedStart) {
+  if (expectedStart === null || holder.backend_start !== expectedStart) {
     failures.push('backend_start_mismatch');
   }
   if (holder.is_this_session) failures.push('would_terminate_self');
@@ -461,15 +477,15 @@ export function evaluateFreshReleaseIdentity(first, second) {
   if (!first?.ok) failures.push('first_identification_failed');
   if (!second?.ok) failures.push('second_identification_failed');
   if (first?.holder?.pid !== second?.holder?.pid) failures.push('pid_changed');
-  if (first?.holder?.backend_start_epoch !== second?.holder?.backend_start_epoch) {
+  if (first?.holder?.backend_start !== second?.holder?.backend_start) {
     failures.push('backend_start_changed');
   }
   return { ok: failures.length === 0, failures };
 }
 
-export function sessionFingerprint(pid, backendStartEpoch) {
+export function sessionFingerprint(pid, backendStart) {
   const parsedPid = parsePositiveInt(pid);
-  const parsedStart = parsePositiveInt(backendStartEpoch);
+  const parsedStart = parseExactBackendStart(backendStart);
   if (parsedPid === null || parsedStart === null) return null;
   return createHash('sha256').update(`${parsedPid}:${parsedStart}`, 'utf8').digest('hex').slice(0, 16);
 }
@@ -486,7 +502,7 @@ export function publicHolderLogView(holder) {
     wait_event: holder.wait_event,
     application_label: holder.application_label,
     backend_type: holder.backend_type,
-    backend_start_epoch: holder.backend_start_epoch,
+    backend_start: holder.backend_start,
     session_age_seconds: holder.session_age_seconds,
     xact_age_seconds: holder.xact_age_seconds,
     state_age_seconds: holder.state_age_seconds,
@@ -494,7 +510,7 @@ export function publicHolderLogView(holder) {
     role_matches_current: holder.role_matches_current,
     database_matches_current: holder.database_matches_current,
     pid_present: holder.pid !== null && holder.pid !== undefined,
-    pid_fingerprint: sessionFingerprint(holder.pid, holder.backend_start_epoch),
+    pid_fingerprint: sessionFingerprint(holder.pid, holder.backend_start),
   };
 }
 
@@ -537,6 +553,19 @@ export function publicReleaseAttemptLogView(attempt) {
   };
 }
 
+export function publicReleaseGuardLogView(guard) {
+  if (!guard) return null;
+  return {
+    ok: Boolean(guard.ok),
+    failures: guard.failures || [],
+    mode: guard.mode || null,
+    mutation_requested: Boolean(guard.mutation_requested),
+    confirm_pid_present: guard.confirm_pid !== null && guard.confirm_pid !== undefined,
+    confirm_backend_start_present: Boolean(parseExactBackendStart(guard.confirm_backend_start)),
+    pid_fingerprint: sessionFingerprint(guard.confirm_pid, guard.confirm_backend_start),
+  };
+}
+
 export function publicTerminateLogView(outcome) {
   if (!outcome) return null;
   return {
@@ -553,10 +582,10 @@ export function buildGuardedTerminateParams(discovery, target = {}, identity = {
     failures.push('lock_id_unverified');
   }
   const pid = parsePositiveInt(target.pid);
-  const backendStartEpoch = parsePositiveInt(target.backend_start_epoch);
+  const backendStart = parseExactBackendStart(target.backend_start ?? target.backend_start_epoch);
   const databaseOid = intOrNull(identity.database_oid);
   if (pid === null) failures.push('missing_or_invalid_confirm_pid');
-  if (backendStartEpoch === null) failures.push('missing_or_invalid_confirm_backend_start_epoch');
+  if (backendStart === null) failures.push('missing_or_invalid_confirm_backend_start');
   if (databaseOid === null || databaseOid <= 0) failures.push('database_oid_unverified');
   if (identity.database && identity.database !== EXPECTED_DATABASE) {
     failures.push('unexpected_database');
@@ -574,7 +603,7 @@ export function buildGuardedTerminateParams(discovery, target = {}, identity = {
       columns.objid,
       columns.objsubid,
       pid,
-      backendStartEpoch,
+      backendStart,
       databaseOid,
       EXPECTED_DATABASE,
       EXPECTED_ROLE,
@@ -632,8 +661,11 @@ export function inspectGuardedTerminateSql(sql) {
     failures.push('missing_lock_key_params');
   }
   if (!/\$4::int/.test(text)) failures.push('missing_pid_param');
-  if (!/\$5::bigint/.test(text) || !/backend_start/.test(text)) {
+  if (!/\$5::text/.test(text) || !/to_char\(a\.backend_start AT TIME ZONE 'UTC'/.test(text)) {
     failures.push('missing_backend_start_predicate');
+  }
+  if (/\$5::bigint/.test(text) || /EXTRACT\(EPOCH FROM a\.backend_start\)::bigint/.test(text)) {
+    failures.push('coarse_backend_start_epoch');
   }
   if (!/\$6::oid/.test(text)) failures.push('missing_oid_param');
   if (!/\$7::text/.test(text) || !/\$8::text/.test(text)) {
@@ -679,6 +711,8 @@ export function inspectTerminateScript(verifySource, terminateSql = GUARDED_SING
   if (!/evaluateGuardedTerminateOutcome/.test(text)) failures.push('missing_terminate_outcome_guard');
   if (!/evaluateReleaseCandidate/.test(text)) failures.push('missing_release_candidate_guard');
   if (!/evaluateFreshReleaseIdentity/.test(text)) failures.push('missing_fresh_identity_guard');
+  if (!/publicReleaseGuardLogView/.test(text)) failures.push('missing_public_release_guard_log');
+  if (/release_guard:\s*releaseGuard/.test(text)) failures.push('emits_raw_release_guard');
   if (/pg_advisory_unlock/.test(text)) failures.push('contains_advisory_unlock');
   if (/PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK/.test(text)) failures.push('disables_advisory_lock');
   return { ok: failures.length === 0, failures };
@@ -876,7 +910,8 @@ export function inspectResolverWorkflow(yamlText) {
   requireMatch(/-\s*release_lock\s*$/m, 'release_lock_mode');
   requireMatch(/confirm_migration_id/, 'confirm_input');
   requireMatch(/confirm_pid/, 'confirm_pid_input');
-  requireMatch(/confirm_backend_start_epoch/, 'confirm_backend_start_input');
+  requireMatch(/confirm_backend_start:/, 'confirm_backend_start_input');
+  forbidMatch(/confirm_backend_start_epoch/, 'coarse_backend_start_epoch_input');
   requireMatch(/confirm_terminate/, 'confirm_terminate_input');
   requireMatch(/terminate_one_session/, 'terminate_confirm_phrase');
   requireMatch(/cancel-in-progress:\s*false/, 'non_cancelling_concurrency');

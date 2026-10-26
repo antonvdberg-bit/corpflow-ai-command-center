@@ -32,8 +32,8 @@ on:
         description: Required for release_preview and release_lock. Exact holder PID from diagnose. Never an application label.
         required: false
         type: string
-      confirm_backend_start_epoch:
-        description: Required for release_preview and release_lock. Holder backend_start as unix epoch seconds from diagnose.
+      confirm_backend_start:
+        description: Required for release_preview and release_lock. Exact diagnose backend_start UTC string with microseconds, YYYY-MM-DDTHH:MM:SS.ffffffZ. Do not reuse whole-second epoch values.
         required: false
         type: string
       confirm_terminate:
@@ -59,7 +59,7 @@ jobs:
       RESOLVER_MODE: ${{ inputs.mode }}
       CONFIRM_MIGRATION_ID: ${{ inputs.confirm_migration_id }}
       CONFIRM_PID: ${{ inputs.confirm_pid }}
-      CONFIRM_BACKEND_START_EPOCH: ${{ inputs.confirm_backend_start_epoch }}
+      CONFIRM_BACKEND_START: ${{ inputs.confirm_backend_start }}
       CONFIRM_TERMINATE: ${{ inputs.confirm_terminate }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd

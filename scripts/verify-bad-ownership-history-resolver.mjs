@@ -44,6 +44,7 @@ import {
   publicLockLogView,
   publicLockReport,
   publicReleaseAttemptLogView,
+  publicReleaseGuardLogView,
   publicTerminateLogView,
   readApprovedMigrationChecksum,
   redactSecrets,
@@ -235,7 +236,7 @@ function parseArgs(argv) {
     mode: '',
     confirm: '',
     confirmPid: '',
-    confirmBackendStartEpoch: '',
+    confirmBackendStart: '',
     confirmTerminate: '',
   };
   for (const arg of argv) {
@@ -243,8 +244,8 @@ function parseArgs(argv) {
     else if (arg.startsWith('--mode=')) out.mode = arg.slice('--mode='.length);
     else if (arg.startsWith('--confirm=')) out.confirm = arg.slice('--confirm='.length);
     else if (arg.startsWith('--confirm-pid=')) out.confirmPid = arg.slice('--confirm-pid='.length);
-    else if (arg.startsWith('--confirm-backend-start-epoch=')) {
-      out.confirmBackendStartEpoch = arg.slice('--confirm-backend-start-epoch='.length);
+    else if (arg.startsWith('--confirm-backend-start=')) {
+      out.confirmBackendStart = arg.slice('--confirm-backend-start='.length);
     } else if (arg.startsWith('--confirm-terminate=')) {
       out.confirmTerminate = arg.slice('--confirm-terminate='.length);
     }
@@ -252,8 +253,8 @@ function parseArgs(argv) {
   if (process.env.RESOLVER_MODE) out.mode = String(process.env.RESOLVER_MODE);
   if (process.env.CONFIRM_MIGRATION_ID) out.confirm = String(process.env.CONFIRM_MIGRATION_ID);
   if (process.env.CONFIRM_PID) out.confirmPid = String(process.env.CONFIRM_PID);
-  if (process.env.CONFIRM_BACKEND_START_EPOCH) {
-    out.confirmBackendStartEpoch = String(process.env.CONFIRM_BACKEND_START_EPOCH);
+  if (process.env.CONFIRM_BACKEND_START) {
+    out.confirmBackendStart = String(process.env.CONFIRM_BACKEND_START);
   }
   if (process.env.CONFIRM_TERMINATE) out.confirmTerminate = String(process.env.CONFIRM_TERMINATE);
   if (!out.mode) out.mode = 'dry_run';
@@ -370,20 +371,20 @@ async function run(args) {
     const releaseGuard = evaluateReleaseGuard({
       mode: args.mode,
       confirmPid: args.confirmPid,
-      confirmBackendStartEpoch: args.confirmBackendStartEpoch,
+      confirmBackendStart: args.confirmBackendStart,
       confirmTerminate: args.confirmTerminate,
     });
     if (!releaseGuard.ok) {
       fail(1, {
         step: 'release_guard',
-        release_guard: releaseGuard,
+        release_guard: publicReleaseGuardLogView(releaseGuard),
         blocker: 'Release targeting is incomplete or not authorised. No session was terminated.',
       });
     }
 
     const target = {
       pid: releaseGuard.confirm_pid,
-      backend_start_epoch: releaseGuard.confirm_backend_start_epoch,
+      backend_start: releaseGuard.confirm_backend_start,
     };
     const discovery = discoverPrismaMigrateAdvisoryLock();
     let firstLock;
