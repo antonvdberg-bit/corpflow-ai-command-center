@@ -11,15 +11,25 @@ import { fileURLToPath } from 'node:url';
 
 import {
   EXPECTED_MIGRATION_CHECKSUM,
+  PRISMA_ADVISORY_LOCK_SELECT_SQL,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  classifyAdvisoryLockRow,
   classifyConnectionUrl,
+  classifyLockQueryError,
+  discoverPrismaMigrateAdvisoryLock,
+  evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluatePostflight,
   evaluatePreflight,
   hashMigrationSql,
+  inspectLockQuerySql,
   inspectResolverWorkflow,
+  omitSqlFromError,
+  parsePrismaAdvisoryLockIdFromEngineText,
+  prismaAdvisoryLockColumns,
   publicConnectionReport,
+  publicLockReport,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
@@ -266,5 +276,144 @@ describe('BAD ownership Prisma history resolver', () => {
       EXPECTED_MIGRATION_CHECKSUM,
     );
     assert.equal(redactSecrets(`connected with ${DIRECT}`).includes('secret'), false);
+  });
+
+  it('reads the Prisma migrate advisory lock id from installed schema-engine and classifies holders', () => {
+    const missing = parsePrismaAdvisoryLockIdFromEngineText('no lock sql here');
+    assert.equal(missing.ok, false);
+    assert.equal(missing.reason, 'advisory_lock_sql_not_found');
+    assert.equal(missing.lock_id, null);
+
+    const ambiguous = parsePrismaAdvisoryLockIdFromEngineText(
+      'SELECT pg_advisory_lock(1) SELECT pg_advisory_lock(2)',
+    );
+    assert.equal(ambiguous.ok, false);
+    assert.equal(ambiguous.reason, 'advisory_lock_id_ambiguous');
+
+    const engine = parsePrismaAdvisoryLockIdFromEngineText(
+      'SELECT pg_advisory_lock(72707369) Timed out trying to acquire a postgres advisory lock (SELECT pg_advisory_lock(72707369)). Timeout: 10000 ms.',
+    );
+    assert.equal(engine.ok, true);
+    assert.equal(engine.lock_id, 72707369);
+    assert.deepEqual(prismaAdvisoryLockColumns(72707369), {
+      classid: 0,
+      objid: 72707369,
+      objsubid: 1,
+    });
+
+    const installed = discoverPrismaMigrateAdvisoryLock(ROOT);
+    assert.equal(installed.ok, true, installed.reason);
+    assert.equal(installed.lock_id, 72707369);
+    assert.equal(installed.classid, 0);
+    assert.equal(installed.objsubid, 1);
+
+    const unverified = publicLockReport({ discovery: { ok: false, reason: 'schema_engine_missing' } });
+    assert.equal(unverified.ok, false);
+    assert.equal(unverified.recommendation, 'do_not_retry_unverified_lock_id');
+    assert.equal(unverified.lock_id, null);
+
+    const denied = publicLockReport({
+      discovery: installed,
+      queryError: 'permission denied for view pg_stat_activity',
+    });
+    assert.equal(denied.ok, false);
+    assert.equal(denied.reason, 'session_inspect_permission_denied');
+    assert.equal(denied.recommendation, 'report_access_limitation_no_session_mutation');
+    assert.equal(classifyLockQueryError('permission denied for view pg_stat_activity').reason, 'session_inspect_permission_denied');
+
+    const holder = classifyAdvisoryLockRow(
+      {
+        pid: 4242,
+        granted: true,
+        mode: 'ExclusiveLock',
+        state: 'idle in transaction',
+        wait_event_type: 'Client',
+        wait_event: 'ClientRead',
+        application_name: 'prisma-schema-engine',
+        backend_type: 'client backend',
+        session_age_seconds: 120,
+        xact_age_seconds: 90,
+        state_age_seconds: 88,
+        role_matches_current: true,
+        database_matches_current: true,
+      },
+      99,
+    );
+    assert.equal(holder.occupancy, 'holder');
+    assert.equal(holder.activity, 'idle_in_transaction');
+    assert.equal(holder.is_this_session, false);
+
+    const held = publicLockReport({
+      discovery: installed,
+      selfPid: 99,
+      rows: [
+        {
+          pid: 4242,
+          granted: true,
+          mode: 'ExclusiveLock',
+          state: 'idle in transaction',
+          wait_event_type: 'Client',
+          wait_event: 'ClientRead',
+          application_name: `prisma@ep-example.c-6.us-east-1.aws.neon.tech ${DIRECT}`,
+          backend_type: 'client backend',
+          session_age_seconds: 120,
+          xact_age_seconds: 90,
+          state_age_seconds: 88,
+          role_matches_current: true,
+          database_matches_current: true,
+        },
+      ],
+    });
+    assert.equal(held.ok, true);
+    assert.equal(held.occupancy, 'held_idle_in_transaction');
+    assert.equal(held.recommendation, 'identify_holder_gated_decision_no_terminate');
+    const heldJson = JSON.stringify(held);
+    for (const leak of ['ep-example', 'secret', 'neondb_owner', 'SELECT ', DIRECT, 'pg_stat_activity']) {
+      assert.equal(heldJson.includes(leak), false, leak);
+    }
+
+    const absent = publicLockReport({ discovery: installed, rows: [], selfPid: 1 });
+    assert.equal(absent.occupancy, 'absent');
+    assert.equal(
+      absent.recommendation,
+      'recheck_history_then_gated_execute_under_original_approval',
+    );
+
+    assert.equal(evaluateExecutionGuard({ mode: 'diagnose' }).ok, true);
+    assert.ok(evaluateExecutionGuard({ mode: 'explode' }).failures.includes('invalid_mode'));
+
+    const lockSql = inspectLockQuerySql(PRISMA_ADVISORY_LOCK_SELECT_SQL);
+    assert.equal(lockSql.ok, true, lockSql.failures.join(','));
+    const unscoped = inspectLockQuerySql(
+      "SELECT l.pid FROM pg_locks l WHERE l.locktype = 'advisory' AND l.classid = $1",
+    );
+    assert.equal(unscoped.ok, false);
+    assert.ok(unscoped.failures.includes('missing_database_oid_filter'));
+
+    const verifySrc = readFileSync(
+      path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
+      'utf8',
+    );
+    assert.match(verifySrc, /PRISMA_ADVISORY_LOCK_SELECT_SQL/);
+    assert.match(verifySrc, /evaluateDiagnoseOutcome/);
+    assert.doesNotMatch(verifySrc, /pg_terminate_backend/);
+
+    assert.equal(evaluateDiagnoseOutcome(held).ok, true);
+    assert.equal(evaluateDiagnoseOutcome(denied).ok, false);
+    assert.equal(evaluateDiagnoseOutcome(unverified).ok, false);
+    assert.equal(evaluateDiagnoseOutcome(denied).reason, 'session_inspect_permission_denied');
+  });
+
+  it('redacts Prisma datasource hostnames and omits SQL from public errors', () => {
+    const prismaStdout =
+      'Datasource "db": PostgreSQL database "neondb", schema "public" at "ep-abc-123.c-6.us-east-1.aws.neon.tech"';
+    const redacted = redactSecrets(prismaStdout);
+    assert.equal(redacted.includes('neon.tech'), false);
+    assert.equal(redacted.includes('ep-abc-123'), false);
+    assert.match(redacted, /\[redacted-host\]/);
+
+    const withSql = omitSqlFromError('permission denied for view pg_stat_activity SELECT query FROM pg_stat_activity');
+    assert.equal(withSql.includes('SELECT'), false);
+    assert.match(withSql, /permission denied/);
   });
 });

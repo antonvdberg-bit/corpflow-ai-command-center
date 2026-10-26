@@ -4,7 +4,7 @@
  */
 
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -16,7 +16,37 @@ export const EXPECTED_DATABASE = 'neondb';
 export const EXPECTED_ROLE = 'neondb_owner';
 export const AUTHORIZED_REPOSITORY = 'antonvdberg-bit/corpflow-ai-command-center';
 export const AUTHORIZED_REF = 'refs/heads/main';
-export const ALLOWED_MODES = Object.freeze(['dry_run', 'execute']);
+export const ALLOWED_MODES = Object.freeze(['dry_run', 'diagnose', 'execute']);
+export const PRISMA_ADVISORY_LOCK_OBJSUBID = 1;
+export const P1002_TIMEOUT_MS_OBSERVED = 10000;
+export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
+         l.pid,
+         l.granted,
+         l.mode,
+         a.state,
+         a.wait_event_type,
+         a.wait_event,
+         a.application_name,
+         a.backend_type,
+         EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
+         CASE
+           WHEN a.xact_start IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.xact_start))::int
+         END AS xact_age_seconds,
+         CASE
+           WHEN a.state_change IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.state_change))::int
+         END AS state_age_seconds,
+         (a.usename = current_user) AS role_matches_current,
+         (a.datname = current_database()) AS database_matches_current
+       FROM pg_locks l
+       LEFT JOIN pg_stat_activity a ON a.pid = l.pid
+       WHERE l.locktype = 'advisory'
+         AND l.database = (SELECT oid FROM pg_database WHERE datname = current_database())
+         AND l.classid = $1
+         AND l.objid = $2
+         AND l.objsubid = $3
+       ORDER BY l.granted DESC, l.pid`;
 export const NON_POOLED_KEYS = ['DIRECT_URL', 'POSTGRES_URL_NON_POOLING'];
 export const REQUIRED_TABLES = [
   'bad_purchase_ownership',
@@ -63,7 +93,218 @@ export function redactSecrets(text) {
   return String(text || '')
     .replace(/postgres(?:ql)?:\/\/[^\s'"]+/gi, 'postgresql://[redacted]')
     .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.neon\.tech/gi, '[redacted-host]')
+    .replace(/\b[A-Za-z0-9._-]+\.neon\.tech\b/gi, '[redacted-host]')
+    .replace(/\bat\s+"[^"]+"/gi, 'at "[redacted-host]"')
     .replace(/[?&](password|pwd|user|username)=([^&\s'"]+)/gi, '$1=[redacted]');
+}
+
+export function omitSqlFromError(message) {
+  return redactSecrets(String(message || ''))
+    .replace(/\b(SELECT|INSERT|UPDATE|DELETE|WITH)\b[\s\S]{0,800}/gi, '[sql-omitted]')
+    .slice(0, 240);
+}
+
+export function parsePrismaAdvisoryLockIdFromEngineText(text) {
+  const matches = [...String(text || '').matchAll(/pg_advisory_lock\((\d+)\)/g)].map(
+    (match) => match[1],
+  );
+  if (matches.length === 0) {
+    return { ok: false, reason: 'advisory_lock_sql_not_found', lock_id: null };
+  }
+  const unique = [...new Set(matches)];
+  if (unique.length !== 1) {
+    return { ok: false, reason: 'advisory_lock_id_ambiguous', lock_id: null };
+  }
+  const lockId = Number(unique[0]);
+  if (!Number.isSafeInteger(lockId) || lockId <= 0) {
+    return { ok: false, reason: 'advisory_lock_id_invalid', lock_id: null };
+  }
+  return { ok: true, reason: 'schema_engine_pg_advisory_lock', lock_id: lockId };
+}
+
+export function prismaAdvisoryLockColumns(lockId) {
+  const id = BigInt(lockId);
+  return {
+    classid: Number(id >> 32n),
+    objid: Number(id & 0xffffffffn),
+    objsubid: PRISMA_ADVISORY_LOCK_OBJSUBID,
+  };
+}
+
+export function discoverPrismaMigrateAdvisoryLock(root = ROOT) {
+  const enginesDir = path.join(root, 'node_modules', '@prisma', 'engines');
+  const prismaPkg = path.join(root, 'node_modules', 'prisma', 'package.json');
+  let prisma_version = null;
+  if (existsSync(prismaPkg)) {
+    try {
+      prisma_version = JSON.parse(readFileSync(prismaPkg, 'utf8')).version || null;
+    } catch {
+      prisma_version = null;
+    }
+  }
+  if (!existsSync(enginesDir)) {
+    return {
+      ok: false,
+      reason: 'prisma_engines_missing',
+      lock_id: null,
+      prisma_version,
+    };
+  }
+  const files = readdirSync(enginesDir).filter((name) => name.startsWith('schema-engine'));
+  if (files.length === 0) {
+    return {
+      ok: false,
+      reason: 'schema_engine_missing',
+      lock_id: null,
+      prisma_version,
+    };
+  }
+  const chunks = files.map((name) =>
+    readFileSync(path.join(enginesDir, name), { encoding: 'latin1' }),
+  );
+  const parsed = parsePrismaAdvisoryLockIdFromEngineText(chunks.join('\n'));
+  if (!parsed.ok) {
+    return { ...parsed, prisma_version };
+  }
+  return {
+    ...parsed,
+    ...prismaAdvisoryLockColumns(parsed.lock_id),
+    prisma_version,
+    p1002_timeout_ms_observed: P1002_TIMEOUT_MS_OBSERVED,
+  };
+}
+
+export function sanitizeApplicationLabel(value) {
+  const cleaned = redactSecrets(String(value || '').replace(/[\r\n\t]+/g, ' ').trim());
+  if (!cleaned) return '';
+  return cleaned.length > 80 ? cleaned.slice(0, 80) : cleaned;
+}
+
+export function classifyLockQueryError(message) {
+  const text = String(message || '');
+  if (/permission denied|must be owner|insufficient privilege|pg_stat_activity|pg_locks/i.test(text)) {
+    return { reason: 'session_inspect_permission_denied' };
+  }
+  return { reason: 'lock_query_failed' };
+}
+
+function intOrNull(value) {
+  if (value === null || value === undefined || value === '') return null;
+  const num = Number(value);
+  return Number.isFinite(num) ? Math.trunc(num) : null;
+}
+
+export function classifyAdvisoryLockRow(row, selfPid) {
+  const granted = Boolean(row?.granted);
+  const state = String(row?.state || '');
+  let activity = 'unknown';
+  if (state === 'active') activity = 'active';
+  else if (state === 'idle in transaction') activity = 'idle_in_transaction';
+  else if (state === 'idle in transaction (aborted)') activity = 'idle_in_transaction_aborted';
+  else if (state === 'idle') activity = 'idle';
+  const pid = intOrNull(row?.pid);
+  return {
+    pid,
+    granted,
+    occupancy: granted ? 'holder' : 'waiter',
+    mode: String(row?.mode || ''),
+    state,
+    activity,
+    wait_event_type: String(row?.wait_event_type || ''),
+    wait_event: String(row?.wait_event || ''),
+    application_label: sanitizeApplicationLabel(row?.application_name),
+    backend_type: String(row?.backend_type || ''),
+    session_age_seconds: intOrNull(row?.session_age_seconds),
+    xact_age_seconds: intOrNull(row?.xact_age_seconds),
+    state_age_seconds: intOrNull(row?.state_age_seconds),
+    is_this_session: pid !== null && Number(selfPid) === pid,
+    role_matches_current: Boolean(row?.role_matches_current),
+    database_matches_current: Boolean(row?.database_matches_current),
+  };
+}
+
+export function publicLockReport(input = {}) {
+  const discovery = input.discovery || { ok: false, reason: 'lock_id_unverified', lock_id: null };
+  if (!discovery.ok) {
+    return {
+      ok: false,
+      reason: discovery.reason || 'lock_id_unverified',
+      lock_id: null,
+      prisma_version: discovery.prisma_version || null,
+      holders: [],
+      waiters: [],
+      occupancy: 'unverified',
+      recommendation: 'do_not_retry_unverified_lock_id',
+    };
+  }
+  if (input.queryError) {
+    const classified = classifyLockQueryError(input.queryError);
+    return {
+      ok: false,
+      reason: classified.reason,
+      lock_id: discovery.lock_id,
+      prisma_version: discovery.prisma_version || null,
+      holders: [],
+      waiters: [],
+      occupancy: 'inspect_unavailable',
+      recommendation: 'report_access_limitation_no_session_mutation',
+    };
+  }
+  const classifiedRows = (input.rows || []).map((row) => classifyAdvisoryLockRow(row, input.selfPid));
+  const holders = classifiedRows.filter((row) => row.granted);
+  const waiters = classifiedRows.filter((row) => !row.granted);
+  let occupancy = 'absent';
+  if (holders.length > 0) {
+    if (holders.some((row) => row.activity === 'active')) occupancy = 'held_active';
+    else if (holders.some((row) => row.activity.startsWith('idle_in_transaction'))) {
+      occupancy = 'held_idle_in_transaction';
+    } else occupancy = 'held_idle';
+  } else if (waiters.length > 0) {
+    occupancy = 'waiters_only';
+  }
+  const recommendation =
+    occupancy === 'absent'
+      ? 'recheck_history_then_gated_execute_under_original_approval'
+      : 'identify_holder_gated_decision_no_terminate';
+  return {
+    ok: true,
+    reason: occupancy,
+    lock_id: discovery.lock_id,
+    prisma_version: discovery.prisma_version || null,
+    p1002_timeout_ms_observed: P1002_TIMEOUT_MS_OBSERVED,
+    holders,
+    waiters,
+    occupancy,
+    recommendation,
+    current_database_scoped: true,
+  };
+}
+
+export function inspectLockQuerySql(sql) {
+  const text = String(sql || '');
+  const failures = [];
+  if (
+    !/l\.database\s*=\s*\(\s*SELECT oid FROM pg_database WHERE datname\s*=\s*current_database\(\)\s*\)/.test(
+      text,
+    )
+  ) {
+    failures.push('missing_database_oid_filter');
+  }
+  if (!/locktype = 'advisory'/.test(text)) failures.push('missing_advisory_locktype');
+  if (/a\.query\b/.test(text)) failures.push('selects_query_text');
+  if (/pg_terminate_backend/.test(text)) failures.push('contains_terminate_backend');
+  return { ok: failures.length === 0, failures };
+}
+
+export function evaluateDiagnoseOutcome(lock) {
+  if (!lock || lock.ok !== true) {
+    return {
+      ok: false,
+      reason: lock?.reason || 'lock_inspect_failed',
+      occupancy: lock?.occupancy || 'inspect_unavailable',
+    };
+  }
+  return { ok: true, reason: lock.occupancy, occupancy: lock.occupancy };
 }
 
 export function hashMigrationSql(sql) {
@@ -253,12 +494,16 @@ export function inspectResolverWorkflow(yamlText) {
   requireMatch(/domain:\s*"\$\{\{\s*vars\.INFISICAL_DOMAIN\s*\}\}"/, 'domain_var');
   requireMatch(new RegExp(TARGET_MIGRATION), 'fixed_migration_id');
   requireMatch(/default:\s*dry_run/, 'default_dry_run');
+  requireMatch(/-\s*diagnose\s*$/m, 'diagnose_mode');
   requireMatch(/confirm_migration_id/, 'confirm_input');
   requireMatch(/cancel-in-progress:\s*false/, 'non_cancelling_concurrency');
   requireMatch(/github\.ref == 'refs\/heads\/main'/, 'execute_requires_main');
   forbidMatch(/prisma migrate deploy/, 'contains_migrate_deploy');
   forbidMatch(/prisma db push/, 'contains_db_push');
   forbidMatch(/prisma migrate reset/, 'contains_migrate_reset');
+  forbidMatch(/pg_terminate_backend/, 'contains_terminate_backend');
+  forbidMatch(/pg_advisory_unlock/, 'contains_advisory_unlock');
+  forbidMatch(/PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK/, 'disables_advisory_lock');
   forbidMatch(/deriveNonPoolingUrlFromNeonPooler/, 'derives_from_pooler');
   return { ok: failures.length === 0, failures };
 }

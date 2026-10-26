@@ -22,11 +22,16 @@ import {
   RESOLVER_REPO_ROOT,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  PRISMA_ADVISORY_LOCK_SELECT_SQL,
+  discoverPrismaMigrateAdvisoryLock,
+  evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluatePostflight,
   evaluatePreflight,
   inspectResolverWorkflow,
+  omitSqlFromError,
   publicConnectionReport,
+  publicLockReport,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
@@ -167,6 +172,28 @@ async function collectDatabaseEvidence(url) {
   });
 }
 
+async function collectLockEvidence(url, discovery) {
+  if (!discovery?.ok) {
+    return publicLockReport({ discovery });
+  }
+  return withPrisma(url, async (prisma) => {
+    const selfRows = await prisma.$queryRawUnsafe(`SELECT pg_backend_pid() AS pid`);
+    const selfPid = selfRows[0]?.pid;
+    const columns = {
+      classid: discovery.classid,
+      objid: discovery.objid,
+      objsubid: discovery.objsubid,
+    };
+    const rows = await prisma.$queryRawUnsafe(
+      PRISMA_ADVISORY_LOCK_SELECT_SQL,
+      columns.classid,
+      columns.objid,
+      columns.objsubid,
+    );
+    return publicLockReport({ discovery, rows, selfPid });
+  });
+}
+
 function runPrismaResolve(url) {
   const result = spawnSync(
     'npx',
@@ -219,6 +246,7 @@ async function run(args) {
       workflow,
       checksum,
       target_migration: TARGET_MIGRATION,
+      advisory_lock: discoverPrismaMigrateAdvisoryLock(),
       note: 'No database command ran.',
     });
     return;
@@ -248,6 +276,7 @@ async function run(args) {
         'Infisical production still lacks a pre-existing non-pooled Neon URL under DIRECT_URL or POSTGRES_URL_NON_POOLING. Do not derive one from POSTGRES_URL. CEO approval is required to add that existing Neon direct connection as a named Infisical secret for the current OIDC identity.',
     };
     if (args.mode === 'execute') fail(2, payload);
+    if (args.mode === 'diagnose') fail(1, { ...payload, step: 'diagnose' });
     printSafe({ ok: true, inert: true, ...payload });
     return;
   }
@@ -259,7 +288,7 @@ async function run(args) {
     fail(1, {
       step: 'database_preflight',
       selected: selectedSafe,
-      error: redactSecrets(error && error.message),
+      error: omitSqlFromError(error && error.message),
     });
   }
 
@@ -271,6 +300,31 @@ async function run(args) {
   const alreadyApplied = Boolean(
     preflight.target.count === 1 && preflight.target.finished && !preflight.target.rolled_back,
   );
+
+  if (args.mode === 'diagnose') {
+    let lock;
+    try {
+      lock = await collectLockEvidence(selected.url, discoverPrismaMigrateAdvisoryLock());
+    } catch (error) {
+      lock = publicLockReport({
+        discovery: discoverPrismaMigrateAdvisoryLock(),
+        queryError: error && error.message,
+      });
+    }
+    const diagnose = evaluateDiagnoseOutcome(lock);
+    const payload = {
+      step: 'diagnose',
+      selected: selectedSafe,
+      preflight,
+      lock,
+      diagnose,
+      resolve: 'skipped',
+      note: 'diagnose does not call prisma migrate resolve, terminate sessions, or disable advisory locking.',
+    };
+    if (!diagnose.ok) fail(1, payload);
+    printSafe({ ok: true, ...payload });
+    return;
+  }
 
   if (args.mode !== 'execute') {
     printSafe({
@@ -307,7 +361,7 @@ async function run(args) {
     fail(1, {
       step: 'database_postflight',
       selected: selectedSafe,
-      error: redactSecrets(error && error.message),
+      error: omitSqlFromError(error && error.message),
     });
   }
 
@@ -340,6 +394,6 @@ const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURL
 if (isDirectRun) {
   const args = parseArgs(process.argv.slice(2));
   run(args).catch((error) => {
-    fail(1, { step: 'unhandled', error: redactSecrets(error && error.message) });
+    fail(1, { step: 'unhandled', error: omitSqlFromError(error && error.message) });
   });
 }
