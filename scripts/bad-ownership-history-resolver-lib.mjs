@@ -16,7 +16,17 @@ export const EXPECTED_DATABASE = 'neondb';
 export const EXPECTED_ROLE = 'neondb_owner';
 export const AUTHORIZED_REPOSITORY = 'antonvdberg-bit/corpflow-ai-command-center';
 export const AUTHORIZED_REF = 'refs/heads/main';
-export const ALLOWED_MODES = Object.freeze(['dry_run', 'diagnose', 'execute']);
+export const ALLOWED_MODES = Object.freeze([
+  'dry_run',
+  'diagnose',
+  'release_preview',
+  'release_lock',
+  'execute',
+]);
+export const RELEASE_MODES = Object.freeze(['release_preview', 'release_lock']);
+export const EXPECTED_PRISMA_ADVISORY_LOCK_ID = 72707369;
+export const TERMINATE_ONE_SESSION_CONFIRM = 'terminate_one_session';
+export const RECOGNISED_POOLER_APPLICATION_LABEL = 'pgbouncer';
 export const PRISMA_ADVISORY_LOCK_OBJSUBID = 1;
 export const P1002_TIMEOUT_MS_OBSERVED = 10000;
 export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
@@ -28,6 +38,7 @@ export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
          a.wait_event,
          a.application_name,
          a.backend_type,
+         EXTRACT(EPOCH FROM a.backend_start)::bigint AS backend_start_epoch,
          EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
          CASE
            WHEN a.xact_start IS NULL THEN NULL
@@ -47,6 +58,8 @@ export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
          AND l.objid = $2
          AND l.objsubid = $3
        ORDER BY l.granted DESC, l.pid`;
+export const SINGLE_SESSION_TERMINATE_SQL =
+  'SELECT pg_terminate_backend($1::int) AS terminated WHERE $1::int IS DISTINCT FROM pg_backend_pid()';
 export const NON_POOLED_KEYS = ['DIRECT_URL', 'POSTGRES_URL_NON_POOLING'];
 export const REQUIRED_TABLES = [
   'bad_purchase_ownership',
@@ -214,6 +227,7 @@ export function classifyAdvisoryLockRow(row, selfPid) {
     wait_event: String(row?.wait_event || ''),
     application_label: sanitizeApplicationLabel(row?.application_name),
     backend_type: String(row?.backend_type || ''),
+    backend_start_epoch: intOrNull(row?.backend_start_epoch),
     session_age_seconds: intOrNull(row?.session_age_seconds),
     xact_age_seconds: intOrNull(row?.xact_age_seconds),
     state_age_seconds: intOrNull(row?.state_age_seconds),
@@ -291,6 +305,7 @@ export function inspectLockQuerySql(sql) {
     failures.push('missing_database_oid_filter');
   }
   if (!/locktype = 'advisory'/.test(text)) failures.push('missing_advisory_locktype');
+  if (!/backend_start_epoch/.test(text)) failures.push('missing_backend_start_epoch');
   if (/a\.query\b/.test(text)) failures.push('selects_query_text');
   if (/pg_terminate_backend/.test(text)) failures.push('contains_terminate_backend');
   return { ok: failures.length === 0, failures };
@@ -305,6 +320,136 @@ export function evaluateDiagnoseOutcome(lock) {
     };
   }
   return { ok: true, reason: lock.occupancy, occupancy: lock.occupancy };
+}
+
+export function parsePositiveInt(value) {
+  const raw = String(value ?? '').trim();
+  if (!/^[1-9][0-9]*$/.test(raw)) return null;
+  const num = Number(raw);
+  return Number.isSafeInteger(num) ? num : null;
+}
+
+export function assessPoolerHolder(applicationLabel) {
+  const label = sanitizeApplicationLabel(applicationLabel).toLowerCase();
+  const matches_pgbouncer_label = label === RECOGNISED_POOLER_APPLICATION_LABEL;
+  return {
+    matches_pgbouncer_label,
+    likely_neon_transaction_pooler_backend: matches_pgbouncer_label,
+    session_advisory_lock_can_outlive_client_transaction: matches_pgbouncer_label,
+    terminate_kills_one_postgres_backend_not_cluster: true,
+    may_disconnect_client_currently_assigned_that_backend: true,
+    does_not_restart_neon: true,
+    ownership_certain_enough_to_consider: matches_pgbouncer_label,
+  };
+}
+
+export function evaluateReleaseGuard(input = {}) {
+  const mode = String(input.mode || '').trim();
+  const failures = [];
+  if (!RELEASE_MODES.includes(mode)) failures.push('invalid_release_mode');
+  const pid = parsePositiveInt(input.confirmPid);
+  const backendStartEpoch = parsePositiveInt(input.confirmBackendStartEpoch);
+  if (pid === null) failures.push('missing_or_invalid_confirm_pid');
+  if (backendStartEpoch === null) failures.push('missing_or_invalid_confirm_backend_start_epoch');
+  const terminate = String(input.confirmTerminate || '').trim();
+  if (mode === 'release_preview' && terminate) {
+    failures.push('terminate_confirm_not_allowed_in_preview');
+  }
+  if (mode === 'release_lock' && terminate !== TERMINATE_ONE_SESSION_CONFIRM) {
+    failures.push('confirm_terminate_mismatch');
+  }
+  return {
+    ok: failures.length === 0,
+    failures,
+    mode: RELEASE_MODES.includes(mode) ? mode : null,
+    confirm_pid: pid,
+    confirm_backend_start_epoch: backendStartEpoch,
+    mutation_requested: mode === 'release_lock' && terminate === TERMINATE_ONE_SESSION_CONFIRM,
+  };
+}
+
+export function evaluateReleaseCandidate(lock, target = {}, identity = {}) {
+  const failures = [];
+  const pooler = assessPoolerHolder(lock?.holders?.[0]?.application_label);
+  if (!lock || lock.ok !== true) {
+    return {
+      ok: false,
+      failures: ['lock_inspect_failed'],
+      pooler,
+      holder: null,
+    };
+  }
+  if (lock.lock_id !== EXPECTED_PRISMA_ADVISORY_LOCK_ID) failures.push('lock_id_mismatch');
+  if (lock.current_database_scoped !== true) failures.push('lock_not_database_scoped');
+  if (identity.database && identity.database !== EXPECTED_DATABASE) {
+    failures.push('unexpected_database');
+  }
+  if (identity.role && identity.role !== EXPECTED_ROLE) failures.push('unexpected_role');
+  if (identity.database_oid !== undefined && identity.database_oid !== null) {
+    const oid = intOrNull(identity.database_oid);
+    if (oid === null || oid <= 0) failures.push('database_oid_unverified');
+  } else {
+    failures.push('database_oid_unverified');
+  }
+  const holders = lock.holders || [];
+  const waiters = lock.waiters || [];
+  if (holders.length !== 1) failures.push('holder_count_not_one');
+  if (waiters.length !== 0) failures.push('waiters_present');
+  const holder = holders.length === 1 ? holders[0] : null;
+  if (!holder) {
+    return { ok: false, failures, pooler, holder: null };
+  }
+  const expectedPid = parsePositiveInt(target.pid);
+  const expectedStart = parsePositiveInt(target.backend_start_epoch);
+  if (expectedPid === null || holder.pid !== expectedPid) failures.push('pid_mismatch');
+  if (expectedStart === null || holder.backend_start_epoch !== expectedStart) {
+    failures.push('backend_start_mismatch');
+  }
+  if (holder.is_this_session) failures.push('would_terminate_self');
+  if (holder.activity !== 'idle' || holder.state !== 'idle') failures.push('holder_not_idle');
+  if (holder.xact_age_seconds !== null) failures.push('holder_has_open_transaction');
+  if (!holder.database_matches_current) failures.push('holder_database_mismatch');
+  if (!holder.role_matches_current) failures.push('holder_role_mismatch');
+  if (!pooler.ownership_certain_enough_to_consider) {
+    failures.push('holder_application_uncertain');
+  }
+  return {
+    ok: failures.length === 0,
+    failures,
+    pooler,
+    holder,
+    lock_id: lock.lock_id,
+  };
+}
+
+export function evaluateFreshReleaseIdentity(first, second) {
+  const failures = [];
+  if (!first?.ok) failures.push('first_identification_failed');
+  if (!second?.ok) failures.push('second_identification_failed');
+  if (first?.holder?.pid !== second?.holder?.pid) failures.push('pid_changed');
+  if (first?.holder?.backend_start_epoch !== second?.holder?.backend_start_epoch) {
+    failures.push('backend_start_changed');
+  }
+  return { ok: failures.length === 0, failures };
+}
+
+export function inspectTerminateScript(verifySource, terminateSql = SINGLE_SESSION_TERMINATE_SQL) {
+  const text = String(verifySource || '');
+  const sql = String(terminateSql || '');
+  const failures = [];
+  if (!text.includes('SINGLE_SESSION_TERMINATE_SQL')) {
+    failures.push('missing_parameterized_terminate');
+  }
+  if (!/pg_terminate_backend\(\$1::int\)/.test(sql)) failures.push('terminate_sql_not_parameterized');
+  if (!/IS DISTINCT FROM pg_backend_pid\(\)/.test(sql)) failures.push('terminate_missing_self_guard');
+  if (/application_name/.test(sql)) failures.push('terminate_by_application_label');
+  if (!/evaluateReleaseCandidate/.test(text)) failures.push('missing_release_candidate_guard');
+  if (!/evaluateFreshReleaseIdentity/.test(text)) failures.push('missing_fresh_identity_guard');
+  if (/pg_advisory_unlock/.test(text) || /pg_advisory_unlock/.test(sql)) {
+    failures.push('contains_advisory_unlock');
+  }
+  if (/PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK/.test(text)) failures.push('disables_advisory_lock');
+  return { ok: failures.length === 0, failures };
 }
 
 export function hashMigrationSql(sql) {
@@ -495,9 +640,16 @@ export function inspectResolverWorkflow(yamlText) {
   requireMatch(new RegExp(TARGET_MIGRATION), 'fixed_migration_id');
   requireMatch(/default:\s*dry_run/, 'default_dry_run');
   requireMatch(/-\s*diagnose\s*$/m, 'diagnose_mode');
+  requireMatch(/-\s*release_preview\s*$/m, 'release_preview_mode');
+  requireMatch(/-\s*release_lock\s*$/m, 'release_lock_mode');
   requireMatch(/confirm_migration_id/, 'confirm_input');
+  requireMatch(/confirm_pid/, 'confirm_pid_input');
+  requireMatch(/confirm_backend_start_epoch/, 'confirm_backend_start_input');
+  requireMatch(/confirm_terminate/, 'confirm_terminate_input');
+  requireMatch(/terminate_one_session/, 'terminate_confirm_phrase');
   requireMatch(/cancel-in-progress:\s*false/, 'non_cancelling_concurrency');
   requireMatch(/github\.ref == 'refs\/heads\/main'/, 'execute_requires_main');
+  requireMatch(/inputs\.mode != 'release_lock'/, 'release_lock_requires_main');
   forbidMatch(/prisma migrate deploy/, 'contains_migrate_deploy');
   forbidMatch(/prisma db push/, 'contains_db_push');
   forbidMatch(/prisma migrate reset/, 'contains_migrate_reset');
@@ -519,7 +671,7 @@ export function evaluateExecutionGuard(input = {}) {
   const failures = [];
 
   if (!ALLOWED_MODES.includes(mode)) failures.push('invalid_mode');
-  if (mode === 'execute') {
+  if (mode === 'execute' || RELEASE_MODES.includes(mode)) {
     if (!githubRef) failures.push('missing_github_ref');
     else if (githubRef !== AUTHORIZED_REF) failures.push('ref_not_main');
     if (confirm !== TARGET_MIGRATION) failures.push('confirm_mismatch');

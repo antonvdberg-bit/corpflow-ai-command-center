@@ -11,8 +11,11 @@ import { fileURLToPath } from 'node:url';
 
 import {
   EXPECTED_MIGRATION_CHECKSUM,
+  EXPECTED_PRISMA_ADVISORY_LOCK_ID,
   PRISMA_ADVISORY_LOCK_SELECT_SQL,
+  SINGLE_SESSION_TERMINATE_SQL,
   TARGET_MIGRATION,
+  TERMINATE_ONE_SESSION_CONFIRM,
   WORKFLOW_RELATIVE_PATH,
   classifyAdvisoryLockRow,
   classifyConnectionUrl,
@@ -20,11 +23,15 @@ import {
   discoverPrismaMigrateAdvisoryLock,
   evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
+  evaluateFreshReleaseIdentity,
+  evaluateReleaseCandidate,
+  evaluateReleaseGuard,
   evaluatePostflight,
   evaluatePreflight,
   hashMigrationSql,
   inspectLockQuerySql,
   inspectResolverWorkflow,
+  inspectTerminateScript,
   omitSqlFromError,
   parsePrismaAdvisoryLockIdFromEngineText,
   prismaAdvisoryLockColumns,
@@ -396,7 +403,8 @@ describe('BAD ownership Prisma history resolver', () => {
     );
     assert.match(verifySrc, /PRISMA_ADVISORY_LOCK_SELECT_SQL/);
     assert.match(verifySrc, /evaluateDiagnoseOutcome/);
-    assert.doesNotMatch(verifySrc, /pg_terminate_backend/);
+    assert.doesNotMatch(verifySrc, /pg_advisory_unlock/);
+    assert.doesNotMatch(verifySrc, /PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK/);
 
     assert.equal(evaluateDiagnoseOutcome(held).ok, true);
     assert.equal(evaluateDiagnoseOutcome(denied).ok, false);
@@ -415,5 +423,170 @@ describe('BAD ownership Prisma history resolver', () => {
     const withSql = omitSqlFromError('permission denied for view pg_stat_activity SELECT query FROM pg_stat_activity');
     assert.equal(withSql.includes('SELECT'), false);
     assert.match(withSql, /permission denied/);
+  });
+
+  it('fails closed on unsafe lock-release conditions and never targets by application label', () => {
+    const identity = { database: 'neondb', role: 'neondb_owner', database_oid: 16384 };
+    const holderRow = {
+      pid: 4242,
+      granted: true,
+      mode: 'ExclusiveLock',
+      state: 'idle',
+      wait_event_type: 'Client',
+      wait_event: 'ClientRead',
+      application_name: 'pgbouncer',
+      backend_type: 'client backend',
+      backend_start_epoch: 1761470000,
+      session_age_seconds: 2205,
+      xact_age_seconds: null,
+      state_age_seconds: 12,
+      role_matches_current: true,
+      database_matches_current: true,
+    };
+    const discovery = {
+      ok: true,
+      lock_id: EXPECTED_PRISMA_ADVISORY_LOCK_ID,
+      prisma_version: '6.19.2',
+    };
+    const lock = publicLockReport({ discovery, selfPid: 99, rows: [holderRow] });
+    const target = { pid: 4242, backend_start_epoch: 1761470000 };
+    const ok = evaluateReleaseCandidate(lock, target, identity);
+    assert.equal(ok.ok, true, ok.failures.join(','));
+    assert.equal(ok.pooler.likely_neon_transaction_pooler_backend, true);
+    assert.equal(ok.pooler.does_not_restart_neon, true);
+
+    const twoHolders = publicLockReport({
+      discovery,
+      selfPid: 99,
+      rows: [holderRow, { ...holderRow, pid: 4243 }],
+    });
+    assert.ok(evaluateReleaseCandidate(twoHolders, target, identity).failures.includes('holder_count_not_one'));
+
+    const waiter = publicLockReport({
+      discovery,
+      selfPid: 99,
+      rows: [holderRow, { ...holderRow, pid: 7, granted: false }],
+    });
+    assert.ok(evaluateReleaseCandidate(waiter, target, identity).failures.includes('waiters_present'));
+
+    assert.ok(
+      evaluateReleaseCandidate(lock, { pid: 1, backend_start_epoch: 1761470000 }, identity).failures.includes(
+        'pid_mismatch',
+      ),
+    );
+    assert.ok(
+      evaluateReleaseCandidate(lock, { pid: 4242, backend_start_epoch: 1 }, identity).failures.includes(
+        'backend_start_mismatch',
+      ),
+    );
+
+    const busy = publicLockReport({
+      discovery,
+      selfPid: 99,
+      rows: [{ ...holderRow, state: 'active' }],
+    });
+    assert.ok(evaluateReleaseCandidate(busy, target, identity).failures.includes('holder_not_idle'));
+
+    const inTxn = publicLockReport({
+      discovery,
+      selfPid: 99,
+      rows: [{ ...holderRow, xact_age_seconds: 3 }],
+    });
+    assert.ok(evaluateReleaseCandidate(inTxn, target, identity).failures.includes('holder_has_open_transaction'));
+
+    const selfLock = publicLockReport({ discovery, selfPid: 4242, rows: [holderRow] });
+    assert.ok(evaluateReleaseCandidate(selfLock, target, identity).failures.includes('would_terminate_self'));
+
+    const unknownApp = publicLockReport({
+      discovery,
+      selfPid: 99,
+      rows: [{ ...holderRow, application_name: 'prisma-schema-engine' }],
+    });
+    assert.ok(
+      evaluateReleaseCandidate(unknownApp, target, identity).failures.includes('holder_application_uncertain'),
+    );
+
+    const wrongKey = publicLockReport({
+      discovery: { ...discovery, lock_id: 1 },
+      selfPid: 99,
+      rows: [holderRow],
+    });
+    assert.ok(evaluateReleaseCandidate(wrongKey, target, identity).failures.includes('lock_id_mismatch'));
+
+    const noOid = evaluateReleaseCandidate(lock, target, { ...identity, database_oid: null });
+    assert.ok(noOid.failures.includes('database_oid_unverified'));
+
+    const changed = evaluateFreshReleaseIdentity(ok, {
+      ...ok,
+      holder: { ...ok.holder, pid: 9999 },
+    });
+    assert.ok(changed.failures.includes('pid_changed'));
+
+    assert.equal(
+      evaluateReleaseGuard({
+        mode: 'release_preview',
+        confirmPid: '4242',
+        confirmBackendStartEpoch: '1761470000',
+      }).ok,
+      true,
+    );
+    assert.ok(
+      evaluateReleaseGuard({
+        mode: 'release_preview',
+        confirmPid: '4242',
+        confirmBackendStartEpoch: '1761470000',
+        confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
+      }).failures.includes('terminate_confirm_not_allowed_in_preview'),
+    );
+    assert.ok(
+      evaluateReleaseGuard({
+        mode: 'release_lock',
+        confirmPid: '4242',
+        confirmBackendStartEpoch: '1761470000',
+      }).failures.includes('confirm_terminate_mismatch'),
+    );
+    assert.equal(
+      evaluateReleaseGuard({
+        mode: 'release_lock',
+        confirmPid: '4242',
+        confirmBackendStartEpoch: '1761470000',
+        confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
+      }).ok,
+      true,
+    );
+    assert.ok(
+      evaluateReleaseGuard({
+        mode: 'release_lock',
+        confirmPid: 'pgbouncer',
+        confirmBackendStartEpoch: '1761470000',
+        confirmTerminate: TERMINATE_ONE_SESSION_CONFIRM,
+      }).failures.includes('missing_or_invalid_confirm_pid'),
+    );
+
+    assert.ok(
+      evaluateExecutionGuard({
+        mode: 'release_lock',
+        confirm: TARGET_MIGRATION,
+      }).failures.includes('missing_github_ref'),
+    );
+    assert.equal(
+      evaluateExecutionGuard({
+        mode: 'release_lock',
+        confirm: TARGET_MIGRATION,
+        githubRef: 'refs/heads/main',
+        githubRepository: 'antonvdberg-bit/corpflow-ai-command-center',
+      }).ok,
+      true,
+    );
+
+    const yaml = readFileSync(path.join(ROOT, WORKFLOW_RELATIVE_PATH), 'utf8');
+    assert.doesNotMatch(yaml, /pg_terminate_backend/);
+    const verifySrc = readFileSync(
+      path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
+      'utf8',
+    );
+    const terminateInspect = inspectTerminateScript(verifySrc, SINGLE_SESSION_TERMINATE_SQL);
+    assert.equal(terminateInspect.ok, true, terminateInspect.failures.join(','));
+    assert.doesNotMatch(SINGLE_SESSION_TERMINATE_SQL, /application_name/);
   });
 });

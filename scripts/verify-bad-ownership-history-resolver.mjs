@@ -9,6 +9,8 @@
  * It never prints connection strings, passwords, usernames, or hostnames.
  * It never derives a non-pooled URL from a pooler host.
  * It never runs `prisma migrate deploy`, `db push`, or `migrate reset`.
+ * release_lock may terminate one confirmed PID after fail-closed guards.
+ * It never terminates by application label.
  */
 
 import { readFileSync } from 'node:fs';
@@ -23,11 +25,16 @@ import {
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
   PRISMA_ADVISORY_LOCK_SELECT_SQL,
+  RELEASE_MODES,
+  SINGLE_SESSION_TERMINATE_SQL,
   discoverPrismaMigrateAdvisoryLock,
   evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
+  evaluateFreshReleaseIdentity,
   evaluatePostflight,
   evaluatePreflight,
+  evaluateReleaseCandidate,
+  evaluateReleaseGuard,
   inspectResolverWorkflow,
   omitSqlFromError,
   publicConnectionReport,
@@ -65,7 +72,8 @@ async function readIdentity(prisma) {
   const rows = await prisma.$queryRawUnsafe(`
     SELECT current_database() AS database,
            current_user AS role,
-           pg_is_in_recovery() AS in_recovery
+           pg_is_in_recovery() AS in_recovery,
+           (SELECT oid FROM pg_database WHERE datname = current_database()) AS database_oid
   `);
   return rows[0] || {};
 }
@@ -216,16 +224,41 @@ function runPrismaResolve(url) {
 }
 
 function parseArgs(argv) {
-  const out = { phase: 'inspect', mode: '', confirm: '' };
+  const out = {
+    phase: 'inspect',
+    mode: '',
+    confirm: '',
+    confirmPid: '',
+    confirmBackendStartEpoch: '',
+    confirmTerminate: '',
+  };
   for (const arg of argv) {
     if (arg.startsWith('--phase=')) out.phase = arg.slice('--phase='.length);
     else if (arg.startsWith('--mode=')) out.mode = arg.slice('--mode='.length);
     else if (arg.startsWith('--confirm=')) out.confirm = arg.slice('--confirm='.length);
+    else if (arg.startsWith('--confirm-pid=')) out.confirmPid = arg.slice('--confirm-pid='.length);
+    else if (arg.startsWith('--confirm-backend-start-epoch=')) {
+      out.confirmBackendStartEpoch = arg.slice('--confirm-backend-start-epoch='.length);
+    } else if (arg.startsWith('--confirm-terminate=')) {
+      out.confirmTerminate = arg.slice('--confirm-terminate='.length);
+    }
   }
   if (process.env.RESOLVER_MODE) out.mode = String(process.env.RESOLVER_MODE);
   if (process.env.CONFIRM_MIGRATION_ID) out.confirm = String(process.env.CONFIRM_MIGRATION_ID);
+  if (process.env.CONFIRM_PID) out.confirmPid = String(process.env.CONFIRM_PID);
+  if (process.env.CONFIRM_BACKEND_START_EPOCH) {
+    out.confirmBackendStartEpoch = String(process.env.CONFIRM_BACKEND_START_EPOCH);
+  }
+  if (process.env.CONFIRM_TERMINATE) out.confirmTerminate = String(process.env.CONFIRM_TERMINATE);
   if (!out.mode) out.mode = 'dry_run';
   return out;
+}
+
+async function terminateConfirmedSession(url, pid) {
+  return withPrisma(url, async (prisma) => {
+    const rows = await prisma.$queryRawUnsafe(SINGLE_SESSION_TERMINATE_SQL, pid);
+    return { terminated: Boolean(rows?.[0]?.terminated), row_count: Array.isArray(rows) ? rows.length : 0 };
+  });
 }
 
 async function run(args) {
@@ -275,8 +308,9 @@ async function run(args) {
       blocker:
         'Infisical production still lacks a pre-existing non-pooled Neon URL under DIRECT_URL or POSTGRES_URL_NON_POOLING. Do not derive one from POSTGRES_URL. CEO approval is required to add that existing Neon direct connection as a named Infisical secret for the current OIDC identity.',
     };
-    if (args.mode === 'execute') fail(2, payload);
-    if (args.mode === 'diagnose') fail(1, { ...payload, step: 'diagnose' });
+    if (args.mode === 'execute' || RELEASE_MODES.includes(args.mode) || args.mode === 'diagnose') {
+      fail(args.mode === 'execute' ? 2 : 1, { ...payload, step: args.mode === 'diagnose' ? 'diagnose' : payload.step });
+    }
     printSafe({ ok: true, inert: true, ...payload });
     return;
   }
@@ -323,6 +357,133 @@ async function run(args) {
     };
     if (!diagnose.ok) fail(1, payload);
     printSafe({ ok: true, ...payload });
+    return;
+  }
+
+  if (RELEASE_MODES.includes(args.mode)) {
+    const releaseGuard = evaluateReleaseGuard({
+      mode: args.mode,
+      confirmPid: args.confirmPid,
+      confirmBackendStartEpoch: args.confirmBackendStartEpoch,
+      confirmTerminate: args.confirmTerminate,
+    });
+    if (!releaseGuard.ok) {
+      fail(1, {
+        step: 'release_guard',
+        release_guard: releaseGuard,
+        blocker: 'Release targeting is incomplete or not authorised. No session was terminated.',
+      });
+    }
+
+    const target = {
+      pid: releaseGuard.confirm_pid,
+      backend_start_epoch: releaseGuard.confirm_backend_start_epoch,
+    };
+    const discovery = discoverPrismaMigrateAdvisoryLock();
+    let firstLock;
+    let secondLock;
+    try {
+      firstLock = await collectLockEvidence(selected.url, discovery);
+      secondLock = await collectLockEvidence(selected.url, discovery);
+    } catch (error) {
+      fail(1, {
+        step: args.mode,
+        selected: selectedSafe,
+        preflight,
+        error: omitSqlFromError(error && error.message),
+      });
+    }
+    const first = evaluateReleaseCandidate(firstLock, target, evidence.identity);
+    const second = evaluateReleaseCandidate(secondLock, target, evidence.identity);
+    const fresh = evaluateFreshReleaseIdentity(first, second);
+    const candidate = { first, second, fresh };
+    if (!first.ok || !second.ok || !fresh.ok) {
+      fail(1, {
+        step: args.mode,
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        resolve: 'skipped',
+        terminated: false,
+        note: 'Fail closed. No session was terminated.',
+      });
+    }
+
+    if (args.mode === 'release_preview' || !releaseGuard.mutation_requested) {
+      printSafe({
+        ok: true,
+        step: 'release_preview',
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        resolve: 'skipped',
+        terminated: false,
+        note: 'release_preview does not terminate sessions or call prisma migrate resolve.',
+      });
+      return;
+    }
+
+    let termination;
+    try {
+      termination = await terminateConfirmedSession(selected.url, target.pid);
+    } catch (error) {
+      fail(1, {
+        step: 'release_lock',
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        error: omitSqlFromError(error && error.message),
+        terminated: false,
+      });
+    }
+    if (!termination.terminated || termination.row_count !== 1) {
+      fail(1, {
+        step: 'release_lock',
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        termination,
+        terminated: false,
+        blocker: 'pg_terminate_backend did not confirm a single targeted session.',
+      });
+    }
+
+    let postLock;
+    try {
+      postLock = await collectLockEvidence(selected.url, discovery);
+    } catch (error) {
+      fail(1, {
+        step: 'release_lock_postcheck',
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        termination,
+        error: omitSqlFromError(error && error.message),
+      });
+    }
+    if (postLock.occupancy !== 'absent' || (postLock.holders || []).length !== 0) {
+      fail(1, {
+        step: 'release_lock_postcheck',
+        selected: selectedSafe,
+        preflight,
+        candidate,
+        termination,
+        post_lock: postLock,
+        blocker: 'Targeted terminate ran but the Prisma advisory lock is still held. Do not retry blindly.',
+      });
+    }
+
+    printSafe({
+      ok: true,
+      step: 'release_lock_complete',
+      selected: selectedSafe,
+      preflight,
+      candidate,
+      termination: { terminated: true, row_count: termination.row_count },
+      post_lock: { occupancy: postLock.occupancy, holders: postLock.holders, waiters: postLock.waiters },
+      resolve: 'skipped',
+      note: 'Session terminated. Controller must rerun diagnose, then dry_run, then the already-approved execute. This mode does not call prisma migrate resolve.',
+    });
     return;
   }
 

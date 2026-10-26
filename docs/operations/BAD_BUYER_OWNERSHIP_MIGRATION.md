@@ -115,12 +115,35 @@ Do not dispatch `execute` until:
 
 Default dispatch mode is `dry_run`. `diagnose` is read-only: it re-reads target/Luxe history and Prisma’s migration advisory lock (`pg_advisory_lock(72707369)` in Prisma 6.19.2 schema-engine) via `pg_locks` / `pg_stat_activity`, scoped to the current database OID so a same-key lock in another database cannot look held here. Diagnose exits unsuccessful when lock identity or session inspect is unavailable; it never treats that as “lock absent”. It never calls `migrate resolve`, never terminates sessions, and never disables advisory locking. `execute` is rejected unless GitHub reports `refs/heads/main` and the confirmation matches the fixed migration id. Workflow logs report only shape booleans, PIDs, wait events, ages, and application labels; they do not print SQL, usernames, or hostnames.
 
-If `diagnose` reports the Prisma lock **absent**, re-run `dry_run` and confirm the target marker is still missing before any gated `execute` retry under the original history-write approval. If the lock is **held**, identify the holder and stop for a separate session-mutation approval. Do not retry `execute` while the lock is held.
+If `diagnose` reports the Prisma lock **absent**, re-run `dry_run` and confirm the target marker is still missing before any gated `execute` retry under the original history-write approval. If the lock is **held**, do not retry `execute`. Use `release_preview` on `main` with the diagnose PID and `backend_start_epoch` to re-identify the holder. A separate CEO approval is required before `release_lock`.
+
+### Guarded single-session lock release
+
+`release_preview` never terminates. `release_lock` may call `pg_terminate_backend` for **one confirmed PID** only after:
+
+1. current database is `neondb` / role `neondb_owner` and the database OID is present;
+2. Prisma lock id is `72707369` on this database;
+3. exactly one granted holder and zero waiters;
+4. holder PID and `backend_start_epoch` match the operator confirmation **and** a second fresh identification;
+5. holder is `idle` with no open transaction;
+6. holder is not this workflow’s own connection;
+7. application label is exactly `pgbouncer` (Neon’s transaction-mode pooler sets this on pooled backends). Other labels fail closed as uncertain ownership.
+
+Never terminate by application label. Never disable advisory locking. Never run `migrate resolve` from `release_lock`.
+
+**PgBouncer / Neon blast radius.** Neon pooled endpoints use PgBouncer in transaction mode. Session-level `pg_advisory_lock` can remain on an idle pooled backend after the client transaction ends. Diagnoses #40298825546 and #40300233884 match that pattern: one idle `pgbouncer`-labelled holder, no open transaction, persistent PID. Terminating that **one** backend:
+
+- releases the stranded Prisma migrate lock when the session ends;
+- may disconnect whoever is currently assigned that pooled backend (mitigated by re-checking idle / no xact immediately before kill);
+- does **not** restart Neon, drop the project, or terminate every pooler client.
+
+After an approved `release_lock` success: rerun `diagnose`, then `dry_run` (target still missing, Luxe unchanged), then the already-approved one-time `execute`, then postflight. Keep #1517 open until the live history receipt exists.
 
 ## Outstanding approvals
 
 - Merge the real-Postgres lock correction (advisory lock must return an integer Prisma can read)
-- Register the already-applied ownership migration in Prisma history (this workflow, after merge + Infisical direct URL)
+- CEO merge of the guarded `release_lock` workflow, then a separate approval to dispatch `release_lock` on `main` with the diagnose PID / `backend_start_epoch` / `terminate_one_session`
+- Register the already-applied ownership migration in Prisma history (`diagnose` → `dry_run` → `execute` after the lock is absent)
 - Enable the durable flag in a live runtime
 - Merge/deploy of the integration
 - Live Paddle / ERPNext end-to-end against real or authorised test parties
