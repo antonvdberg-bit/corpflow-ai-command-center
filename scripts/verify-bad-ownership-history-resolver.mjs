@@ -9,8 +9,9 @@
  * It never prints connection strings, passwords, usernames, or hostnames.
  * It never derives a non-pooled URL from a pooler host.
  * It never runs `prisma migrate deploy`, `db push`, or `migrate reset`.
- * release_lock may terminate one confirmed PID after fail-closed guards.
- * It never terminates by application label.
+ * release_lock may terminate one confirmed PID only through a server-side
+ * statement that re-checks lock identity and backend state. It never
+ * terminates by application label or by a bare PID.
  */
 
 import { readFileSync } from 'node:fs';
@@ -24,13 +25,15 @@ import {
   RESOLVER_REPO_ROOT,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  GUARDED_SINGLE_SESSION_TERMINATE_SQL,
   PRISMA_ADVISORY_LOCK_SELECT_SQL,
   RELEASE_MODES,
-  SINGLE_SESSION_TERMINATE_SQL,
+  buildGuardedTerminateParams,
   discoverPrismaMigrateAdvisoryLock,
   evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluateFreshReleaseIdentity,
+  evaluateGuardedTerminateOutcome,
   evaluatePostflight,
   evaluatePreflight,
   evaluateReleaseCandidate,
@@ -38,7 +41,10 @@ import {
   inspectResolverWorkflow,
   omitSqlFromError,
   publicConnectionReport,
+  publicLockLogView,
   publicLockReport,
+  publicReleaseAttemptLogView,
+  publicTerminateLogView,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
@@ -254,10 +260,10 @@ function parseArgs(argv) {
   return out;
 }
 
-async function terminateConfirmedSession(url, pid) {
+async function terminateConfirmedSession(url, params) {
   return withPrisma(url, async (prisma) => {
-    const rows = await prisma.$queryRawUnsafe(SINGLE_SESSION_TERMINATE_SQL, pid);
-    return { terminated: Boolean(rows?.[0]?.terminated), row_count: Array.isArray(rows) ? rows.length : 0 };
+    const rows = await prisma.$queryRawUnsafe(GUARDED_SINGLE_SESSION_TERMINATE_SQL, ...params.values);
+    return evaluateGuardedTerminateOutcome(rows);
   });
 }
 
@@ -350,10 +356,10 @@ async function run(args) {
       step: 'diagnose',
       selected: selectedSafe,
       preflight,
-      lock,
+      lock: publicLockLogView(lock),
       diagnose,
       resolve: 'skipped',
-      note: 'diagnose does not call prisma migrate resolve, terminate sessions, or disable advisory locking.',
+      note: 'diagnose does not call prisma migrate resolve, terminate sessions, or disable advisory locking. Holder PIDs are fingerprinted in logs.',
     };
     if (!diagnose.ok) fail(1, payload);
     printSafe({ ok: true, ...payload });
@@ -397,12 +403,13 @@ async function run(args) {
     const second = evaluateReleaseCandidate(secondLock, target, evidence.identity);
     const fresh = evaluateFreshReleaseIdentity(first, second);
     const candidate = { first, second, fresh };
+    const candidateLog = publicReleaseAttemptLogView(candidate);
     if (!first.ok || !second.ok || !fresh.ok) {
       fail(1, {
         step: args.mode,
         selected: selectedSafe,
         preflight,
-        candidate,
+        candidate: candidateLog,
         resolve: 'skipped',
         terminated: false,
         note: 'Fail closed. No session was terminated.',
@@ -415,7 +422,7 @@ async function run(args) {
         step: 'release_preview',
         selected: selectedSafe,
         preflight,
-        candidate,
+        candidate: candidateLog,
         resolve: 'skipped',
         terminated: false,
         note: 'release_preview does not terminate sessions or call prisma migrate resolve.',
@@ -423,28 +430,42 @@ async function run(args) {
       return;
     }
 
+    const terminateParams = buildGuardedTerminateParams(discovery, target, evidence.identity);
+    if (!terminateParams.ok) {
+      fail(1, {
+        step: 'release_lock',
+        selected: selectedSafe,
+        preflight,
+        candidate: candidateLog,
+        terminate_params: { ok: false, failures: terminateParams.failures },
+        terminated: false,
+        note: 'Fail closed. Guarded terminate parameters were incomplete. No session was terminated.',
+      });
+    }
+
     let termination;
     try {
-      termination = await terminateConfirmedSession(selected.url, target.pid);
+      termination = await terminateConfirmedSession(selected.url, terminateParams);
     } catch (error) {
       fail(1, {
         step: 'release_lock',
         selected: selectedSafe,
         preflight,
-        candidate,
+        candidate: candidateLog,
         error: omitSqlFromError(error && error.message),
         terminated: false,
       });
     }
-    if (!termination.terminated || termination.row_count !== 1) {
+    if (!termination.ok || !termination.terminated) {
       fail(1, {
         step: 'release_lock',
         selected: selectedSafe,
         preflight,
-        candidate,
-        termination,
+        candidate: candidateLog,
+        termination: publicTerminateLogView(termination),
         terminated: false,
-        blocker: 'pg_terminate_backend did not confirm a single targeted session.',
+        blocker:
+          'Guarded terminate did not match one idle lock holder, or pg_terminate_backend returned false. No retry from this step.',
       });
     }
 
@@ -456,8 +477,8 @@ async function run(args) {
         step: 'release_lock_postcheck',
         selected: selectedSafe,
         preflight,
-        candidate,
-        termination,
+        candidate: candidateLog,
+        termination: publicTerminateLogView(termination),
         error: omitSqlFromError(error && error.message),
       });
     }
@@ -466,9 +487,9 @@ async function run(args) {
         step: 'release_lock_postcheck',
         selected: selectedSafe,
         preflight,
-        candidate,
-        termination,
-        post_lock: postLock,
+        candidate: candidateLog,
+        termination: publicTerminateLogView(termination),
+        post_lock: publicLockLogView(postLock),
         blocker: 'Targeted terminate ran but the Prisma advisory lock is still held. Do not retry blindly.',
       });
     }
@@ -478,9 +499,9 @@ async function run(args) {
       step: 'release_lock_complete',
       selected: selectedSafe,
       preflight,
-      candidate,
-      termination: { terminated: true, row_count: termination.row_count },
-      post_lock: { occupancy: postLock.occupancy, holders: postLock.holders, waiters: postLock.waiters },
+      candidate: candidateLog,
+      termination: publicTerminateLogView(termination),
+      post_lock: publicLockLogView(postLock),
       resolve: 'skipped',
       note: 'Session terminated. Controller must rerun diagnose, then dry_run, then the already-approved execute. This mode does not call prisma migrate resolve.',
     });

@@ -12,31 +12,40 @@ import { fileURLToPath } from 'node:url';
 import {
   EXPECTED_MIGRATION_CHECKSUM,
   EXPECTED_PRISMA_ADVISORY_LOCK_ID,
+  GUARDED_SINGLE_SESSION_TERMINATE_SQL,
   PRISMA_ADVISORY_LOCK_SELECT_SQL,
-  SINGLE_SESSION_TERMINATE_SQL,
   TARGET_MIGRATION,
   TERMINATE_ONE_SESSION_CONFIRM,
   WORKFLOW_RELATIVE_PATH,
   classifyAdvisoryLockRow,
   classifyConnectionUrl,
+  buildGuardedTerminateParams,
   classifyLockQueryError,
   discoverPrismaMigrateAdvisoryLock,
   evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluateFreshReleaseIdentity,
+  evaluateGuardedTerminateOutcome,
   evaluateReleaseCandidate,
   evaluateReleaseGuard,
   evaluatePostflight,
   evaluatePreflight,
   hashMigrationSql,
+  inspectGuardedTerminateSql,
   inspectLockQuerySql,
   inspectResolverWorkflow,
   inspectTerminateScript,
   omitSqlFromError,
   parsePrismaAdvisoryLockIdFromEngineText,
   prismaAdvisoryLockColumns,
+  publicCandidateLogView,
   publicConnectionReport,
+  publicHolderLogView,
+  publicLockLogView,
   publicLockReport,
+  publicReleaseAttemptLogView,
+  publicTerminateLogView,
+  sessionFingerprint,
   readApprovedMigrationChecksum,
   redactSecrets,
   selectNonPooledConnection,
@@ -585,8 +594,137 @@ describe('BAD ownership Prisma history resolver', () => {
       path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
       'utf8',
     );
-    const terminateInspect = inspectTerminateScript(verifySrc, SINGLE_SESSION_TERMINATE_SQL);
+    const terminateInspect = inspectTerminateScript(verifySrc, GUARDED_SINGLE_SESSION_TERMINATE_SQL);
     assert.equal(terminateInspect.ok, true, terminateInspect.failures.join(','));
-    assert.doesNotMatch(SINGLE_SESSION_TERMINATE_SQL, /application_name/);
+    assert.match(GUARDED_SINGLE_SESSION_TERMINATE_SQL, /application_name = \$9::text/);
+    assert.match(GUARDED_SINGLE_SESSION_TERMINATE_SQL, /pg_terminate_backend\(gate\.pid\)/);
+    assert.doesNotMatch(GUARDED_SINGLE_SESSION_TERMINATE_SQL, /pg_terminate_backend\(\$1::int\)/);
+  });
+
+  it('fails closed at the guarded terminate boundary and does not log raw PIDs', () => {
+    const identity = { database: 'neondb', role: 'neondb_owner', database_oid: 16384 };
+    const target = { pid: 4242, backend_start_epoch: 1761470000 };
+    const discovery = {
+      ok: true,
+      lock_id: EXPECTED_PRISMA_ADVISORY_LOCK_ID,
+    };
+    const sqlInspect = inspectGuardedTerminateSql(GUARDED_SINGLE_SESSION_TERMINATE_SQL);
+    assert.equal(sqlInspect.ok, true, sqlInspect.failures.join(','));
+
+    const barePid = inspectGuardedTerminateSql(
+      'SELECT pg_terminate_backend($1::int) AS terminated WHERE $1::int IS DISTINCT FROM pg_backend_pid()',
+    );
+    assert.equal(barePid.ok, false);
+    assert.ok(barePid.failures.includes('bare_pid_terminate'));
+    assert.ok(barePid.failures.includes('terminate_not_gated'));
+    assert.ok(barePid.failures.includes('missing_backend_start_predicate'));
+    assert.ok(barePid.failures.includes('missing_idle_predicate'));
+
+    const params = buildGuardedTerminateParams(discovery, target, identity);
+    assert.equal(params.ok, true, (params.failures || []).join(','));
+    assert.deepEqual(params.values, [
+      0,
+      EXPECTED_PRISMA_ADVISORY_LOCK_ID,
+      1,
+      4242,
+      1761470000,
+      16384,
+      'neondb',
+      'neondb_owner',
+      'pgbouncer',
+    ]);
+    assert.ok(
+      buildGuardedTerminateParams(discovery, { pid: 4243, backend_start_epoch: 1761470000 }, identity)
+        .ok,
+    );
+    assert.ok(
+      buildGuardedTerminateParams(discovery, { pid: 4242, backend_start_epoch: 1 }, identity).ok,
+    );
+    assert.ok(
+      buildGuardedTerminateParams({ ok: true, lock_id: 1 }, target, identity).failures.includes(
+        'lock_id_unverified',
+      ),
+    );
+    assert.ok(
+      buildGuardedTerminateParams(discovery, target, { ...identity, database_oid: null }).failures.includes(
+        'database_oid_unverified',
+      ),
+    );
+    assert.ok(
+      buildGuardedTerminateParams(discovery, target, { ...identity, database: 'postgres' }).failures.includes(
+        'unexpected_database',
+      ),
+    );
+    assert.ok(
+      buildGuardedTerminateParams(discovery, target, { ...identity, role: 'cloud_admin' }).failures.includes(
+        'unexpected_role',
+      ),
+    );
+
+    assert.deepEqual(evaluateGuardedTerminateOutcome([]), {
+      ok: false,
+      terminated: false,
+      reason: 'no_matching_session',
+      row_count: 0,
+    });
+    assert.equal(evaluateGuardedTerminateOutcome([{ terminated: false }]).reason, 'terminate_returned_false');
+    assert.equal(
+      evaluateGuardedTerminateOutcome([{ terminated: true }, { terminated: true }]).reason,
+      'ambiguous_terminate_result',
+    );
+    assert.deepEqual(evaluateGuardedTerminateOutcome([{ terminated: true }]), {
+      ok: true,
+      terminated: true,
+      reason: 'terminated_one_session',
+      row_count: 1,
+    });
+
+    const holderRow = {
+      pid: 4242,
+      granted: true,
+      mode: 'ExclusiveLock',
+      state: 'idle',
+      wait_event_type: 'Client',
+      wait_event: 'ClientRead',
+      application_name: 'pgbouncer',
+      backend_type: 'client backend',
+      backend_start_epoch: 1761470000,
+      session_age_seconds: 2205,
+      xact_age_seconds: null,
+      state_age_seconds: 12,
+      role_matches_current: true,
+      database_matches_current: true,
+    };
+    const lock = publicLockReport({ discovery, selfPid: 99, rows: [holderRow] });
+    const candidate = evaluateReleaseCandidate(lock, target, identity);
+    const logView = JSON.stringify({
+      lock: publicLockLogView(lock),
+      candidate: publicCandidateLogView(candidate),
+      attempt: publicReleaseAttemptLogView({
+        first: candidate,
+        second: candidate,
+        fresh: { ok: true, failures: [] },
+      }),
+      termination: publicTerminateLogView({
+        ok: true,
+        terminated: true,
+        reason: 'terminated_one_session',
+        row_count: 1,
+      }),
+    });
+    assert.equal(logView.includes('"pid":'), false);
+    assert.equal(logView.includes('"pid":4242'), false);
+    assert.equal(logView.includes('"pid": 4242'), false);
+    assert.equal(publicHolderLogView(candidate.holder).pid_fingerprint, sessionFingerprint(4242, 1761470000));
+    assert.match(logView, /pid_fingerprint/);
+
+    const verifySrc = readFileSync(
+      path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
+      'utf8',
+    );
+    assert.match(verifySrc, /GUARDED_SINGLE_SESSION_TERMINATE_SQL/);
+    assert.match(verifySrc, /evaluateGuardedTerminateOutcome/);
+    assert.match(verifySrc, /publicLockLogView/);
+    assert.doesNotMatch(verifySrc, /terminateConfirmedSession\(selected\.url, target\.pid\)/);
   });
 });

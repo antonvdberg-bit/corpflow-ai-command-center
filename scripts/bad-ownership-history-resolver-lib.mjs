@@ -58,8 +58,42 @@ export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
          AND l.objid = $2
          AND l.objsubid = $3
        ORDER BY l.granted DESC, l.pid`;
-export const SINGLE_SESSION_TERMINATE_SQL =
-  'SELECT pg_terminate_backend($1::int) AS terminated WHERE $1::int IS DISTINCT FROM pg_backend_pid()';
+export const GUARDED_SINGLE_SESSION_TERMINATE_SQL = `WITH scoped_locks AS (
+         SELECT l.pid, l.granted
+         FROM pg_locks l
+         WHERE l.locktype = 'advisory'
+           AND l.database = (SELECT oid FROM pg_database WHERE datname = current_database())
+           AND l.classid = $1::int
+           AND l.objid = $2::int
+           AND l.objsubid = $3::int
+           AND (SELECT oid FROM pg_database WHERE datname = current_database()) = $6::oid
+           AND current_database() = $7::text
+           AND current_user = $8::text
+       ),
+       candidate AS (
+         SELECT a.pid
+         FROM scoped_locks l
+         INNER JOIN pg_stat_activity a ON a.pid = l.pid
+         WHERE l.granted IS TRUE
+           AND a.pid = $4::int
+           AND a.pid IS DISTINCT FROM pg_backend_pid()
+           AND EXTRACT(EPOCH FROM a.backend_start)::bigint = $5::bigint
+           AND a.state = 'idle'
+           AND a.xact_start IS NULL
+           AND a.datname = current_database()
+           AND a.usename = current_user
+           AND a.application_name = $9::text
+       ),
+       gate AS (
+         SELECT c.pid
+         FROM candidate c
+         WHERE (SELECT COUNT(*)::int FROM scoped_locks WHERE granted IS TRUE) = 1
+           AND (SELECT COUNT(*)::int FROM scoped_locks WHERE granted IS NOT TRUE) = 0
+           AND (SELECT COUNT(*)::int FROM candidate) = 1
+       )
+       SELECT pg_terminate_backend(gate.pid) AS terminated
+       FROM gate`;
+export const SINGLE_SESSION_TERMINATE_SQL = GUARDED_SINGLE_SESSION_TERMINATE_SQL;
 export const NON_POOLED_KEYS = ['DIRECT_URL', 'POSTGRES_URL_NON_POOLING'];
 export const REQUIRED_TABLES = [
   'bad_purchase_ownership',
@@ -433,21 +467,219 @@ export function evaluateFreshReleaseIdentity(first, second) {
   return { ok: failures.length === 0, failures };
 }
 
-export function inspectTerminateScript(verifySource, terminateSql = SINGLE_SESSION_TERMINATE_SQL) {
-  const text = String(verifySource || '');
-  const sql = String(terminateSql || '');
+export function sessionFingerprint(pid, backendStartEpoch) {
+  const parsedPid = parsePositiveInt(pid);
+  const parsedStart = parsePositiveInt(backendStartEpoch);
+  if (parsedPid === null || parsedStart === null) return null;
+  return createHash('sha256').update(`${parsedPid}:${parsedStart}`, 'utf8').digest('hex').slice(0, 16);
+}
+
+export function publicHolderLogView(holder) {
+  if (!holder) return null;
+  return {
+    granted: holder.granted,
+    occupancy: holder.occupancy,
+    mode: holder.mode,
+    state: holder.state,
+    activity: holder.activity,
+    wait_event_type: holder.wait_event_type,
+    wait_event: holder.wait_event,
+    application_label: holder.application_label,
+    backend_type: holder.backend_type,
+    backend_start_epoch: holder.backend_start_epoch,
+    session_age_seconds: holder.session_age_seconds,
+    xact_age_seconds: holder.xact_age_seconds,
+    state_age_seconds: holder.state_age_seconds,
+    is_this_session: holder.is_this_session,
+    role_matches_current: holder.role_matches_current,
+    database_matches_current: holder.database_matches_current,
+    pid_present: holder.pid !== null && holder.pid !== undefined,
+    pid_fingerprint: sessionFingerprint(holder.pid, holder.backend_start_epoch),
+  };
+}
+
+export function publicLockLogView(lock) {
+  if (!lock) return null;
+  return {
+    ok: lock.ok,
+    reason: lock.reason,
+    lock_id: lock.lock_id,
+    prisma_version: lock.prisma_version || null,
+    p1002_timeout_ms_observed: lock.p1002_timeout_ms_observed,
+    occupancy: lock.occupancy,
+    recommendation: lock.recommendation,
+    current_database_scoped: lock.current_database_scoped,
+    holders: (lock.holders || []).map(publicHolderLogView),
+    waiters: (lock.waiters || []).map(publicHolderLogView),
+  };
+}
+
+export function publicCandidateLogView(candidate) {
+  if (!candidate) return null;
+  return {
+    ok: candidate.ok,
+    failures: candidate.failures,
+    pooler: candidate.pooler,
+    lock_id: candidate.lock_id,
+    holder: publicHolderLogView(candidate.holder),
+  };
+}
+
+export function publicReleaseAttemptLogView(attempt) {
+  if (!attempt) return null;
+  return {
+    first: publicCandidateLogView(attempt.first),
+    second: publicCandidateLogView(attempt.second),
+    fresh: {
+      ok: Boolean(attempt.fresh?.ok),
+      failures: attempt.fresh?.failures || [],
+    },
+  };
+}
+
+export function publicTerminateLogView(outcome) {
+  if (!outcome) return null;
+  return {
+    ok: Boolean(outcome.ok),
+    terminated: Boolean(outcome.terminated),
+    reason: outcome.reason || null,
+    row_count: intOrNull(outcome.row_count),
+  };
+}
+
+export function buildGuardedTerminateParams(discovery, target = {}, identity = {}) {
   const failures = [];
-  if (!text.includes('SINGLE_SESSION_TERMINATE_SQL')) {
+  if (discovery?.ok !== true || discovery.lock_id !== EXPECTED_PRISMA_ADVISORY_LOCK_ID) {
+    failures.push('lock_id_unverified');
+  }
+  const pid = parsePositiveInt(target.pid);
+  const backendStartEpoch = parsePositiveInt(target.backend_start_epoch);
+  const databaseOid = intOrNull(identity.database_oid);
+  if (pid === null) failures.push('missing_or_invalid_confirm_pid');
+  if (backendStartEpoch === null) failures.push('missing_or_invalid_confirm_backend_start_epoch');
+  if (databaseOid === null || databaseOid <= 0) failures.push('database_oid_unverified');
+  if (identity.database && identity.database !== EXPECTED_DATABASE) {
+    failures.push('unexpected_database');
+  }
+  if (identity.role && identity.role !== EXPECTED_ROLE) failures.push('unexpected_role');
+  if (failures.length > 0) {
+    return { ok: false, failures, values: null };
+  }
+  const columns = prismaAdvisoryLockColumns(discovery.lock_id);
+  return {
+    ok: true,
+    failures: [],
+    values: [
+      columns.classid,
+      columns.objid,
+      columns.objsubid,
+      pid,
+      backendStartEpoch,
+      databaseOid,
+      EXPECTED_DATABASE,
+      EXPECTED_ROLE,
+      RECOGNISED_POOLER_APPLICATION_LABEL,
+    ],
+  };
+}
+
+export function evaluateGuardedTerminateOutcome(rows) {
+  const list = Array.isArray(rows) ? rows : [];
+  if (list.length === 0) {
+    return {
+      ok: false,
+      terminated: false,
+      reason: 'no_matching_session',
+      row_count: 0,
+    };
+  }
+  if (list.length !== 1) {
+    return {
+      ok: false,
+      terminated: false,
+      reason: 'ambiguous_terminate_result',
+      row_count: list.length,
+    };
+  }
+  if (list[0]?.terminated !== true) {
+    return {
+      ok: false,
+      terminated: false,
+      reason: 'terminate_returned_false',
+      row_count: 1,
+    };
+  }
+  return {
+    ok: true,
+    terminated: true,
+    reason: 'terminated_one_session',
+    row_count: 1,
+  };
+}
+
+export function inspectGuardedTerminateSql(sql) {
+  const text = String(sql || '');
+  const failures = [];
+  if (
+    !/l\.database\s*=\s*\(\s*SELECT oid FROM pg_database WHERE datname\s*=\s*current_database\(\)\s*\)/.test(
+      text,
+    )
+  ) {
+    failures.push('missing_database_oid_filter');
+  }
+  if (!/locktype = 'advisory'/.test(text)) failures.push('missing_advisory_locktype');
+  if (!/\$1::int/.test(text) || !/\$2::int/.test(text) || !/\$3::int/.test(text)) {
+    failures.push('missing_lock_key_params');
+  }
+  if (!/\$4::int/.test(text)) failures.push('missing_pid_param');
+  if (!/\$5::bigint/.test(text) || !/backend_start/.test(text)) {
+    failures.push('missing_backend_start_predicate');
+  }
+  if (!/\$6::oid/.test(text)) failures.push('missing_oid_param');
+  if (!/\$7::text/.test(text) || !/\$8::text/.test(text)) {
+    failures.push('missing_database_role_params');
+  }
+  if (!/a\.state = 'idle'/.test(text)) failures.push('missing_idle_predicate');
+  if (!/a\.xact_start IS NULL/.test(text)) failures.push('missing_xact_null_predicate');
+  if (!/IS DISTINCT FROM pg_backend_pid\(\)/.test(text)) failures.push('missing_self_guard');
+  if (!/COUNT\(\*\)::int FROM scoped_locks WHERE granted IS TRUE\) = 1/.test(text)) {
+    failures.push('missing_single_holder_gate');
+  }
+  if (!/COUNT\(\*\)::int FROM scoped_locks WHERE granted IS NOT TRUE\) = 0/.test(text)) {
+    failures.push('missing_zero_waiters_gate');
+  }
+  if (!/COUNT\(\*\)::int FROM candidate\) = 1/.test(text)) {
+    failures.push('missing_single_candidate_gate');
+  }
+  if (!/pg_terminate_backend\(gate\.pid\)/.test(text)) {
+    failures.push('terminate_not_gated');
+  }
+  if (/pg_terminate_backend\(\$1::int\)/.test(text)) {
+    failures.push('bare_pid_terminate');
+  }
+  if (!/application_name = \$9::text/.test(text)) {
+    failures.push('missing_application_label_predicate');
+  }
+  if (/WHERE a\.application_name = \$9::text\s*$/m.test(text) && !/\$4::int/.test(text)) {
+    failures.push('terminate_by_application_label');
+  }
+  if (/a\.query\b/.test(text)) failures.push('selects_query_text');
+  if (/pg_advisory_unlock/.test(text)) failures.push('contains_advisory_unlock');
+  return { ok: failures.length === 0, failures };
+}
+
+export function inspectTerminateScript(verifySource, terminateSql = GUARDED_SINGLE_SESSION_TERMINATE_SQL) {
+  const text = String(verifySource || '');
+  const sqlInspect = inspectGuardedTerminateSql(terminateSql);
+  const failures = [...sqlInspect.failures];
+  if (!text.includes('GUARDED_SINGLE_SESSION_TERMINATE_SQL')) {
     failures.push('missing_parameterized_terminate');
   }
-  if (!/pg_terminate_backend\(\$1::int\)/.test(sql)) failures.push('terminate_sql_not_parameterized');
-  if (!/IS DISTINCT FROM pg_backend_pid\(\)/.test(sql)) failures.push('terminate_missing_self_guard');
-  if (/application_name/.test(sql)) failures.push('terminate_by_application_label');
+  if (!/buildGuardedTerminateParams/.test(text)) failures.push('missing_terminate_params_builder');
+  if (!/evaluateGuardedTerminateOutcome/.test(text)) failures.push('missing_terminate_outcome_guard');
   if (!/evaluateReleaseCandidate/.test(text)) failures.push('missing_release_candidate_guard');
   if (!/evaluateFreshReleaseIdentity/.test(text)) failures.push('missing_fresh_identity_guard');
-  if (/pg_advisory_unlock/.test(text) || /pg_advisory_unlock/.test(sql)) {
-    failures.push('contains_advisory_unlock');
-  }
+  if (/pg_advisory_unlock/.test(text)) failures.push('contains_advisory_unlock');
   if (/PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK/.test(text)) failures.push('disables_advisory_lock');
   return { ok: failures.length === 0, failures };
 }
