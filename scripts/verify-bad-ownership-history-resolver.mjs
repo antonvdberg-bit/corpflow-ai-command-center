@@ -22,7 +22,9 @@ import {
   RESOLVER_REPO_ROOT,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
+  PRISMA_ADVISORY_LOCK_SELECT_SQL,
   discoverPrismaMigrateAdvisoryLock,
+  evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluatePostflight,
   evaluatePreflight,
@@ -183,33 +185,7 @@ async function collectLockEvidence(url, discovery) {
       objsubid: discovery.objsubid,
     };
     const rows = await prisma.$queryRawUnsafe(
-      `SELECT
-         l.pid,
-         l.granted,
-         l.mode,
-         a.state,
-         a.wait_event_type,
-         a.wait_event,
-         a.application_name,
-         a.backend_type,
-         EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
-         CASE
-           WHEN a.xact_start IS NULL THEN NULL
-           ELSE EXTRACT(EPOCH FROM (now() - a.xact_start))::int
-         END AS xact_age_seconds,
-         CASE
-           WHEN a.state_change IS NULL THEN NULL
-           ELSE EXTRACT(EPOCH FROM (now() - a.state_change))::int
-         END AS state_age_seconds,
-         (a.usename = current_user) AS role_matches_current,
-         (a.datname = current_database()) AS database_matches_current
-       FROM pg_locks l
-       LEFT JOIN pg_stat_activity a ON a.pid = l.pid
-       WHERE l.locktype = 'advisory'
-         AND l.classid = $1
-         AND l.objid = $2
-         AND l.objsubid = $3
-       ORDER BY l.granted DESC, l.pid`,
+      PRISMA_ADVISORY_LOCK_SELECT_SQL,
       columns.classid,
       columns.objid,
       columns.objsubid,
@@ -300,6 +276,7 @@ async function run(args) {
         'Infisical production still lacks a pre-existing non-pooled Neon URL under DIRECT_URL or POSTGRES_URL_NON_POOLING. Do not derive one from POSTGRES_URL. CEO approval is required to add that existing Neon direct connection as a named Infisical secret for the current OIDC identity.',
     };
     if (args.mode === 'execute') fail(2, payload);
+    if (args.mode === 'diagnose') fail(1, { ...payload, step: 'diagnose' });
     printSafe({ ok: true, inert: true, ...payload });
     return;
   }
@@ -334,15 +311,18 @@ async function run(args) {
         queryError: error && error.message,
       });
     }
-    printSafe({
-      ok: true,
+    const diagnose = evaluateDiagnoseOutcome(lock);
+    const payload = {
       step: 'diagnose',
       selected: selectedSafe,
       preflight,
       lock,
+      diagnose,
       resolve: 'skipped',
       note: 'diagnose does not call prisma migrate resolve, terminate sessions, or disable advisory locking.',
-    });
+    };
+    if (!diagnose.ok) fail(1, payload);
+    printSafe({ ok: true, ...payload });
     return;
   }
 

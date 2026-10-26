@@ -11,16 +11,19 @@ import { fileURLToPath } from 'node:url';
 
 import {
   EXPECTED_MIGRATION_CHECKSUM,
+  PRISMA_ADVISORY_LOCK_SELECT_SQL,
   TARGET_MIGRATION,
   WORKFLOW_RELATIVE_PATH,
   classifyAdvisoryLockRow,
   classifyConnectionUrl,
   classifyLockQueryError,
   discoverPrismaMigrateAdvisoryLock,
+  evaluateDiagnoseOutcome,
   evaluateExecutionGuard,
   evaluatePostflight,
   evaluatePreflight,
   hashMigrationSql,
+  inspectLockQuerySql,
   inspectResolverWorkflow,
   omitSqlFromError,
   parsePrismaAdvisoryLockIdFromEngineText,
@@ -378,6 +381,27 @@ describe('BAD ownership Prisma history resolver', () => {
 
     assert.equal(evaluateExecutionGuard({ mode: 'diagnose' }).ok, true);
     assert.ok(evaluateExecutionGuard({ mode: 'explode' }).failures.includes('invalid_mode'));
+
+    const lockSql = inspectLockQuerySql(PRISMA_ADVISORY_LOCK_SELECT_SQL);
+    assert.equal(lockSql.ok, true, lockSql.failures.join(','));
+    const unscoped = inspectLockQuerySql(
+      "SELECT l.pid FROM pg_locks l WHERE l.locktype = 'advisory' AND l.classid = $1",
+    );
+    assert.equal(unscoped.ok, false);
+    assert.ok(unscoped.failures.includes('missing_database_oid_filter'));
+
+    const verifySrc = readFileSync(
+      path.join(ROOT, 'scripts/verify-bad-ownership-history-resolver.mjs'),
+      'utf8',
+    );
+    assert.match(verifySrc, /PRISMA_ADVISORY_LOCK_SELECT_SQL/);
+    assert.match(verifySrc, /evaluateDiagnoseOutcome/);
+    assert.doesNotMatch(verifySrc, /pg_terminate_backend/);
+
+    assert.equal(evaluateDiagnoseOutcome(held).ok, true);
+    assert.equal(evaluateDiagnoseOutcome(denied).ok, false);
+    assert.equal(evaluateDiagnoseOutcome(unverified).ok, false);
+    assert.equal(evaluateDiagnoseOutcome(denied).reason, 'session_inspect_permission_denied');
   });
 
   it('redacts Prisma datasource hostnames and omits SQL from public errors', () => {

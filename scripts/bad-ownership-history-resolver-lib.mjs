@@ -19,6 +19,34 @@ export const AUTHORIZED_REF = 'refs/heads/main';
 export const ALLOWED_MODES = Object.freeze(['dry_run', 'diagnose', 'execute']);
 export const PRISMA_ADVISORY_LOCK_OBJSUBID = 1;
 export const P1002_TIMEOUT_MS_OBSERVED = 10000;
+export const PRISMA_ADVISORY_LOCK_SELECT_SQL = `SELECT
+         l.pid,
+         l.granted,
+         l.mode,
+         a.state,
+         a.wait_event_type,
+         a.wait_event,
+         a.application_name,
+         a.backend_type,
+         EXTRACT(EPOCH FROM (now() - a.backend_start))::int AS session_age_seconds,
+         CASE
+           WHEN a.xact_start IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.xact_start))::int
+         END AS xact_age_seconds,
+         CASE
+           WHEN a.state_change IS NULL THEN NULL
+           ELSE EXTRACT(EPOCH FROM (now() - a.state_change))::int
+         END AS state_age_seconds,
+         (a.usename = current_user) AS role_matches_current,
+         (a.datname = current_database()) AS database_matches_current
+       FROM pg_locks l
+       LEFT JOIN pg_stat_activity a ON a.pid = l.pid
+       WHERE l.locktype = 'advisory'
+         AND l.database = (SELECT oid FROM pg_database WHERE datname = current_database())
+         AND l.classid = $1
+         AND l.objid = $2
+         AND l.objsubid = $3
+       ORDER BY l.granted DESC, l.pid`;
 export const NON_POOLED_KEYS = ['DIRECT_URL', 'POSTGRES_URL_NON_POOLING'];
 export const REQUIRED_TABLES = [
   'bad_purchase_ownership',
@@ -248,7 +276,35 @@ export function publicLockReport(input = {}) {
     waiters,
     occupancy,
     recommendation,
+    current_database_scoped: true,
   };
+}
+
+export function inspectLockQuerySql(sql) {
+  const text = String(sql || '');
+  const failures = [];
+  if (
+    !/l\.database\s*=\s*\(\s*SELECT oid FROM pg_database WHERE datname\s*=\s*current_database\(\)\s*\)/.test(
+      text,
+    )
+  ) {
+    failures.push('missing_database_oid_filter');
+  }
+  if (!/locktype = 'advisory'/.test(text)) failures.push('missing_advisory_locktype');
+  if (/a\.query\b/.test(text)) failures.push('selects_query_text');
+  if (/pg_terminate_backend/.test(text)) failures.push('contains_terminate_backend');
+  return { ok: failures.length === 0, failures };
+}
+
+export function evaluateDiagnoseOutcome(lock) {
+  if (!lock || lock.ok !== true) {
+    return {
+      ok: false,
+      reason: lock?.reason || 'lock_inspect_failed',
+      occupancy: lock?.occupancy || 'inspect_unavailable',
+    };
+  }
+  return { ok: true, reason: lock.occupancy, occupancy: lock.occupancy };
 }
 
 export function hashMigrationSql(sql) {
