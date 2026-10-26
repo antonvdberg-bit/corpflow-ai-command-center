@@ -8,6 +8,7 @@ const MAX_BODY = 1024 * 1024;
 const TIMEOUT_MS = 15_000;
 const SAFE = /^[A-Za-z0-9_:-]+$/;
 const MODULE = /^cm_[A-Za-z0-9_]+$/;
+const UNSAFE_FIELD_NAMES = new Set(['__proto__', 'prototype', 'constructor']);
 
 function timestamp() {
   try {
@@ -70,6 +71,12 @@ function pathPart(value, name) {
   return result;
 }
 
+function fieldName(value, name) {
+  const result = pathPart(value, name);
+  if (UNSAFE_FIELD_NAMES.has(result)) throw new TypeError(`${name} has unsafe field name`);
+  return result;
+}
+
 function copyConfig(input) {
   ownDataObject(input, 'config');
   const allowed = new Set(['organizationId', 'connectionName', 'modules', 'collections', 'fields', 'expected']);
@@ -106,7 +113,7 @@ function copyConfig(input) {
         (config.fields.item.id !== 'item_id' || config.fields.item.unit !== 'unit')) {
       throw new TypeError('item fields must use native names');
     }
-    for (const name of required) pathPart(config.fields[source][name], `field ${source}.${name}`);
+    for (const name of required) fieldName(config.fields[source][name], `field ${source}.${name}`);
   }
   const expected = config.expected;
   const expectedKeys = new Set(['movementId', 'registerId', 'itemId', 'itemUnit', 'registerStatus', 'registerDate', 'opening']);

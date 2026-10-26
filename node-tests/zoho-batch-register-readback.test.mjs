@@ -169,6 +169,24 @@ test('configuration rejects unsafe field property names and invalid dates', asyn
   }));
 });
 
+test('constructor rejects unsafe register field-name values before any connection use', () => {
+  for (const unsafeName of ['__proto__', 'prototype', 'constructor']) {
+    assert.throws(() => createNativeReadbackDiagnostic({
+      ...config,
+      fields: { ...config.fields, register: { ...config.fields.register, id: unsafeName } },
+    }), TypeError);
+  }
+});
+
+test('constructor rejects unsafe movement field-name values before any connection use', () => {
+  for (const unsafeName of ['__proto__', 'prototype', 'constructor']) {
+    assert.throws(() => createNativeReadbackDiagnostic({
+      ...config,
+      fields: { ...config.fields, movement: { ...config.fields.movement, id: unsafeName } },
+    }), TypeError);
+  }
+});
+
 test('absent organization attestation is explicit and a selected receipt cannot pass as opening', async () => {
   const unattested = await run({}, (body) => { delete body.organization_id; });
   assert.equal(unattested.result.ok, true);
