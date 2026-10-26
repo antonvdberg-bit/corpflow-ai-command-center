@@ -183,7 +183,9 @@ Before any env entry is deleted from Vercel or Infisical, search the repo for th
 
 ## 5c. Incident: 2026-05-24 — `_prisma_migrations` row for `20260514120000_lux_listings` stuck in `failed` (P3009)
 
-**Symptom (CI):** Every push/PR run of the `test` workflow (`.github/workflows/test.yml`) prints the following inside the `Prisma migrate deploy (optional)` step and exits with code 1:
+**Status (2026-10-26, #1517):** Agent CI no longer runs `prisma migrate deploy`. The optional step was a merge-path hold because Infisical-injected `POSTGRES_URL` caused real migrate attempts on `main` / PRs, with `continue-on-error: true` hiding failure. Historical P3009 notes below remain for operators who still need to repair `_prisma_migrations`; they are not a current CI step.
+
+**Symptom (CI, while the optional step existed):** Every push/PR run of the `test` workflow (`.github/workflows/test.yml`) printed the following inside the `Prisma migrate deploy (optional)` step and exited with code 1:
 
 ```text
 Prisma schema loaded from prisma/schema.prisma
@@ -203,7 +205,7 @@ The `20260514120000_lux_listings` migration started at 2026-05-24 23:05:37.32487
 
 The step is `continue-on-error: true` (test.yml lines 93–100), so this does **not** fail the parent `test` job. The PR check rollup still reports `test: SUCCESS` and PRs remain mergeable.
 
-**Symptom (no customer-facing impact):** None. Vercel Production deploys are unaffected because Vercel does not run `prisma migrate deploy` in its build pipeline — schema changes in this repo are applied through `scripts/apply-ensure-schema-build.mjs` (idempotent DDL during `vercel build`) and Prisma migrations are the CI-only path. The `lux_listings` table is present and Lux marketing surfaces have been serving normally throughout.
+**Symptom (no customer-facing impact):** None. Vercel Production deploys are unaffected because Vercel does not run `prisma migrate deploy` in its build pipeline — schema changes in this repo are applied through `scripts/apply-ensure-schema-build.mjs` (idempotent DDL during `vercel build`). Agent CI is not a Prisma migrate path. The `lux_listings` table is present and Lux marketing surfaces have been serving normally throughout.
 
 **Root cause:** The `lux_listings` table was created at runtime via the older `POST /api/factory/postgres/ensure-schema` idempotent DDL path **before** the Prisma migration was added on 2026-05-14 (see also `docs/operations/ENSURE_POSTGRES_SCHEMA.md`). When `prisma migrate deploy` later attempted to run, `CREATE TABLE "lux_listings"` raised an "already exists" error and Prisma persisted the migration as `failed` in the `_prisma_migrations` table. From that point onward Prisma's production safety logic (P3009) refuses to apply any new migrations until the failed row is resolved. This is **operational hygiene drift**, not a code regression — the schema is already where the migration intended it to be.
 
@@ -250,7 +252,7 @@ The remediation:
 
 **After remediation — verification:**
 
-1. Re-run the `test` workflow on any commit (e.g. `gh workflow run test.yml --ref main` or push a no-op commit). The `Prisma migrate deploy (optional)` step body should print `No pending migrations to apply.` and exit 0 instead of P3009.
+1. Agent CI no longer runs `prisma migrate deploy`. After an approved `migrate resolve`, confirm history with a **manual** operator command or the #1517 resolver — not by expecting a migrate-deploy step in `test.yml`.
 2. Re-query `_prisma_migrations` (same `SELECT` as above). Expected: `finished_at` is now a non-null timestamp (the remediation time) and `rolled_back_at` is still null. `logs` retains the original failure history for audit.
 3. Record outcome in `artifacts/chat_history.md` (operator-facing) per `.cursor/rules/delivery-reality.mdc` — deployment id is N/A (no app deploy occurs), but the commit that triggers the verifying CI re-run and the workflow run id should both be captured.
 
