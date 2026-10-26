@@ -1,0 +1,70 @@
+# One-off Prisma history registration for 20261021140000_bad_purchase_ownership.
+# Manual only. Does not run on push, pull_request, or schedule.
+# Does not apply SQL, deploy the app, or repair the unfinished Luxe migration.
+#
+# Default mode is dry_run. Execute is inert until Infisical injects an existing
+# non-pooled Neon URL (DIRECT_URL or POSTGRES_URL_NON_POOLING). This workflow
+# never derives a direct URL from pooled POSTGRES_URL.
+name: Resolve BAD ownership Prisma history
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: dry_run never writes. execute runs only the approved resolve command.
+        type: choice
+        required: true
+        default: dry_run
+        options:
+          - dry_run
+          - execute
+      confirm_migration_id:
+        description: Must equal 20261021140000_bad_purchase_ownership
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: resolve-bad-ownership-history
+  cancel-in-progress: false
+
+jobs:
+  resolve-history:
+    if: github.repository == 'antonvdberg-bit/corpflow-ai-command-center'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      RESOLVER_MODE: ${{ inputs.mode }}
+      CONFIRM_MIGRATION_ID: ${{ inputs.confirm_migration_id }}
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 1
+
+      - name: Fetch secrets from Infisical (OIDC)
+        uses: Infisical/secrets-action@8802effbe453d0576cd923567dcc2c97a1f54058
+        with:
+          method: "oidc"
+          identity-id: "${{ vars.INFISICAL_IDENTITY_ID }}"
+          project-slug: "${{ vars.INFISICAL_PROJECT_SLUG }}"
+          env-slug: "${{ vars.INFISICAL_ENV_SLUG }}"
+          domain: "${{ vars.INFISICAL_DOMAIN }}"
+
+      - name: Set up Node
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Static inspect (no database write)
+        run: node scripts/bad-ownership-history-resolver-lib.mjs
+
+      - name: Guarded Prisma history resolver
+        run: node scripts/verify-bad-ownership-history-resolver.mjs --phase=run
