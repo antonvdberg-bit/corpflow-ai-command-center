@@ -1,7 +1,7 @@
 # BAD durable buyer ownership in existing Postgres
 
 **Date:** 2026-10-21  
-**Status:** accepted for reviewable preparation; live migration not approved  
+**Status:** schema applied (#1517); feature flag still off; live customer journey not authorised
 **Source:** issue [#1509](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1509)
 
 ## Context
@@ -25,11 +25,12 @@ and `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE=1` is set.
 
 - Positive: permanent buyer ↔ purchase ↔ order confirmation relation without a
   second database or login system.
-- Follow-up: migration execution, flag enablement, and live verification are
-  separate approvals. See `docs/operations/BAD_BUYER_OWNERSHIP_MIGRATION.md`.
+- Follow-up: flag enablement and live verification remain separate approvals.
+  See `docs/operations/BAD_BUYER_OWNERSHIP_MIGRATION.md` and
+  `docs/operations/BAD_BUYER_OWNERSHIP_ACTIVATION.md`.
 - Cross-instance writes use a Postgres transaction, advisory lock, and a
   terminal compare-and-set. Passing single-process tests is not live
-  multi-instance proof. The migration remains unapplied.
+  multi-instance proof. Schema objects are applied; the runtime flag is off.
 
 ## Links
 

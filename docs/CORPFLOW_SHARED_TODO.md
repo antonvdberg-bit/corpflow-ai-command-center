@@ -168,6 +168,7 @@ The self-hosted ops server runs **supporting services** alongside the existing C
 - **Cache public reads** — `Cache-Control` (and optional `ETag`) on `GET /api/tenant/site` for anonymous traffic.
 - **Prisma / Postgres pooling** — align serverless client usage with Neon guidance (pooled vs non-pooled endpoints already enumerated in `docs/operations/POSTGRES_PROVIDER.md`; document any chosen pooling pattern there or in `CONTEXT.md`).
 - (Optional) **ISR / edge** for tenant `/` when draft staleness is acceptable.
+- **BAD authenticated purchase (#1509 / #1504):** Schema applied (#1517). Code path is session bind → server Paddle transaction → webhook update → owner-only confirmation. Flag `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE` stays off until Anton enables it on one named runtime. Preview may share production Neon. Canonical: `docs/operations/BAD_BUYER_OWNERSHIP_ACTIVATION.md` and `docs/operations/BAD_BUYER_OWNERSHIP_ACCEPTANCE.md`. Not operational.
 
 ## P1 — AI provision & Change Console
 
@@ -210,4 +211,4 @@ The self-hosted ops server runs **supporting services** alongside the existing C
 
 ---
 
-*Last reviewed: 2026-04-04 — update this line when you change priorities. Added security checklist, incident runbook, ADR-lite `docs/decisions/`, compliance data-map stub, CI `npm audit` + `next build`, Dependabot.*
+*Last reviewed: 2026-10-27 — BAD buyer-ownership activation remains flag-gated (#1509). Added security checklist, incident runbook, ADR-lite `docs/decisions/`, compliance data-map stub, CI `npm audit` + `next build`, Dependabot.*

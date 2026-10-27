@@ -1,13 +1,15 @@
 # BAD buyer ownership — prepared migration and rollback
 
-**Status:** PREPARED / NOT APPLIED  
-**Issue:** [#1509](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1509)  
-**Parent programme:** [#1504](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1504)  
+**Status:** SCHEMA APPLIED ON CORE `neondb` / FEATURE FLAG OFF
+**Issue:** [#1509](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1509)
+**Parent programme:** [#1504](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1504)
 **Synthetic contract:** [#1507](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1507), merged PR #1508
+**Live SQL + Prisma history:** [#1517](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1517) (closed). Do not re-apply the SQL or re-run `migrate resolve`.
 
 This document is the operator-facing rollout plan for the durable
-`bad_purchase_ownership` relation. The SQL exists in the repository.
-**It has not been applied to shared or production Postgres.**
+`bad_purchase_ownership` relation. The three tables exist on Core Neon `neondb`.
+Runtime ownership stays fail-closed until `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE=1`
+is set under a separate approval. See `docs/operations/BAD_BUYER_OWNERSHIP_ACTIVATION.md`.
 
 ## What this migration does
 
@@ -66,9 +68,15 @@ Two checks exist:
 - `node-tests/paddle-bad-buyer-ownership-durable.test.mjs` simulates two connections. It runs in ordinary `npm test` and does not open a database.
 - `node-tests/paddle-bad-buyer-ownership-disposable-pg.test.mjs` uses two independent PostgreSQL connections. It stays skipped unless `CORPFLOW_BAD_OWNERSHIP_DISPOSABLE_PG=1` and `CORPFLOW_BAD_OWNERSHIP_DISPOSABLE_URL` name a loopback database whose name contains `disposable`. It refuses to start when `POSTGRES_URL`, `DATABASE_URL`, or `PRISMA_DATABASE_URL` is present, when the URL contains a password, or when the server is not on loopback. These two names are local test switches only. Do not set them in Vercel or any shared environment.
 
-Disposable verification on 21 October 2026 passed against a local PostgreSQL 16.15 database that listened only on `localhost`, with Prisma Client 6.19.2 and Node v22.23.3. Two backend process IDs proved the connections were independent. The shared Core database was not used. `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE` stayed unset. Empty-table rollback removed only the three new tables. After rows existed, turning the feature off left the audit rows in place. That result does **not** approve applying the migration to shared or production Postgres.
+Disposable verification on 21 October 2026 passed against a local PostgreSQL 16.15 database that listened only on `localhost`, with Prisma Client 6.19.2 and Node v22.23.3. Two backend process IDs proved the connections were independent. The shared Core database was not used. `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE` stayed unset. Empty-table rollback removed only the three new tables. After rows existed, turning the feature off left the audit rows in place.
 
-## Apply (separate approval required)
+Core Neon application of this SQL and Prisma history registration completed under #1517. Do not treat that as feature activation.
+
+## Apply (completed under #1517 — do not repeat)
+
+The SQL file was applied to Core Neon `neondb` and registered with
+`prisma migrate resolve --applied 20261021140000_bad_purchase_ownership`.
+The historical steps below are retained as the audit trail. Do not re-run them.
 
 1. Confirm Anton has approved **this** migration execution against the intended
    Core Postgres (`corpflow_test` or later `client_production` — never inferred).
@@ -153,10 +161,8 @@ After an approved `release_lock` success: rerun `diagnose`, then `dry_run` (targ
 
 ## Outstanding approvals
 
-- Merge the real-Postgres lock correction (advisory lock must return an integer Prisma can read)
-- CEO merge of the guarded `release_lock` workflow, then a separate approval to dispatch `release_lock` on `main` with a **fresh** diagnose PID / exact `backend_start` / `terminate_one_session`
-- Register the already-applied ownership migration in Prisma history (`diagnose` → `dry_run` → `execute` after the lock is absent)
-- Enable the durable flag in a live runtime
-- Merge/deploy of the integration
-- Live Paddle / ERPNext end-to-end against real or authorised test parties
+- Merge/deploy of the authenticated checkout integration (buyer-ownership code is otherwise on `main`)
+- Enable `CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE=1` in one named runtime (Preview shares production Neon unless proven otherwise)
+- Live Paddle sandbox webhook + authenticated retrieve against authorised test parties
+- Any ERPNext financial write
 - Customer communications

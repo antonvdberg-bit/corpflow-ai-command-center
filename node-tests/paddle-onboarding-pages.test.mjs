@@ -18,7 +18,10 @@ test('pricing pages keep host isolation and no checkout claims', () => {
   assert.doesNotMatch(bad, /12900|45000|85000|51000|34000/);
   assert.doesNotMatch(packages, /12900|45000|85000|51000|34000/);
   assert.match(sandboxBad, /noindex,nofollow/);
-  assert.match(sandboxBad, /Browser checkout success does not release onboarding/);
+  assert.match(sandboxBad, /Browser success does not issue/);
+  assert.match(sandboxBad, /\/api\/paddle\/bad\/checkout/);
+  assert.match(sandboxBad, /transactionId/);
+  assert.doesNotMatch(sandboxBad, /customData: payload\.customData/);
   assert.match(sandboxBad, /ZAR/);
 });
 
