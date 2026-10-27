@@ -3,26 +3,42 @@
 # Does not apply SQL, deploy the app, or repair the unfinished Luxe migration.
 #
 # Default mode is dry_run. diagnose is read-only lock/history inspect.
+# release_preview re-identifies one holder and never terminates.
+# release_lock may terminate exactly one confirmed PID after guards.
 # Execute is inert until Infisical injects an existing non-pooled Neon URL
 # (DIRECT_URL or POSTGRES_URL_NON_POOLING). This workflow never derives a
-# direct URL from pooled POSTGRES_URL and never terminates sessions.
+# direct URL from pooled POSTGRES_URL.
 name: Resolve BAD ownership Prisma history
 
 on:
   workflow_dispatch:
     inputs:
       mode:
-        description: dry_run never writes. diagnose is read-only lock and history inspect. execute runs only the approved resolve command.
+        description: dry_run never writes. diagnose is read-only. release_preview identifies one lock holder without terminating. release_lock terminates one confirmed PID only. execute runs only the approved resolve command.
         type: choice
         required: true
         default: dry_run
         options:
           - dry_run
           - diagnose
+          - release_preview
+          - release_lock
           - execute
       confirm_migration_id:
         description: Must equal 20261021140000_bad_purchase_ownership
         required: true
+        type: string
+      confirm_pid:
+        description: Required for release_preview and release_lock. Exact holder PID from diagnose. Never an application label.
+        required: false
+        type: string
+      confirm_backend_start:
+        description: Required for release_preview and release_lock. Exact diagnose backend_start UTC string with microseconds, YYYY-MM-DDTHH:MM:SS.ffffffZ. Do not reuse whole-second epoch values.
+        required: false
+        type: string
+      confirm_terminate:
+        description: For release_lock only, must equal terminate_one_session. Leave empty for every other mode.
+        required: false
         type: string
 
 permissions:
@@ -35,13 +51,16 @@ concurrency:
 
 jobs:
   resolve-history:
-    if: github.repository == 'antonvdberg-bit/corpflow-ai-command-center' && (github.event.inputs.mode != 'execute' || github.ref == 'refs/heads/main')
+    if: github.repository == 'antonvdberg-bit/corpflow-ai-command-center' && ((github.event.inputs.mode != 'execute' && github.event.inputs.mode != 'release_lock' && github.event.inputs.mode != 'release_preview') || github.ref == 'refs/heads/main')
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       RESOLVER_MODE: ${{ inputs.mode }}
       CONFIRM_MIGRATION_ID: ${{ inputs.confirm_migration_id }}
+      CONFIRM_PID: ${{ inputs.confirm_pid }}
+      CONFIRM_BACKEND_START: ${{ inputs.confirm_backend_start }}
+      CONFIRM_TERMINATE: ${{ inputs.confirm_terminate }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
