@@ -1,8 +1,7 @@
 # Optional repository secrets (Settings → Secrets and variables → Actions):
 #
 # POSTGRES_URL
-#   Same pooled Postgres URL as production Vercel (Prisma). When set, the "Prisma migrate deploy"
-#   step runs on every workflow (push/PR to main). Forks without this secret skip migrate (step succeeds).
+#   Used for application/test configuration. CI must not run production migrations.
 #
 # Not added by automation — you must paste the value in the GitHub UI (or gh secret set).
 #
@@ -99,16 +98,8 @@ jobs:
     - name: Marketing standards integrity check
       run: npm run check:marketing-quality-gate
 
-    # When POSTGRES_URL is set (e.g. from Infisical OIDC), try to apply pending migrations.
-    # P3005 on non-baselined DBs is migrate history hygiene, not secret-delivery failure — step uses continue-on-error.
-    - name: Prisma migrate deploy (optional)
-      continue-on-error: true
-      run: |
-        if [ -z "$POSTGRES_URL" ]; then
-          echo "Skip: POSTGRES_URL not available (Infisical not configured for this workflow/env)."
-        else
-          npx prisma migrate deploy
-        fi
+    # Production schema changes are never executed by routine CI.
+    # Use only explicitly approved, guarded manual migration workflows.
 
     # `high` fails often on transitive dev/build deps (e.g. Next toolchain) while fixes lag.
     # Block on critical only; run `npm audit` locally or in Dependabot for full visibility.
