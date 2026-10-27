@@ -28,24 +28,50 @@ Do not invent a second database, a second Vercel project, or a new secret. Do no
 
 ### Smallest recommended sequence (separate approvals)
 
-1. Merge the authenticated checkout PR (this change).
+1. Merge the authenticated checkout PR.
 2. Confirm the intended runtime’s `POSTGRES_URL` is the existing Core Neon `neondb` (shared).
-3. Anton sets the flag on **one** named runtime only (Preview **or** Production — not both in the same approval).
-4. Synthetic smoke only: authenticated bind, other-buyer denial, anonymous denial. No real Paddle charge, no ERPNext financial posting, no customer message.
-5. Separate later approval for live Paddle sandbox webhook proof and any ERPNext write mode other than disabled.
+3. Run **class A** checks below while the flag is still off.
+4. Anton sets the flag on **one** named runtime only (Preview **or** Production — not both in the same approval).
+5. Run **class B** negative HTTP checks only. Do **not** POST an authenticated checkout.
+6. Separate later approval for **class C**: authenticated sandbox `transactions.create`, ownership-row writes, webhook proof, and any ERPNext write mode other than disabled.
 
-## Verification after the flag is set
+## Verification classes
 
-Use an existing signed-in tenant `corpflow_session` on the BAD host. Do not use email or a transaction id as identity.
+Use an existing signed-in tenant `corpflow_session` on the BAD host only where a check says “authenticated”. Do not use email or a transaction id as identity.
+
+### Class A — read-only, flag still off (no extra approval)
+
+These do not call Paddle and do not insert `bad_purchase_*` rows.
 
 | Check | Expected |
 |---|---|
-| Unauthenticated `POST /api/paddle/bad/checkout` | `401 AUTH_USER_REQUIRED` |
-| Authenticated checkout with flag off | `404 feature_disabled` |
-| Authenticated checkout with flag on | `200` with server `checkout_intent_id` and `paddle_transaction_id` |
-| `GET /api/paddle/bad/order-confirmation` before paid+issued | `404 NOT_FOUND` |
-| Other buyer / other tenant | `403 FORBIDDEN` |
-| Anonymous retrieve | `401` |
+| Unauthenticated `POST /api/paddle/bad/checkout` | `404 feature_disabled` |
+| Authenticated `POST /api/paddle/bad/checkout` | `404 feature_disabled` |
+| `GET /api/paddle/bad/order-confirmation` | `404 feature_disabled` |
+
+### Class B — negative HTTP after the flag is on (flag approval only)
+
+Safe only if nobody has already POSTed an authenticated checkout on that runtime. These still **must not** create a Paddle transaction or an ownership row.
+
+| Check | Expected | Mutates? |
+|---|---|---|
+| Unauthenticated `POST /api/paddle/bad/checkout` | `401 AUTH_USER_REQUIRED` | No. Fails before bind and before Paddle. |
+| Authenticated `GET /api/paddle/bad/order-confirmation` without a bound intent | `404 NOT_FOUND` | No. Read only. |
+| Anonymous `GET /api/paddle/bad/order-confirmation` | `401` | No. Read only. |
+
+Do **not** treat a `200` from authenticated `POST /api/paddle/bad/checkout` as smoke. That path is class C.
+
+### Class C — approval-gated mutations (do not run from this packet)
+
+Each of the following needs its own explicit Anton approval. Preview and Production share Neon unless independently proven otherwise.
+
+| Action | Why it is gated |
+|---|---|
+| Authenticated `POST /api/paddle/bad/checkout` with flag on | Calls Paddle sandbox `transactions.create` **and** inserts `bad_purchase_ownership` on shared Core Neon |
+| `POST /api/paddle/bad/checkout-intent` with flag on | Inserts an ownership row on shared Neon |
+| Completing a sandbox overlay / card / webhook round-trip | Provider event plus ownership status change on shared Neon |
+| ERPNext order/document write | Financial/shared-estate mutation |
+| Customer message | External send |
 
 Live Paddle overlay + webhook round-trip remains a **protected live test**. Browser `checkout.completed` is not proof of ownership.
 
@@ -58,7 +84,8 @@ Live Paddle overlay + webhook round-trip remains a **protected live test**. Brow
 
 - No production/preview env mutation from an agent
 - No production deploy from an agent
-- No real Paddle payment
+- No Paddle sandbox or live transaction from this packet
+- No ownership-row insert on shared Neon from this packet
 - No ERPNext Sales Invoice / Payment Entry
 - No customer email/WhatsApp
 - No Prisma migrate deploy / resolve

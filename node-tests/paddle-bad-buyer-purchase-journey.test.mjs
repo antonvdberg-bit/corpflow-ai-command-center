@@ -21,6 +21,7 @@ const CROSS_TENANT = { auth_user_id: 'auth-buyer-1', tenant_id: 'luxe-maurice', 
 const ENV = {
   CORPFLOW_BAD_BUYER_OWNERSHIP_DURABLE: '1',
   NEXT_PUBLIC_PADDLE_BAD_ONBOARD_EXISTING_PRICE_ID: 'pri_badzar1test',
+  NEXT_PUBLIC_PADDLE_BAD_ADDRESS_CHANGE_PRICE_ID: 'pri_badzar6test',
 };
 const INTAKE = {
   item_code: 'BAD-ONBOARD-EXISTING',
@@ -29,6 +30,11 @@ const INTAKE = {
   business_email: 'ops@example.test',
   country: 'ZA',
   correlation_id: 'cfai-bad-corr-t04',
+};
+const ADDRESS_INTAKE = {
+  ...INTAKE,
+  item_code: 'BAD-ADDRESS-CHANGE',
+  correlation_id: 'cfai-bad-corr-address',
 };
 
 function mockRes() {
@@ -64,7 +70,7 @@ function httpDeps(store, extras = {}) {
 async function startAuthenticatedCheckout(store, extras = {}) {
   const res = mockRes();
   await handleBadBuyerAuthenticatedCheckout(
-    { method: 'POST', headers: {}, body: INTAKE },
+    { method: 'POST', headers: {}, body: extras.intake || INTAKE },
     res,
     httpDeps(store, extras),
   );
@@ -72,7 +78,8 @@ async function startAuthenticatedCheckout(store, extras = {}) {
 }
 
 function completedEvent(transactionId, overrides = {}) {
-  const mapped = mapBadZarCatalog(ENV).services.find((row) => row.item_code === INTAKE.item_code);
+  const intake = overrides.intake || INTAKE;
+  const mapped = mapBadZarCatalog(ENV).services.find((row) => row.item_code === intake.item_code);
   return {
     eventId: overrides.eventId || 'evt_t04_complete',
     eventType: 'transaction.completed',
@@ -83,11 +90,11 @@ function completedEvent(transactionId, overrides = {}) {
       customer: { email: 'attacker@example.test' },
       customData: {
         brand: 'business_admin_desk',
-        item_code: INTAKE.item_code,
-        correlation_id: INTAKE.correlation_id,
-        legal_business_name: INTAKE.legal_business_name,
-        contact_name: INTAKE.contact_name,
-        country: INTAKE.country,
+        item_code: intake.item_code,
+        correlation_id: intake.correlation_id,
+        legal_business_name: intake.legal_business_name,
+        contact_name: intake.contact_name,
+        country: intake.country,
         checkout_intent_id: overrides.checkoutIntentId || 'forged-intent',
         auth_user_id: 'forged-user',
         email: 'attacker@example.test',
@@ -137,16 +144,19 @@ async function retrieve(store, owner, checkoutIntentId) {
   return res;
 }
 
-async function paidIssuedJourney(options = {}) {
+async function paidJourney(options = {}) {
+  const intake = options.intake || INTAKE;
   const store = createMemoryBadBuyerOwnershipStore();
   const adapter = createMemoryBadErpnextAdapter();
   const outbox = createMemoryBadPurchaseOutbox();
   const checkout = await startAuthenticatedCheckout(store, {
     paddleTransactionId: options.paddleTransactionId || 'txn_t04',
+    intake,
   });
   assert.equal(checkout.statusCode, 200);
   const event = completedEvent(checkout.body.paddle_transaction_id, {
     checkoutIntentId: checkout.body.checkout_intent_id,
+    intake,
     ...options.event,
   });
   const applied = await applyVerifiedBadPurchaseSideEffects(event, {
@@ -156,27 +166,59 @@ async function paidIssuedJourney(options = {}) {
     catalog: mapBadZarCatalog(ENV),
     outbox,
   });
-  return { store, adapter, checkout, applied, outbox };
+  return { store, adapter, checkout, applied, outbox, intake };
+}
+
+function paidIssuedJourney(options = {}) {
+  return paidJourney({
+    intake: ADDRESS_INTAKE,
+    paddleTransactionId: options.paddleTransactionId || 'txn_address',
+    event: options.event,
+  });
 }
 
 test('T04 authenticated checkout binds the session owner to a server-created Paddle transaction', async () => {
-  const { store, adapter, checkout, applied } = await paidIssuedJourney();
+  const { store, adapter, checkout, applied } = await paidJourney({ paddleTransactionId: 'txn_t04' });
   const record = await store.inspect(checkout.body.checkout_intent_id);
   assert.equal(record.owner.auth_user_id, OWNER.auth_user_id);
   assert.equal(record.owner.tenant_id, OWNER.tenant_id);
   assert.equal(record.paddle_transaction_id, 'txn_t04');
   assert.equal(applied.badPurchase.outcome, 'completed');
-  assert.equal(applied.issued.code, 'ISSUED');
-  assert.equal(record.status, 'issued');
-  assert.equal(record.erpnext_order_ref, applied.badPurchase.order_name);
+  assert.equal(applied.issued.code, 'CONFIRMATION_NOT_ISSUED');
+  assert.equal(record.status, 'paid');
   assert.equal(adapter.orders.length, 1);
   assert.equal(adapter.invoices.length, 0);
   assert.equal(adapter.payments.length, 0);
+  assert.equal((await retrieve(store, OWNER, checkout.body.checkout_intent_id)).statusCode, 404);
+});
+
+test('an issued BAD address-change confirmation is bound from the bridge document', async () => {
+  const { store, adapter, checkout, applied } = await paidIssuedJourney({ paddleTransactionId: 'txn_doc_ok' });
+  const record = await store.inspect(checkout.body.checkout_intent_id);
+  assert.equal(applied.issued.code, 'ISSUED');
+  assert.equal(record.status, 'issued');
+  assert.match(String(applied.badPurchase.confirmation_html || ''), /Accepted Service Offer/);
+  assert.equal(record.confirmation_ref, applied.badPurchase.confirmation_name);
+  assert.equal(record.erpnext_order_ref, applied.badPurchase.order_name);
+  assert.equal(adapter.confirmations.length, 1);
   const owner = await retrieve(store, OWNER, checkout.body.checkout_intent_id);
   assert.equal(owner.statusCode, 200);
-  assert.equal(owner.body.erpnext_order_ref, applied.badPurchase.order_name);
-  assert.equal(owner.body.confirmation_ref, record.confirmation_ref);
+  assert.equal(owner.body.confirmation_ref, applied.badPurchase.confirmation_name);
   assert.equal(owner.body.html, undefined);
+});
+
+test('a completed purchase without an issued BAD document stays unretrievable', async () => {
+  const { store, checkout, applied } = await paidJourney({ paddleTransactionId: 'txn_doc_missing' });
+  assert.equal(applied.issued.code, 'CONFIRMATION_NOT_ISSUED');
+  assert.equal(applied.badPurchase.confirmation_name, null);
+  assert.equal(applied.badPurchase.confirmation_html, null);
+  const record = await store.inspect(checkout.body.checkout_intent_id);
+  assert.equal(record.status, 'paid');
+  assert.equal(record.issued, false);
+  assert.equal((await retrieve(store, OWNER, checkout.body.checkout_intent_id)).statusCode, 404);
+  const webhook = readFileSync(path.join(ROOT, 'lib/server/paddle-sandbox/webhook.js'), 'utf8');
+  assert.match(webhook, /issuedConfirmationFromBadBridge/);
+  assert.doesNotMatch(webhook, /html:\s*['"]<p>bound-order-confirmation<\/p>['"]/);
 });
 
 test('T06 anonymous, other buyer, and wrong-tenant requests cannot retrieve the confirmation', async () => {
@@ -190,9 +232,13 @@ test('T06 anonymous, other buyer, and wrong-tenant requests cannot retrieve the 
 });
 
 test('T07 duplicate and out-of-order webhooks do not create a second order', async () => {
-  const { store, adapter, checkout, outbox } = await paidIssuedJourney({ paddleTransactionId: 'txn_t07' });
+  const { store, adapter, checkout, outbox, intake } = await paidIssuedJourney({ paddleTransactionId: 'txn_t07' });
   const duplicate = await applyVerifiedBadPurchaseSideEffects(
-    completedEvent('txn_t07', { eventId: 'evt_t04_complete', checkoutIntentId: checkout.body.checkout_intent_id }),
+    completedEvent('txn_t07', {
+      eventId: 'evt_t04_complete',
+      checkoutIntentId: checkout.body.checkout_intent_id,
+      intake,
+    }),
     {
       env: ENV,
       badBuyerOwnership: store,
@@ -206,6 +252,7 @@ test('T07 duplicate and out-of-order webhooks do not create a second order', asy
       eventId: 'evt_t07_earlier',
       checkoutIntentId: checkout.body.checkout_intent_id,
       occurredAt: '2026-10-27T07:00:00Z',
+      intake,
     }),
     {
       env: ENV,
@@ -283,6 +330,7 @@ test('T09 refund before and after fulfilment stays terminal', async () => {
   await paidStore.applyVerifiedWebhook(completedEvent('txn_t09_after', {
     eventId: 'evt_t09_resurrect',
     checkoutIntentId: checkout.body.checkout_intent_id,
+    intake: ADDRESS_INTAKE,
   }));
   const after = await paidStore.inspect(checkout.body.checkout_intent_id);
   assert.equal(after.status, 'refunded');
