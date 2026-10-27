@@ -74,6 +74,75 @@ function validateReceipt(receipt, organizationId) {
   }
 }
 
+function validateSnapshotAttestations(input, snapshot, computedFingerprint) {
+  const fingerprintAttestations = [
+    ['expectedSnapshotFingerprint', input.expectedSnapshotFingerprint],
+    ['snapshot.expectedFingerprint', snapshot.expectedFingerprint],
+    ['snapshot.fingerprint', snapshot.fingerprint],
+  ].filter(([, value]) => value !== undefined && value !== null);
+  if (fingerprintAttestations.length === 0) return blocked('missing_snapshot_fingerprint');
+  if (fingerprintAttestations.some(([, value]) => typeof value !== 'string' || !value)) {
+    return blocked('invalid_snapshot_fingerprint');
+  }
+  if (fingerprintAttestations.some(([, value]) => value !== computedFingerprint)) {
+    return blocked(fingerprintAttestations.length === 1 ? 'stale_snapshot_fingerprint' : 'contradictory_snapshot_fingerprint');
+  }
+
+  const versionAttestations = [
+    ['expectedSnapshotVersion', input.expectedSnapshotVersion],
+    ['snapshot.expectedVersion', snapshot.expectedVersion],
+    ['snapshot.version', snapshot.version],
+  ].filter(([, value]) => value !== undefined && value !== null);
+  if (versionAttestations.length === 0) return blocked('missing_snapshot_version');
+  if (versionAttestations.some(([, value]) => !Number.isInteger(value) || value < 1)) {
+    return blocked('invalid_snapshot_version');
+  }
+  const authoritativeVersion = versionAttestations[versionAttestations.length - 1][1];
+  if (versionAttestations.some(([, value]) => value !== authoritativeVersion)) {
+    return blocked('contradictory_snapshot_version');
+  }
+  return { fingerprint: computedFingerprint, version: authoritativeVersion };
+}
+
+function validateReceiptAllocations(receipt, expectedIntents, snapshotFingerprint) {
+  const allocations = receipt.allocations;
+  if (!Array.isArray(allocations) || allocations.length !== expectedIntents.length) {
+    throw new TypeError('accepted receipt has incomplete allocation evidence');
+  }
+  const expected = new Map(expectedIntents.map((intent) => [
+    `${intent.lineId}\u0000${intent.batchId}`,
+    intent,
+  ]));
+  const seen = new Set();
+  for (const allocation of allocations) {
+    if (!allocation || typeof allocation !== 'object' || Array.isArray(allocation)) {
+      throw new TypeError('accepted receipt has malformed allocation evidence');
+    }
+    for (const name of ['organizationId', 'invoiceId', 'invoiceVersion', 'lineId', 'itemId', 'batchId', 'unit', 'inputSnapshotFingerprint']) {
+      identity(allocation[name], `accepted allocation.${name}`);
+    }
+    if (allocation.organizationId !== receipt.organizationId ||
+      allocation.invoiceId !== receipt.invoiceId ||
+      String(allocation.invoiceVersion) !== String(receipt.invoiceVersion) ||
+      allocation.inputSnapshotFingerprint !== snapshotFingerprint) {
+      throw new TypeError('accepted receipt allocation identity mismatch');
+    }
+    const key = `${allocation.lineId}\u0000${allocation.batchId}`;
+    const expectedIntent = expected.get(key);
+    if (!expectedIntent || seen.has(key)) throw new TypeError('accepted receipt allocation set mismatch');
+    seen.add(key);
+    const exact = scaled(allocation.quantityExact, 'accepted allocation.quantityExact');
+    if (exact <= 0n || allocation.quantity !== quantity(exact).number ||
+      allocation.quantityExact !== expectedIntent.quantityExact ||
+      allocation.itemId !== expectedIntent.itemId ||
+      allocation.unit !== expectedIntent.unit ||
+      allocation.expectedVersion !== expectedIntent.expectedVersion) {
+      throw new TypeError('accepted receipt allocation value mismatch');
+    }
+  }
+  if (seen.size !== expected.size) throw new TypeError('accepted receipt allocation coverage mismatch');
+}
+
 export function snapshotFingerprint(snapshot) {
   return digest({
     batches: snapshot.batches,
@@ -85,8 +154,9 @@ export function snapshotFingerprint(snapshot) {
 }
 
 export function planInvoiceBatchIntent(input = {}) {
-  const original = clone(input);
+  let original;
   try {
+    original = clone(input);
     const organizationId = identity(input.organizationId, 'organizationId');
     const event = required(input.event, 'event');
     const eventId = identity(event.eventId, 'event.eventId');
@@ -101,20 +171,10 @@ export function planInvoiceBatchIntent(input = {}) {
     if (!Array.isArray(snapshot.batches)) return blocked('missing_snapshot_batches');
     if (snapshot.asOfDate !== asOfDate) return blocked('inconsistent_snapshot');
     const computedSnapshotFingerprint = snapshotFingerprint(snapshot);
-    const suppliedSnapshotFingerprint = input.expectedSnapshotFingerprint
-      ?? snapshot.expectedFingerprint
-      ?? snapshot.fingerprint;
-    const suppliedSnapshotVersion = input.expectedSnapshotVersion
-      ?? snapshot.expectedVersion
-      ?? snapshot.version;
-    if (typeof suppliedSnapshotFingerprint !== 'string' || !suppliedSnapshotFingerprint) {
-      return blocked('missing_snapshot_fingerprint');
-    }
-    if (suppliedSnapshotFingerprint !== computedSnapshotFingerprint) return blocked('stale_snapshot_fingerprint');
-    if (!Number.isInteger(suppliedSnapshotVersion) || suppliedSnapshotVersion < 1) {
-      return blocked('missing_snapshot_version');
-    }
-    const inputSnapshotFingerprint = computedSnapshotFingerprint;
+    const snapshotEvidence = validateSnapshotAttestations(input, snapshot, computedSnapshotFingerprint);
+    if (snapshotEvidence.outcome === 'blocked') return snapshotEvidence;
+    const inputSnapshotFingerprint = snapshotEvidence.fingerprint;
+    const expectedSnapshotVersion = snapshotEvidence.version;
     if (!EVENT_TYPES.has(event.type)) {
       return blocked(BLOCKED_TYPES.has(event.type) && event.type === 'revision'
         ? 'accepted_revision_requires_reconciliation'
@@ -146,16 +206,13 @@ export function planInvoiceBatchIntent(input = {}) {
       String(receipt.invoiceVersion) === invoiceVersion);
     const invoiceHistory = receipts.filter((receipt) =>
       receipt.organizationId === organizationId && receipt.invoiceId === invoiceId);
+    const eventHistory = receipts.filter((receipt) =>
+      receipt.organizationId === organizationId && receipt.eventId === eventId);
     if (matching.length > 1) return blocked('ambiguous_prior_receipts');
-    if (matching.length === 1) {
-      return matching[0].payloadFingerprint === payloadFingerprint &&
-        matching[0].snapshotFingerprint === inputSnapshotFingerprint &&
-        matching[0].eventId === eventId
-        ? { outcome: 'no_op', eventId, invoiceId, invoiceVersion, receiptId: matching[0].receiptId }
-        : blocked('event_identity_reused_with_changed_payload');
+    if (eventHistory.some((receipt) =>
+      receipt.invoiceId !== invoiceId || String(receipt.invoiceVersion) !== invoiceVersion)) {
+      return blocked('event_identity_reused_for_different_invoice');
     }
-    if (invoiceHistory.length > 0) return blocked('invoice_already_accepted_requires_reconciliation');
-
     const seenLines = new Set();
     const seenItems = new Set();
     const batches = clone(snapshot.batches);
@@ -197,16 +254,34 @@ export function planInvoiceBatchIntent(input = {}) {
       });
       intents.push(...lineSlices);
     }
+    if (matching.length === 1) {
+      if (matching[0].payloadFingerprint !== payloadFingerprint ||
+        matching[0].snapshotFingerprint !== inputSnapshotFingerprint ||
+        matching[0].eventId !== eventId) {
+        return blocked('event_identity_reused_with_changed_payload');
+      }
+      try {
+        validateReceiptAllocations(matching[0], intents, inputSnapshotFingerprint);
+      } catch (error) {
+        return blocked('invalid_accepted_receipt', asError(error));
+      }
+      return { outcome: 'no_op', eventId, invoiceId, invoiceVersion, receiptId: matching[0].receiptId, expectedSnapshotVersion };
+    }
+    if (invoiceHistory.length > 0) return blocked('invoice_already_accepted_requires_reconciliation');
     return clone({
       outcome: 'proposed', synthetic: true, connected: false, readOnly: true,
       organizationId, eventId, invoiceId, invoiceVersion,
-      payloadFingerprint, snapshotFingerprint: inputSnapshotFingerprint,
+      payloadFingerprint, snapshotFingerprint: inputSnapshotFingerprint, expectedSnapshotVersion,
       intents, expectedVersions: Object.fromEntries(intents.map((intent) => [intent.batchId, intent.expectedVersion])),
       atomicCommit: false,
     });
   } catch (error) {
     return blocked('invalid_input', asError(error));
   } finally {
-    if (digest(input) !== digest(original)) throw new TypeError('invoice intent input was mutated');
+    try {
+      if (original !== undefined && digest(input) !== digest(original)) throw new TypeError('invoice intent input was mutated');
+    } catch (error) {
+      if (error instanceof TypeError && error.message === 'invoice intent input was mutated') throw error;
+    }
   }
 }

@@ -16,5 +16,5 @@
 - [x] 3.2 Add duplicate-event/conflicting-payload and multi-line all-or-none planning cases.
 - [x] 3.3 Add cross-organization, missing policy/evidence, units, fractional quantities and stale snapshot cases.
 - [x] 3.4 Assert inputs remain immutable and no network/write/send path exists.
-- [ ] 3.5 Run existing batch suite and applicable CI; report exact commit and limits.
+- [x] 3.5 Run existing batch suite and applicable CI; report exact commit and limits.
 - [x] 3.6 Keep live binding, durable posting/concurrency/recovery and client UAT explicitly unverified.
