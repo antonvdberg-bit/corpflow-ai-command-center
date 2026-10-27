@@ -80,7 +80,7 @@ For migrating a **read-only** scheduled job (factory-control-loop SHA comparison
 1. Create `.github/workflows/<name>.yml` mirroring an existing pinned workflow (e.g. `factory-health-ping.yml`) — third-party Actions pinned to commit SHAs per `AGENTS.md` § *CI / supply chain*.
 2. Use repo secrets, not values in the workflow file. Required name pattern: `CORPFLOW_*` or `VERCEL_*`.
 3. Authenticate with `Authorization: Bearer ${{ secrets.CORPFLOW_CRON_SECRET }}` against any factory route that accepts it; do **not** put `MASTER_ADMIN_KEY` into a workflow secret unless you have a written reason.
-4. Use `continue-on-error: true` only for steps that genuinely tolerate failure (e.g. `npx prisma migrate deploy` on a non-baselined DB; see `docs/VERCEL_DEPLOYMENT.md`).
+4. Use `continue-on-error: true` only for steps that genuinely tolerate failure. Do **not** use it to hide `prisma migrate deploy` (Agent CI must not apply production DDL; see `docs/VERCEL_DEPLOYMENT.md`).
 5. On failure, post a `lib/server/ops-alerts.js` envelope (best-effort Telegram + automation forward).
 
 ## 4. Pattern: Vercel cron (recommended for in-app scheduled work)

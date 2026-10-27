@@ -81,9 +81,7 @@ For **CI** on Pro with sub-daily crons, adjust `.github/workflows/test.yml` or r
 
 ## GitHub Actions: `POSTGRES_URL` and Prisma migrate
 
-The **Agent CI** workflow (`.github/workflows/test.yml`) may run **`npx prisma migrate deploy`** when **`POSTGRES_URL`** is present (including when injected by **Infisical OIDC** in the same job).
-
-**Important:** A failed optional migrate (for example Prisma **P3005** on a non-empty, non-baselined database) is **not** treated as an **Infisical or secret-delivery failure**. The migrate step is **`continue-on-error`** so CI still validates secret injection and the rest of the pipeline. Baseline / migration history is a separate operator concern.
+The **Agent CI** workflow (`.github/workflows/test.yml`) **must not** run **`npx prisma migrate deploy`**, **`prisma db push`**, or other production DDL. Infisical OIDC may still inject `POSTGRES_URL` for tests. Schema apply remains a separately approved operator path (see #1517). A unit test fails CI if the migrate-deploy step is reintroduced.
 
 Legacy option: store **`POSTGRES_URL`** as a GitHub Actions **repository secret** if you are not using Infisical in CI.
 
