@@ -414,9 +414,12 @@ test('webhook handler updates bound ownership and never calls bind from the even
   assert.match(webhook, /applyVerifiedWebhook/);
   assert.doesNotMatch(webhook, /bindCheckoutIntent/);
   assert.match(router, /paddle\/bad\/checkout-intent/);
+  assert.match(router, /paddle\/bad\/checkout/);
   assert.match(router, /paddle\/bad\/order-confirmation/);
   assert.match(router, /return handleBadBuyerCheckoutIntent\(req, res, \{ prisma \}\);/);
+  assert.match(router, /return handleBadBuyerAuthenticatedCheckout\(req, res, \{ prisma \}\);/);
   assert.match(router, /return handleBadBuyerOrderConfirmation\(req, res, \{ prisma \}\);/);
+  assert.doesNotMatch(webhook, /associateProviderTransaction/);
 });
 
 function cloneRow(row) {

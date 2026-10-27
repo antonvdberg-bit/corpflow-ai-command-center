@@ -121,6 +121,7 @@ import { adminRapidDeliveryHandler } from '../lib/server/admin-rapid-delivery-ap
 import paddleSandboxWebhookHandler from '../lib/server/paddle-sandbox/webhook.js';
 import paddleSandboxStatusHandler from '../lib/server/paddle-sandbox/status.js';
 import {
+  handleBadBuyerAuthenticatedCheckout,
   handleBadBuyerCheckoutIntent,
   handleBadBuyerOrderConfirmation,
 } from '../lib/server/paddle-sandbox/bad-buyer-ownership-http.js';
@@ -1093,6 +1094,9 @@ export default async function handler(req, res) {
   }
   if (pathSeg === 'paddle/bad/checkout-intent') {
     return handleBadBuyerCheckoutIntent(req, res, { prisma });
+  }
+  if (pathSeg === 'paddle/bad/checkout') {
+    return handleBadBuyerAuthenticatedCheckout(req, res, { prisma });
   }
   if (pathSeg === 'paddle/bad/order-confirmation') {
     return handleBadBuyerOrderConfirmation(req, res, { prisma });

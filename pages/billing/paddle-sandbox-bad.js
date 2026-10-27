@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { useEffect, useMemo, useState } from 'react';
 
-import { checkoutCustomData, createBadCorrelationId, validateBadCustomerIntake } from '../../lib/server/paddle-sandbox/bad-intake.js';
+import { createBadCorrelationId, validateBadCustomerIntake } from '../../lib/server/paddle-sandbox/bad-intake.js';
 import { APPROVED_BAD_ZAR_SERVICES } from '../../lib/server/paddle-sandbox/bad-zar-catalog.js';
 import { configuredBadCheckoutServices } from '../../lib/server/paddle-sandbox/bad-checkout-static-prices.js';
 
@@ -9,6 +9,8 @@ export default function PaddleSandboxBadPage() {
   const [paddle, setPaddle] = useState(null);
   const [state, setState] = useState('ready');
   const [error, setError] = useState('');
+  const [checkoutIntentId, setCheckoutIntentId] = useState('');
+  const [confirmationRef, setConfirmationRef] = useState('');
   const [form, setForm] = useState({
     item_code: APPROVED_BAD_ZAR_SERVICES[0].item_code,
     legal_business_name: '',
@@ -54,30 +56,90 @@ export default function PaddleSandboxBadPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (state !== 'success_processing' || !checkoutIntentId) return undefined;
+    let cancelled = false;
+    let attempts = 0;
+    async function poll() {
+      attempts += 1;
+      try {
+        const response = await fetch(
+          `/api/paddle/bad/order-confirmation?checkout_intent_id=${encodeURIComponent(checkoutIntentId)}`,
+          { credentials: 'include' },
+        );
+        const body = await response.json().catch(() => ({}));
+        if (cancelled) return;
+        if (response.ok && body.ok) {
+          setConfirmationRef(body.confirmation_ref || '');
+          setState('confirmed');
+          return;
+        }
+        if (response.status === 401) {
+          setError('Sign in to retrieve your confirmation.');
+          setState('failed');
+          return;
+        }
+      } catch {
+        // Keep polling until the verified webhook issues the confirmation.
+      }
+      if (!cancelled && attempts < 12) setTimeout(poll, 1500);
+    }
+    poll();
+    return () => {
+      cancelled = true;
+    };
+  }, [state, checkoutIntentId]);
+
   function updateField(name, value) {
     setForm((current) => ({ ...current, [name]: value }));
   }
 
-  function openCheckout(event) {
+  async function openCheckout(event) {
     event.preventDefault();
     const intake = validateBadCustomerIntake(form);
     if (!intake.ok) {
       setError(`Invalid business details: ${intake.errors.join(', ')}`);
       return;
     }
-    if (!paddle || !selected.paddle_price_id) {
-      setError('This service has no configured Paddle sandbox price ID.');
+    if (!paddle) {
+      setError('Sandbox checkout is not ready.');
       return;
     }
-    const payload = checkoutCustomData(intake.value);
     setError('');
+    setConfirmationRef('');
     setState('processing');
-    paddle.Checkout.open({
-      items: [{ priceId: selected.paddle_price_id, quantity: 1 }],
-      customer: payload.customer,
-      customData: payload.customData,
-      settings: { variant: 'one-page' },
-    });
+    try {
+      const response = await fetch('/api/paddle/bad/checkout', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(intake.value),
+      });
+      const body = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        setState('failed');
+        setError('Sign in as the purchasing customer before starting checkout.');
+        return;
+      }
+      if (response.status === 404 && body.error === 'feature_disabled') {
+        setState('failed');
+        setError('Authenticated buyer ownership is not enabled in this runtime.');
+        return;
+      }
+      if (!response.ok || !body.paddle_transaction_id) {
+        setState('failed');
+        setError(body.error || 'Authenticated checkout could not be created.');
+        return;
+      }
+      setCheckoutIntentId(body.checkout_intent_id);
+      paddle.Checkout.open({
+        transactionId: body.paddle_transaction_id,
+        settings: { variant: 'one-page' },
+      });
+    } catch {
+      setState('failed');
+      setError('Authenticated checkout could not be created.');
+    }
   }
 
   return (
@@ -90,11 +152,12 @@ export default function PaddleSandboxBadPage() {
         <p style={{ color: '#9a3412', fontWeight: 700 }}>TEST ENVIRONMENT — Paddle sandbox only. Not a live checkout.</p>
         <h1>Business Admin Desk sandbox purchase</h1>
         <p>
-          Customer-facing amounts are ZAR. Browser checkout success does not release onboarding. Only a verified Paddle
-          webhook can create the internal commercial record.
+          You must be signed in. Checkout is created on the server against your account. Browser success does not issue
+          a confirmation. Only a verified Paddle webhook can mark the purchase paid.
         </p>
         {error && <p role="alert">{error}</p>}
         <p aria-live="polite">Status: {state}</p>
+        {confirmationRef && <p>Confirmation: {confirmationRef}</p>}
         <form onSubmit={openCheckout} style={{ display: 'grid', gap: 12, maxWidth: 520 }}>
           <label>
             Service
@@ -127,13 +190,13 @@ export default function PaddleSandboxBadPage() {
             <input value={form.country} onChange={(e) => updateField('country', e.target.value.toUpperCase())} maxLength={2} required />
           </label>
           <p>Correlation: {form.correlation_id}</p>
-          <button type="submit" disabled={!paddle || !selected.paddle_price_id || state === 'unavailable'}>
-            Start ZAR sandbox checkout
+          <button type="submit" disabled={!paddle || state === 'unavailable' || state === 'processing'}>
+            Start authenticated ZAR sandbox checkout
           </button>
         </form>
         <p style={{ marginTop: 24 }}>
-          Required sandbox env keys are listed when a service has no price ID. Do not invent Paddle IDs. Production ERPNext
-          writes stay disabled.
+          Price IDs remain server-mapped. This page no longer opens an anonymous Paddle overlay. Production ERPNext
+          writes stay disabled unless separately authorised.
         </p>
       </main>
     </>

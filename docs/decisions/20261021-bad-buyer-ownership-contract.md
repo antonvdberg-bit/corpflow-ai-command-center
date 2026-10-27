@@ -1,6 +1,6 @@
 # BAD buyer ownership contract — bounded synthetic implementation
 
-Status: `IMPLEMENTED SYNTHETIC CONTRACT / DURABLE SCHEMA PREPARED IN REPO — LIVE MIGRATION NOT APPROVED`
+Status: `IMPLEMENTED SYNTHETIC + DURABLE CONTRACT / SCHEMA APPLIED (#1517) / FLAG OFF — LIVE JOURNEY NOT AUTHORISED`
 
 Source: issue [#1507](https://github.com/antonvdberg-bit/corpflow-ai-command-center/issues/1507)
 
