@@ -34,16 +34,18 @@ Sources checked 2026-10-26 (accessed 2026-10-26):
 
 Native compile and read-only execution have **not** been performed in this repository.
 The draft is therefore a review artifact, not proven native-compatible or
-live-delivery-ready. Deluge's official type-check list documents `isText()` and
-`isNumber()` but no `isList()` predicate; the draft therefore rejects null/text/number
-scalars, bounds documented collection operations, and catches the complete iteration
-boundary. Whether Books exposes a distinguishable empty map versus empty list at this
-response boundary remains an explicit native compile/test gate, not a claim made by
-source inspection. The explicit list iteration, named connection, strict
-`yyyy-MM-dd` date round-trip, custom-function inputs, and map return shape must be
-checked in the Books editor; no source inspection is native
-compilation evidence. If Books rejects any syntax or supplied context map, stop and record
-the fixed reason code plus exact editor error; do not substitute another ERP or service.
+live-delivery-ready. Because Deluge's documented `isText()`/`isNumber()` checks are not
+strict JSON type predicates, the draft and pure fixture use the tested fixed-key
+`Map.toString()` wrapper: lists require the exact list shape, while positive integer and
+boolean attestations require their unquoted JSON tokens. This rejects maps,
+JSON-looking strings, quoted numbers, decimals, booleans, nulls, and escaped-string
+spoof attempts without returning supplied values. Collection cardinality is checked
+before invoice iteration. The explicit list iteration, named connection, strict
+`yyyy-MM-dd` date round-trip, custom-function inputs, and map return shape must still be
+checked in the Books editor; source inspection and the pure fixture are not native
+compilation or Books execution evidence. If Books rejects any syntax or supplied context
+map, stop and record the fixed reason code plus exact editor error; do not substitute
+another ERP or service.
 
 ## Planner contract
 
@@ -71,16 +73,19 @@ An empty first final page is valid; an empty continuing or later page is rejecte
    `REPLACE_WITH_BOOKS_CONNECTION` with the reviewed named Books connection. Do not put
    credentials, customer IDs, organization IDs, names, addresses, invoice rows, or
    arbitrary error text in logs or function output.
-3. Compile it natively in the Books editor. Confirm the explicit ten-item list
-   iteration, list-type guard, collection cardinality guard, `invokeurl` named connection,
-   strict `yyyy-MM-dd` date round-trip, `toDecimal` conversion, and custom-function
-   input/`map` return contract. Then run
+3. Run `native-type-fixtures.ds` only in the public Deluge evaluator and retain its
+   bounded result as synthetic fixture evidence. This validates wrapper primitives, not
+   the complete Books function or input/connection contract.
+4. Compile the disabled function natively in the Books editor. Confirm the explicit
+   ten-item list iteration, fixed-wrapper type guards, collection cardinality guard,
+   `invokeurl` named connection, strict `yyyy-MM-dd` date round-trip, `toDecimal`
+   conversion, and custom-function input/`map` return contract. Then run
    one scoped read-only test against a synthetic/safe test customer and inspect only
    bounded preparation metadata.
-4. Independently reconcile examples covering old debt on a later page, partial payment,
+5. Independently reconcile examples covering old debt on a later page, partial payment,
    paid/void/draft/future exclusions, no debt, credits, multiple currencies, and the
    10-page cap.
-5. Before any future send work, verify recipients and cadence, define duplicate-send
+6. Before any future send work, verify recipients and cadence, define duplicate-send
    protection and an auditable statement identity, then obtain a separate reviewed
    activation decision. A later workflow may render/send only after those gates.
 

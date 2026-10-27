@@ -9,7 +9,8 @@ verification, not a new CorpFlowAI runtime or an autonomous communication path.
 - Keep calculation in a pure CommonJS module so synthetic tests do not require Zoho,
   credentials, network access, or client data.
 - Treat `page_context` as an attestation chain: start at page 1, require exact page,
-  numbers, require each invoice collection to be a list no larger than both its
+  positive-integer JSON tokens for page/per-page, boolean JSON tokens for has-more, and
+  require each invoice collection to be a genuine list (not a map or scalar) no larger than both its
   attested `per_page` and the hard 200-record limit, stop at 10 pages, and fail closed
   on missing/error/truncated context. An empty first final page is the only valid empty
   page; empty continuing and later pages are rejected.
@@ -35,6 +36,9 @@ verification, not a new CorpFlowAI runtime or an autonomous communication path.
   map-versus-list distinction remains a native compile/test question.
 - API response fields may be malformed or contradictory; planner and draft fail closed
   rather than silently dropping history.
+- Native Deluge collection and scalar type guards are implemented with a fixed-key JSON
+  wrapper and exact token/shape checks. The pure fixture source-checks these fragments;
+  public Deluge execution and full Books execution remain separate gates.
 - Credits and multi-currency balances cannot be inferred from gross invoice totals;
   native reconciliation remains mandatory.
 

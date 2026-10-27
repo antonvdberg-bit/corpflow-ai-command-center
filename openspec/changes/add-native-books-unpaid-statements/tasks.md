@@ -23,3 +23,6 @@
   perform one scoped read-only test; source checks and Node tests are not native proof.
 - [x] 2.5 Keep native collection type/cardinality and full-iteration error boundaries
   fail-closed; native compilation remains an explicit unresolved gate.
+- [x] 2.6 Replace coercive native collection/page-attestation checks with fixed-wrapper
+  shape/token guards and add a pure synthetic Deluge fixture covering list/map/scalar
+  and attestation spoof cases.

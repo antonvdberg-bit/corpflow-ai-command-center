@@ -1,6 +1,16 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import test from 'node:test';
 import { prepareCustomerStatementPlan } from '../tools/zoho-customer-statements/statement-plan.cjs';
+
+const nativeDraft = fs.readFileSync(
+  new URL('../tools/zoho-customer-statements/prepare-customer-statement.ds', import.meta.url),
+  'utf8',
+);
+const nativeFixture = fs.readFileSync(
+  new URL('../tools/zoho-customer-statements/native-type-fixtures.ds', import.meta.url),
+  'utf8',
+);
 
 const invoice = (overrides = {}) => ({
   invoice_id: 'i-1',
@@ -174,4 +184,48 @@ test('fails closed for empty continuing or later pages but accepts an empty firs
     pagesRead: 1,
     invoiceCount: 0,
   });
+});
+
+test('keeps synthetic native fixture guards aligned with the disabled draft', () => {
+  const sharedGuards = [
+    'startsWith("{\\"value\\":[") &&',
+    'endsWith("]}")',
+    'getSuffix(":").getPrefix("}")',
+    'matches("[1-9][0-9]*")',
+    '{\\"value\\":true}',
+    '{\\"value\\":false}',
+  ];
+  for (const guard of sharedGuards) {
+    assert.ok(nativeDraft.includes(guard), `draft missing native guard: ${guard}`);
+    assert.ok(nativeFixture.includes(guard), `fixture missing native guard: ${guard}`);
+  }
+  for (const candidate of [
+    'empty_list',
+    'nonempty_list',
+    'empty_map',
+    'nonempty_map',
+    'json_looking_text',
+    'quoted_numeric_text',
+    'decimal_value',
+    'boolean_value',
+    'null_value',
+    'integer_one',
+    'integer_two_hundred',
+    'page_integer_one',
+    'page_decimal',
+    'page_quoted_integer',
+    'per_page_integer_200',
+    'per_page_zero',
+    'per_page_over_bound',
+    'invalid_zero',
+    'invalid_negative',
+    'invalid_over_bound',
+    'escaped_string',
+    'has_more_quoted_text',
+    'has_more_number',
+    'has_more_null',
+  ]) {
+    assert.ok(nativeFixture.includes(candidate), `fixture missing candidate: ${candidate}`);
+  }
+  assert.doesNotMatch(nativeFixture, /^\s*invokeurl\b|^\s*connection\s*:/im);
 });

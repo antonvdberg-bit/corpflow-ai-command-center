@@ -1,0 +1,137 @@
+// PURE SYNTHETIC DELUGE FIXTURE — no invokeurl, connection, tenant data, or mutation.
+// Run this only in the public Deluge evaluator. It is not Books execution proof.
+
+results = Map();
+
+empty_list = List();
+nonempty_list = {1,2};
+empty_map = Map();
+nonempty_map = Map();
+nonempty_map.put("value", 1);
+json_looking_text = "[]";
+quoted_numeric_text = "200";
+decimal_value = 1.5;
+boolean_value = true;
+null_value = null;
+integer_one = 1;
+integer_two_hundred = 200;
+
+list_probe = Map();
+list_probe.put("value", empty_list);
+list_shape = list_probe.toString();
+list_guard = list_shape.startsWith("{\"value\":[") && list_shape.endsWith("]}");
+results.put("empty_list", list_guard);
+
+list_probe.put("value", nonempty_list);
+list_shape = list_probe.toString();
+results.put("nonempty_list", list_shape.startsWith("{\"value\":[") && list_shape.endsWith("]}"));
+
+map_probe = Map();
+map_probe.put("value", empty_map);
+map_shape = map_probe.toString();
+results.put("empty_map", map_shape.startsWith("{\"value\":[") && map_shape.endsWith("]}"));
+
+map_probe.put("value", nonempty_map);
+map_shape = map_probe.toString();
+results.put("nonempty_map", map_shape.startsWith("{\"value\":[") && map_shape.endsWith("]}"));
+
+text_probe = Map();
+text_probe.put("value", json_looking_text);
+text_shape = text_probe.toString();
+results.put("json_looking_text", text_shape.startsWith("{\"value\":[") && text_shape.endsWith("]}"));
+
+numeric_probe = Map();
+numeric_probe.put("value", quoted_numeric_text);
+numeric_shape = numeric_probe.toString();
+numeric_token = numeric_shape.getSuffix(":").getPrefix("}");
+results.put("quoted_numeric_text", numeric_token.matches("[1-9][0-9]*"));
+
+numeric_probe.put("value", decimal_value);
+numeric_shape = numeric_probe.toString();
+numeric_token = numeric_shape.getSuffix(":").getPrefix("}");
+results.put("decimal_value", numeric_token.matches("[1-9][0-9]*"));
+
+boolean_probe = Map();
+boolean_probe.put("value", boolean_value);
+boolean_shape = boolean_probe.toString();
+results.put("boolean_value", boolean_shape == "{\"value\":true}" || boolean_shape == "{\"value\":false}");
+
+null_probe = Map();
+null_probe.put("value", null_value);
+null_shape = null_probe.toString();
+results.put("null_value", null_shape == "{\"value\":true}" || null_shape == "{\"value\":false}");
+
+integer_probe = Map();
+integer_probe.put("value", integer_one);
+integer_shape = integer_probe.toString();
+integer_token = integer_shape.getSuffix(":").getPrefix("}");
+results.put("integer_one", integer_token.matches("[1-9][0-9]*"));
+
+integer_probe.put("value", integer_two_hundred);
+integer_shape = integer_probe.toString();
+integer_token = integer_shape.getSuffix(":").getPrefix("}");
+results.put("integer_two_hundred", integer_token.matches("[1-9][0-9]*"));
+
+page_probe = Map();
+page_probe.put("value", 1);
+page_shape = page_probe.toString();
+page_token = page_shape.getSuffix(":").getPrefix("}");
+results.put("page_integer_one", page_shape.startsWith("{\"value\":") && page_shape.endsWith("}") && page_token.matches("[1-9][0-9]*"));
+page_probe.put("value", 1.5);
+page_shape = page_probe.toString();
+page_token = page_shape.getSuffix(":").getPrefix("}");
+results.put("page_decimal", page_token.matches("[1-9][0-9]*"));
+page_probe.put("value", "1");
+page_shape = page_probe.toString();
+page_token = page_shape.getSuffix(":").getPrefix("}");
+results.put("page_quoted_integer", page_token.matches("[1-9][0-9]*"));
+
+per_page_probe = Map();
+per_page_probe.put("value", 200);
+per_page_shape = per_page_probe.toString();
+per_page_token = per_page_shape.getSuffix(":").getPrefix("}");
+results.put("per_page_integer_200", per_page_shape.startsWith("{\"value\":") && per_page_shape.endsWith("}") && per_page_token.matches("[1-9][0-9]*"));
+per_page_probe.put("value", 0);
+per_page_shape = per_page_probe.toString();
+per_page_token = per_page_shape.getSuffix(":").getPrefix("}");
+results.put("per_page_zero", per_page_token.matches("[1-9][0-9]*"));
+per_page_probe.put("value", 201);
+per_page_shape = per_page_probe.toString();
+per_page_token = per_page_shape.getSuffix(":").getPrefix("}");
+results.put("per_page_over_bound", per_page_token.matches("[1-9][0-9]*"));
+
+invalid_zero = 0;
+invalid_negative = -1;
+invalid_over_bound = 201;
+for each invalid_value in {invalid_zero, invalid_negative, invalid_over_bound}
+{
+	invalid_probe = Map();
+	invalid_probe.put("value", invalid_value);
+	invalid_shape = invalid_probe.toString();
+	invalid_token = invalid_shape.getSuffix(":").getPrefix("}");
+	results.put("invalid_" + invalid_value.toString(), invalid_token.matches("[1-9][0-9]*"));
+}
+
+escaped_string_probe = Map();
+escaped_string_probe.put("value", "\"}]}");
+escaped_string_shape = escaped_string_probe.toString();
+escaped_string_list_guard = escaped_string_shape.startsWith("{\"value\":[") && escaped_string_shape.endsWith("]}");
+escaped_string_token = escaped_string_shape.getSuffix(":").getPrefix("}");
+results.put("escaped_string_list", escaped_string_list_guard);
+results.put("escaped_string_integer", escaped_string_token.matches("[1-9][0-9]*"));
+
+attested_has_more = Map();
+attested_has_more.put("value", true);
+attested_has_more_shape = attested_has_more.toString();
+results.put("has_more_true", attested_has_more_shape == "{\"value\":true}");
+attested_has_more.put("value", "true");
+attested_has_more_shape = attested_has_more.toString();
+results.put("has_more_quoted_text", attested_has_more_shape == "{\"value\":true}" || attested_has_more_shape == "{\"value\":false}");
+attested_has_more.put("value", 1);
+attested_has_more_shape = attested_has_more.toString();
+results.put("has_more_number", attested_has_more_shape == "{\"value\":true}" || attested_has_more_shape == "{\"value\":false}");
+attested_has_more.put("value", null);
+attested_has_more_shape = attested_has_more.toString();
+results.put("has_more_null", attested_has_more_shape == "{\"value\":true}" || attested_has_more_shape == "{\"value\":false}");
+
+return results;

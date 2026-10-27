@@ -72,7 +72,11 @@ for each page_number in page_numbers
 			response_code = response.get("code");
 			context = response.get("page_context");
 			invoices = response.get("invoices");
-			if(response_code != 0 || context == null || invoices == null || isText(invoices) == true || isNumber(invoices) == true)
+			invoice_shape = Map();
+			invoice_shape.put("value", invoices);
+			invoice_shape_text = invoice_shape.toString();
+			invoices_is_list = invoice_shape_text.startsWith("{\"value\":[") && invoice_shape_text.endsWith("]}");
+			if(response_code != 0 || context == null || invoices == null || invoices_is_list != true)
 			{
 				blocked = Map();
 				blocked.put("result", "blocked");
@@ -92,7 +96,21 @@ for each page_number in page_numbers
 			context_page = context.get("page");
 			context_per_page = context.get("per_page");
 			context_has_more = context.get("has_more_page");
-			if(context_page != page_number || context_per_page == null || isNumber(context_per_page) != true || context_per_page < 1 || context_per_page > per_page || context_has_more == null || (context_has_more != true && context_has_more != false) || invoices.size() > context_per_page || invoices.size() > per_page)
+			page_shape = Map();
+			page_shape.put("value", context_page);
+			page_shape_text = page_shape.toString();
+			page_token = page_shape_text.getSuffix(":").getPrefix("}");
+			per_page_shape = Map();
+			per_page_shape.put("value", context_per_page);
+			per_page_shape_text = per_page_shape.toString();
+			per_page_token = per_page_shape_text.getSuffix(":").getPrefix("}");
+			has_more_shape = Map();
+			has_more_shape.put("value", context_has_more);
+			has_more_shape_text = has_more_shape.toString();
+			page_is_positive_integer = page_shape_text.startsWith("{\"value\":") && page_shape_text.endsWith("}") && page_token.matches("[1-9][0-9]*");
+			per_page_is_positive_integer = per_page_shape_text.startsWith("{\"value\":") && per_page_shape_text.endsWith("}") && per_page_token.matches("[1-9][0-9]*");
+			has_more_is_boolean = has_more_shape_text == "{\"value\":true}" || has_more_shape_text == "{\"value\":false}";
+			if(page_is_positive_integer != true || per_page_is_positive_integer != true || has_more_is_boolean != true || context_page != page_number || context_per_page < 1 || context_per_page > per_page || invoices.size() > context_per_page || invoices.size() > per_page)
 			{
 				blocked = Map();
 				blocked.put("result", "blocked");
