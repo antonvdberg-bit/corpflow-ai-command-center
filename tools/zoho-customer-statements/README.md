@@ -34,7 +34,12 @@ Sources checked 2026-10-26 (accessed 2026-10-26):
 
 Native compile and read-only execution have **not** been performed in this repository.
 The draft is therefore a review artifact, not proven native-compatible or
-live-delivery-ready. The explicit list iteration, named connection, strict
+live-delivery-ready. Deluge's official type-check list documents `isText()` and
+`isNumber()` but no `isList()` predicate; the draft therefore rejects null/text/number
+scalars, bounds documented collection operations, and catches the complete iteration
+boundary. Whether Books exposes a distinguishable empty map versus empty list at this
+response boundary remains an explicit native compile/test gate, not a claim made by
+source inspection. The explicit list iteration, named connection, strict
 `yyyy-MM-dd` date round-trip, custom-function inputs, and map return shape must be
 checked in the Books editor; no source inspection is native
 compilation evidence. If Books rejects any syntax or supplied context map, stop and record
@@ -52,7 +57,9 @@ positive `balance` and an invoice date on or before the explicit as-of date.
 The period ends on the as-of date and starts on the earlier of the oldest eligible invoice
 date or 90 days before that date. Currencies remain separate. Invoice balances are not
 reduced by credits; credits and net account balance require native statement
-reconciliation. A debt-free customer returns `no_statement`.
+reconciliation. A debt-free customer returns `no_statement`. Each captured invoice list
+must contain no more than its attested `per_page` count and no more than 200 entries.
+An empty first final page is valid; an empty continuing or later page is rejected.
 
 ## Manual controller procedure
 
@@ -65,8 +72,9 @@ reconciliation. A debt-free customer returns `no_statement`.
    credentials, customer IDs, organization IDs, names, addresses, invoice rows, or
    arbitrary error text in logs or function output.
 3. Compile it natively in the Books editor. Confirm the explicit ten-item list
-   iteration, `invokeurl` named connection, strict `yyyy-MM-dd` date round-trip,
-   `toDecimal` conversion, and custom-function input/`map` return contract. Then run
+   iteration, list-type guard, collection cardinality guard, `invokeurl` named connection,
+   strict `yyyy-MM-dd` date round-trip, `toDecimal` conversion, and custom-function
+   input/`map` return contract. Then run
    one scoped read-only test against a synthetic/safe test customer and inspect only
    bounded preparation metadata.
 4. Independently reconcile examples covering old debt on a later page, partial payment,

@@ -12,11 +12,14 @@
 ## 2. Verification
 
 - [x] 2.1 Add meaningful synthetic tests for pagination, ordering, partial payment,
-  exclusions, strict ISO/calendar-valid date boundaries, malformed evidence, mismatch,
-  duplication, and input immutability.
+  exclusions, strict ISO/calendar-valid date boundaries, malformed evidence and
+  collections, cardinality limits, empty-page guards, mismatch, duplication, and input
+  immutability.
 - [x] 2.2 Run focused Node tests, syntax checks, diff whitespace checks, and OpenSpec
   strict validation where the validator is available.
 - [x] 2.3 Record that native Deluge compilation and live/read-only Books verification
   remain unperformed.
 - [x] 2.4 Record the exact native verification gate: compile in the Books editor, then
   perform one scoped read-only test; source checks and Node tests are not native proof.
+- [x] 2.5 Keep native collection type/cardinality and full-iteration error boundaries
+  fail-closed; native compilation remains an explicit unresolved gate.

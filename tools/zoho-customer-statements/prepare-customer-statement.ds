@@ -72,7 +72,7 @@ for each page_number in page_numbers
 			response_code = response.get("code");
 			context = response.get("page_context");
 			invoices = response.get("invoices");
-			if(response_code != 0 || context == null || invoices == null)
+			if(response_code != 0 || context == null || invoices == null || isText(invoices) == true || isNumber(invoices) == true)
 			{
 				blocked = Map();
 				blocked.put("result", "blocked");
@@ -92,14 +92,14 @@ for each page_number in page_numbers
 			context_page = context.get("page");
 			context_per_page = context.get("per_page");
 			context_has_more = context.get("has_more_page");
-			if(context_page != page_number || context_per_page == null || context_per_page < 1 || context_per_page > per_page || context_has_more == null || (context_has_more != true && context_has_more != false))
+			if(context_page != page_number || context_per_page == null || isNumber(context_per_page) != true || context_per_page < 1 || context_per_page > per_page || context_has_more == null || (context_has_more != true && context_has_more != false) || invoices.size() > context_per_page || invoices.size() > per_page)
 			{
 				blocked = Map();
 				blocked.put("result", "blocked");
 				blocked.put("reason_code", "unattested_page_context");
 				return blocked;
 			}
-			if(page_number > 1 && invoices.isEmpty() && context_has_more == true)
+			if(invoices.isEmpty() && (page_number > 1 || context_has_more == true))
 			{
 				blocked = Map();
 				blocked.put("result", "blocked");
@@ -114,71 +114,81 @@ for each page_number in page_numbers
 			blocked.put("reason_code", "malformed_page_context");
 			return blocked;
 		}
-		for each invoice in invoices
+		try
 		{
-			try
+			for each invoice in invoices
 			{
-				invoice_id = invoice.get("invoice_id");
-				invoice_customer_id = invoice.get("customer_id");
-				status = invoice.get("status");
-				invoice_date = invoice.get("date");
-				balance = invoice.get("balance");
-				invoice_currency = invoice.get("currency_code");
-				if(invoice_id == null || seen_ids.contains(invoice_id.toString()) || invoice_customer_id == null || invoice_customer_id.toString() != customer_id.toString())
+				try
 				{
-					blocked = Map();
-					blocked.put("result", "blocked");
-					blocked.put("reason_code", "duplicate_or_customer_mismatch");
-					return blocked;
-				}
-				seen_ids.add(invoice_id.toString());
-				if(status == null || invoice_date == null || balance == null || invoice_currency == null || invoice_currency != expected_currency)
-				{
-					blocked = Map();
-					blocked.put("result", "blocked");
-					blocked.put("reason_code", "malformed_invoice");
-					return blocked;
-				}
-				invoice_date_text = invoice_date.toString();
-				if(invoice_date_text.length() != 10 || invoice_date_text.subString(4,5) != "-" || invoice_date_text.subString(7,8) != "-")
-				{
-					blocked = Map();
-					blocked.put("result", "blocked");
-					blocked.put("reason_code", "malformed_invoice_date");
-					return blocked;
-				}
-				invoice_date_value = invoice_date_text.toDate("yyyy-MM-dd");
-				if(invoice_date_value.toString("yyyy-MM-dd") != invoice_date_text)
-				{
-					blocked = Map();
-					blocked.put("result", "blocked");
-					blocked.put("reason_code", "malformed_invoice_date");
-					return blocked;
-				}
-				balance_value = balance.toDecimal();
-				if(balance_value < 0)
-				{
-					blocked = Map();
-					blocked.put("result", "blocked");
-					blocked.put("reason_code", "malformed_invoice");
-					return blocked;
-				}
-				if(invoice_date_value <= as_of_date && (status == "sent" || status == "overdue" || status == "partially_paid") && balance_value > 0)
-				{
-					eligible_count = eligible_count + 1;
-					if(earliest_date == null || invoice_date_value < earliest_date)
+					invoice_id = invoice.get("invoice_id");
+					invoice_customer_id = invoice.get("customer_id");
+					status = invoice.get("status");
+					invoice_date = invoice.get("date");
+					balance = invoice.get("balance");
+					invoice_currency = invoice.get("currency_code");
+					if(invoice_id == null || seen_ids.contains(invoice_id.toString()) || invoice_customer_id == null || invoice_customer_id.toString() != customer_id.toString())
 					{
-						earliest_date = invoice_date_value;
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "duplicate_or_customer_mismatch");
+						return blocked;
+					}
+					seen_ids.add(invoice_id.toString());
+					if(status == null || invoice_date == null || balance == null || invoice_currency == null || invoice_currency != expected_currency)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice");
+						return blocked;
+					}
+					invoice_date_text = invoice_date.toString();
+					if(invoice_date_text.length() != 10 || invoice_date_text.subString(4,5) != "-" || invoice_date_text.subString(7,8) != "-")
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice_date");
+						return blocked;
+					}
+					invoice_date_value = invoice_date_text.toDate("yyyy-MM-dd");
+					if(invoice_date_value.toString("yyyy-MM-dd") != invoice_date_text)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice_date");
+						return blocked;
+					}
+					balance_value = balance.toDecimal();
+					if(balance_value < 0)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice");
+						return blocked;
+					}
+					if(invoice_date_value <= as_of_date && (status == "sent" || status == "overdue" || status == "partially_paid") && balance_value > 0)
+					{
+						eligible_count = eligible_count + 1;
+						if(earliest_date == null || invoice_date_value < earliest_date)
+						{
+							earliest_date = invoice_date_value;
+						}
 					}
 				}
+				catch (invoice_error)
+				{
+					blocked = Map();
+					blocked.put("result", "blocked");
+					blocked.put("reason_code", "malformed_invoice");
+					return blocked;
+				}
 			}
-			catch (invoice_error)
-			{
-				blocked = Map();
-				blocked.put("result", "blocked");
-				blocked.put("reason_code", "malformed_invoice");
-				return blocked;
-			}
+		}
+		catch (invoice_collection_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "malformed_invoice_collection");
+			return blocked;
 		}
 		has_more = context_has_more;
 		page = page_number + 1;

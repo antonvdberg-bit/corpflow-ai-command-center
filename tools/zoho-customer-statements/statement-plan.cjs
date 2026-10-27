@@ -71,6 +71,12 @@ function validatePage(page, expectedPage) {
   if (!Array.isArray(page.invoices)) {
     fail('MALFORMED_PAGE', `page ${expectedPage} has no invoice list`);
   }
+  if (page.invoices.length > context.per_page || page.invoices.length > PAGE_SIZE) {
+    fail('MALFORMED_PAGE', `page ${expectedPage} exceeds its attested collection limit`);
+  }
+  if (page.invoices.length === 0 && (expectedPage > 1 || context.has_more_page)) {
+    fail('EMPTY_CONTINUING_PAGE', `page ${expectedPage} is empty`);
+  }
   return context;
 }
 
@@ -102,13 +108,20 @@ function prepareCustomerStatementPlan({
     }
     const page = pages[pageIndex];
     const context = validatePage(page, pageIndex + 1);
-    if (pageIndex > 0 && page.invoices.length === 0) {
-      fail('EMPTY_CONTINUING_PAGE', `page ${pageIndex + 1} is empty but continues`);
-    }
-
     for (const invoice of page.invoices) {
-      if (!invoice || typeof invoice !== 'object' || invoice.invoice_id == null) {
-        fail('MALFORMED_INVOICE', 'invoice id is required');
+      if (
+        !invoice ||
+        typeof invoice !== 'object' ||
+        Array.isArray(invoice) ||
+        Object.getPrototypeOf(invoice) !== Object.prototype ||
+        invoice.invoice_id == null ||
+        !Object.prototype.hasOwnProperty.call(invoice, 'customer_id') ||
+        !Object.prototype.hasOwnProperty.call(invoice, 'currency_code') ||
+        !Object.prototype.hasOwnProperty.call(invoice, 'status') ||
+        !Object.prototype.hasOwnProperty.call(invoice, 'date') ||
+        !Object.prototype.hasOwnProperty.call(invoice, 'balance')
+      ) {
+        fail('MALFORMED_INVOICE', 'invoice entry is malformed');
       }
       const id = String(invoice.invoice_id);
       if (seen.has(id)) {

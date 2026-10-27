@@ -12,10 +12,10 @@ const invoice = (overrides = {}) => ({
   ...overrides,
 });
 
-const page = (pageNumber, invoices, hasMore = false) => ({
+const page = (pageNumber, invoices, hasMore = false, perPage = 200) => ({
   code: 0,
   invoices,
-  page_context: { page: pageNumber, per_page: 200, has_more_page: hasMore },
+  page_context: { page: pageNumber, per_page: perPage, has_more_page: hasMore },
 });
 
 const plan = (pages, extra = {}) => prepareCustomerStatementPlan({
@@ -131,4 +131,47 @@ test('fails closed on missing, empty continuing, error, nonzero, and capped page
 test('requires exact page attestation and rejects extra unconsumed pages', () => {
   rejectsWith('MALFORMED_PAGE_CONTEXT', [{ ...page(1, [invoice()]), page_context: { page: 2, per_page: 200, has_more_page: false } }]);
   rejectsWith('UNATTESTED_HISTORY', [page(1, [invoice()]), page(2, [invoice({ invoice_id: 'i-2' })])]);
+});
+
+test('accepts exactly 200 invoices but rejects over-attested collections', () => {
+  const invoices = Array.from({ length: 200 }, (_, index) =>
+    invoice({ invoice_id: `i-${index}`, date: '2025-04-01' }),
+  );
+  assert.equal(plan([page(1, invoices)]).eligibleInvoiceCount, 200);
+  rejectsWith('MALFORMED_PAGE', [page(1, [...invoices, invoice({ invoice_id: 'i-200' })])]);
+  rejectsWith('MALFORMED_PAGE', [page(1, [invoice(), invoice({ invoice_id: 'i-2' })], false, 1)]);
+});
+
+test('rejects non-integer or out-of-range page attestations', () => {
+  for (const perPage of [0, -1, 201, 1.5, true, '200']) {
+    rejectsWith('MALFORMED_PAGE_CONTEXT', [
+      { ...page(1, [invoice()]), page_context: { page: 1, per_page: perPage, has_more_page: false } },
+    ]);
+  }
+  for (const hasMore of [null, 0, 1, 'false']) {
+    rejectsWith('MALFORMED_PAGE_CONTEXT', [
+      { ...page(1, [invoice()]), page_context: { page: 1, per_page: 200, has_more_page: hasMore } },
+    ]);
+  }
+});
+
+test('rejects malformed invoice collections and entries without coercion', () => {
+  for (const invoices of [null, 'not-a-list', 42, { invoice_id: 'map-entry' }]) {
+    rejectsWith('MALFORMED_PAGE', [{ ...page(1, []), invoices }]);
+  }
+  for (const entry of [null, 'not-an-invoice', 42, [], { invoice_id: 'i-1' }]) {
+    rejectsWith('MALFORMED_INVOICE', [page(1, [entry])]);
+  }
+});
+
+test('fails closed for empty continuing or later pages but accepts an empty first final page', () => {
+  rejectsWith('EMPTY_CONTINUING_PAGE', [page(1, [], true)]);
+  rejectsWith('EMPTY_CONTINUING_PAGE', [page(1, [invoice()], true), page(2, [], false)]);
+  rejectsWith('EMPTY_CONTINUING_PAGE', [page(1, [invoice()], true), page(2, [], true)]);
+  assert.deepEqual(plan([page(1, [])]), {
+    result: 'no_statement',
+    reason: 'no eligible unpaid invoice with a positive remaining balance',
+    pagesRead: 1,
+    invoiceCount: 0,
+  });
 });
