@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import {
   CURSOR_TEST_DEPRECATED_RUNTIME_ALIASES,
@@ -107,6 +108,44 @@ describe('cursor-test-users-spec (#696)', () => {
       'bad',
     );
     assert.equal(bad.ok, true);
+
+    const privileged = validateCursorTestUserRow(
+      {
+        username: 'cursor-test-bad@corpflowai.com',
+        level: 'tenant',
+        tenantId: 'cipc-desk',
+        factoryMaster: true,
+        enabled: true,
+      },
+      'bad',
+    );
+    assert.equal(privileged.ok, false);
+    assert.ok(privileged.errors.some((e) => e.includes('factory_master')));
+
+    const wrongHome = validateCursorTestUserRow(
+      {
+        username: 'cursor-test-bad@corpflowai.com',
+        level: 'tenant',
+        tenantId: 'luxe-maurice',
+        factoryMaster: false,
+        enabled: true,
+      },
+      'bad',
+    );
+    assert.equal(wrongHome.ok, false);
+    assert.ok(wrongHome.errors.some((e) => e.includes('tenant_id_mismatch')));
+
+    const retargetedLux = validateCursorTestUserRow(
+      {
+        username: 'cursor-test-tenant@corpflowai.com',
+        level: 'tenant',
+        tenantId: 'cipc-desk',
+        factoryMaster: false,
+        enabled: true,
+      },
+      'bad',
+    );
+    assert.equal(retargetedLux.ok, false);
   });
 
   it('formats a non-secret generic tenant handoff packet', () => {
@@ -145,5 +184,23 @@ describe('cursor-test-users-spec (#696)', () => {
     assert.doesNotMatch(lines, /cursor-test-lux@corpflowai\.com/);
     assert.doesNotMatch(lines, /password/i);
     assert.doesNotMatch(lines, /secret/i);
+  });
+});
+
+describe('BAD test buyer provision contract (#1531)', () => {
+  const source = readFileSync(new URL('../scripts/provision-cursor-test-users.mjs', import.meta.url), 'utf8');
+
+  it('does not rotate the Luxe identity when provisioning BAD, and does not print a BAD password', () => {
+    assert.match(source, /args\.only === 'all'[\s\S]*\(\['admin', 'lux'\]\)/);
+    assert.match(source, /key !== 'bad' && \(args\.genPassword \|\| args\.dryRun\)/);
+    assert.match(source, /args\.genPassword && key !== 'bad'/);
+    assert.match(source, /BAD credentials are never generated or printed/);
+    assert.doesNotMatch(source, /printWalletCard\(\s*'bad'/);
+  });
+
+  it('requires the protected runtime password and refuses to create the BAD tenant row', () => {
+    assert.match(source, /CURSOR_TEST_RUNTIME_ENV\.badPassword/);
+    assert.match(source, /refusing to create tenant data/);
+    assert.match(source, /ensureMembership\(/);
   });
 });
