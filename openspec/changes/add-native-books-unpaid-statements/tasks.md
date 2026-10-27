@@ -12,8 +12,8 @@
 ## 2. Verification
 
 - [x] 2.1 Add meaningful synthetic tests for pagination, ordering, partial payment,
-  exclusions, date boundaries, malformed evidence, mismatch, duplication, and input
-  immutability.
+  exclusions, strict ISO/calendar-valid date boundaries, malformed evidence, mismatch,
+  duplication, and input immutability.
 - [x] 2.2 Run focused Node tests, syntax checks, diff whitespace checks, and OpenSpec
   strict validation where the validator is available.
 - [x] 2.3 Record that native Deluge compilation and live/read-only Books verification

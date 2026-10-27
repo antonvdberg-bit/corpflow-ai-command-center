@@ -19,8 +19,9 @@ verification, not a new CorpFlowAI runtime or an autonomous communication path.
   90-day minimum once, and use an explicit date in the planner for deterministic tests.
 - Establish currency from the Books customer context or an explicit custom-function
   input. Never use the organisation base currency as a silent fallback.
-- Use a bounded numeric `for each` range in Deluge instead of JavaScript-style `while`;
-  native editor compilation remains a required manual gate.
+- Use an explicit ten-item list in Deluge for bounded `for each` iteration instead of
+  a numeric-range loop or JavaScript-style `while`; native editor compilation remains
+  a required manual gate.
 
 ## Risks and mitigations
 

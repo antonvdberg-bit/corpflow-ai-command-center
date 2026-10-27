@@ -25,8 +25,8 @@ Sources checked 2026-10-26 (accessed 2026-10-26):
 - [Zoho Books custom functions API](https://www.zoho.com/books/api/v3/custom-functions/)
   — custom functions support Deluge, configured input arguments, and map return types.
 - [Zoho Deluge for each](https://www.zoho.com/deluge/help/list-manipulations/for-each-element.html)
-  — bounded iteration uses an explicit ten-item list rather than JavaScript-style
-  `while`; the numeric-range syntax is not assumed.
+  — bounded iteration uses the explicit ten-item list `{1,2,3,4,5,6,7,8,9,10}`;
+  it does not depend on a numeric-range loop or JavaScript-style `while`.
 - [Zoho Deluge date functions](https://www.zoho.com/deluge/help/functions/date-time/add-day.html)
   — the organisation-local current date is captured once and shifted by 90 days.
 - [public schedule-statements example](https://help.zoho.com/portal/en-gb/community/topic/function-4-schedule-customer-statements)
@@ -34,8 +34,9 @@ Sources checked 2026-10-26 (accessed 2026-10-26):
 
 Native compile and read-only execution have **not** been performed in this repository.
 The draft is therefore a review artifact, not proven native-compatible or
-live-delivery-ready. The numeric-range loop, named connection, custom-function inputs,
-and map return shape must be checked in the Books editor; no source inspection is native
+live-delivery-ready. The explicit list iteration, named connection, strict
+`yyyy-MM-dd` date round-trip, custom-function inputs, and map return shape must be
+checked in the Books editor; no source inspection is native
 compilation evidence. If Books rejects any syntax or supplied context map, stop and record
 the fixed reason code plus exact editor error; do not substitute another ERP or service.
 
@@ -63,10 +64,11 @@ reconciliation. A debt-free customer returns `no_statement`.
    `REPLACE_WITH_BOOKS_CONNECTION` with the reviewed named Books connection. Do not put
    credentials, customer IDs, organization IDs, names, addresses, invoice rows, or
    arbitrary error text in logs or function output.
-3. Compile it natively in the Books editor. Confirm the numeric-range loop,
-   `invokeurl` named connection, `toDate`/`toDecimal` conversions, and custom-function
-   input/`map` return contract. Then run one scoped read-only test against a
-   synthetic/safe test customer and inspect only bounded preparation metadata.
+3. Compile it natively in the Books editor. Confirm the explicit ten-item list
+   iteration, `invokeurl` named connection, strict `yyyy-MM-dd` date round-trip,
+   `toDecimal` conversion, and custom-function input/`map` return contract. Then run
+   one scoped read-only test against a synthetic/safe test customer and inspect only
+   bounded preparation metadata.
 4. Independently reconcile examples covering old debt on a later page, partial payment,
    paid/void/draft/future exclusions, no debt, credits, multiple currencies, and the
    10-page cap.

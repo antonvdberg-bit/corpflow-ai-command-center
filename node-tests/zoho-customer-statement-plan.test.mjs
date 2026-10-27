@@ -110,6 +110,15 @@ test('rejects malformed dates, balances, statuses, customer, currency, and dupli
   rejectsWith('MALFORMED_CURRENCY', [page(1, [invoice()])], { currencyCode: '' });
 });
 
+test('requires strict calendar-valid ISO dates at leap-year and year boundaries', () => {
+  for (const date of ['2024-02-29', '2025-12-31', '2026-01-01']) {
+    assert.equal(plan([page(1, [invoice({ date })])], { asOfDate: '2026-12-31' }).result, 'prepare_statement');
+  }
+  for (const date of ['2024-02-30', '1900-02-29', '2025-13-01', '2025-01-32', '2025-1-01']) {
+    rejectsWith('MALFORMED_DATE', [page(1, [invoice({ date })])]);
+  }
+});
+
 test('fails closed on missing, empty continuing, error, nonzero, and capped pages', () => {
   rejectsWith('MISSING_PAGE', []);
   rejectsWith('EMPTY_CONTINUING_PAGE', [page(1, [invoice()], true), page(2, [], true)]);
