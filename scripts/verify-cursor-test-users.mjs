@@ -11,7 +11,8 @@
  *
  * Env (live mode):
  *   CURSOR_TEST_ADMIN_USERNAME / CURSOR_TEST_ADMIN_PASSWORD
- *   LUX_SMOKE_USERNAME / LUX_SMOKE_PASSWORD
+ *   TENANT_SMOKE_USERNAME / TENANT_SMOKE_PASSWORD
+ *   BAD_TEST_BUYER_USERNAME / BAD_TEST_BUYER_PASSWORD
  *   Optional: CURSOR_TEST_ADMIN_LOGIN_BASE_URL (default https://core.corpflowai.com)
  *             LUX_SMOKE_BASE_URL (default https://lux.corpflowai.com)
  */
@@ -30,12 +31,20 @@ import {
  * @param {string[]} argv
  */
 function parseArgs(argv) {
-  const out = { help: false, dbShape: false, live: false, packet: false };
+  const out = { help: false, dbShape: false, live: false, packet: false, only: 'all' };
   for (const a of argv) {
     if (a === '-h' || a === '--help') out.help = true;
     else if (a === '--db-shape') out.dbShape = true;
     else if (a === '--live') out.live = true;
     else if (a === '--packet') out.packet = true;
+    else if (a.startsWith('--only=')) {
+      const v = a.slice('--only='.length).trim().toLowerCase();
+      if (v === 'admin' || v === 'lux' || v === 'bad' || v === 'all') out.only = v;
+      else {
+        console.error(`ERROR: --only must be admin|lux|bad|all (got ${v})`);
+        process.exit(1);
+      }
+    }
   }
   if (!out.dbShape && !out.live) {
     // Default: prefer db-shape when URL present; still emit packet skeleton.
@@ -129,7 +138,7 @@ function record(label, pass, detail, bag) {
   console.log(`[${pass ? 'PASS' : 'FAIL'}] ${label} — ${detail}`);
 }
 
-async function verifyDbShape() {
+async function verifyDbShape(only = 'all') {
   const pgUrl = normalizePostgresUrl(process.env.POSTGRES_URL);
   if (!pgUrl || !(pgUrl.startsWith('postgresql://') || pgUrl.startsWith('postgres://'))) {
     console.log('[db-shape] SKIP — POSTGRES_URL not set (protected operator step).');
@@ -137,7 +146,9 @@ async function verifyDbShape() {
       skipped: true,
       admin: null,
       lux: null,
+      bad: null,
       luxMembershipNotes: null,
+      badMembershipNotes: null,
       results: /** @type {Array<{ label: string, pass: boolean, detail: string }>} */ ([]),
     };
   }
@@ -146,7 +157,9 @@ async function verifyDbShape() {
   /** @type {Array<{ label: string, pass: boolean, detail: string }>} */
   const results = [];
   try {
-    const admin = await prisma.authUser.findUnique({
+    const admin = only === 'lux' || only === 'bad'
+      ? null
+      : await prisma.authUser.findUnique({
       where: { username: CURSOR_TEST_IDENTITIES.admin.username },
       select: {
         id: true,
@@ -156,8 +169,10 @@ async function verifyDbShape() {
         factoryMaster: true,
         enabled: true,
       },
-    });
-    const lux = await prisma.authUser.findUnique({
+      });
+    const lux = only === 'admin' || only === 'bad'
+      ? null
+      : await prisma.authUser.findUnique({
       where: { username: CURSOR_TEST_IDENTITIES.lux.username },
       select: {
         id: true,
@@ -167,19 +182,35 @@ async function verifyDbShape() {
         factoryMaster: true,
         enabled: true,
       },
-    });
+      });
+    const bad = only !== 'bad'
+      ? null
+      : await prisma.authUser.findUnique({
+        where: { username: CURSOR_TEST_IDENTITIES.bad.username },
+        select: {
+          id: true,
+          username: true,
+          level: true,
+          tenantId: true,
+          factoryMaster: true,
+          enabled: true,
+        },
+      });
 
-    if (!admin) {
-      record('db.admin.exists', false, 'auth_users row missing', results);
-    } else {
+    if (only === 'all' || only === 'admin') {
+      if (!admin) {
+        record('db.admin.exists', false, 'auth_users row missing', results);
+      } else {
       const v = validateCursorTestUserRow(admin, 'admin');
       record('db.admin.shape', v.ok, v.ok ? `id=${admin.id}` : v.errors.join(';'), results);
+      }
     }
 
     let luxMembershipNotes = null;
-    if (!lux) {
-      record('db.lux.exists', false, 'auth_users row missing', results);
-    } else {
+    if (only === 'all' || only === 'lux') {
+      if (!lux) {
+        record('db.lux.exists', false, 'auth_users row missing', results);
+      } else {
       const v = validateCursorTestUserRow(lux, 'lux');
       record('db.lux.shape', v.ok, v.ok ? `id=${lux.id}` : v.errors.join(';'), results);
       const mem = await prisma.userTenantMembership.findFirst({
@@ -195,9 +226,33 @@ async function verifyDbShape() {
           : 'membership row missing',
         results,
       );
+      }
     }
 
-    return { skipped: false, admin, lux, luxMembershipNotes, results };
+    let badMembershipNotes = null;
+    if (only === 'bad') {
+      if (!bad) {
+        record('db.bad.exists', false, 'auth_users row missing', results);
+      } else {
+        const v = validateCursorTestUserRow(bad, 'bad');
+        record('db.bad.shape', v.ok, v.ok ? `id=${bad.id}` : v.errors.join(';'), results);
+        const mem = await prisma.userTenantMembership.findFirst({
+          where: { userId: bad.id, tenantId: 'cipc-desk', revokedAt: null },
+          select: { notes: true, role: true, enabled: true },
+        });
+        badMembershipNotes = mem?.notes || null;
+        record(
+          'db.bad.membership',
+          Boolean(mem && mem.enabled !== false && mem.role === 'member' && membershipNotesMarkCursorTest(mem.notes || '')),
+          mem
+            ? `role=${mem.role} notes_marked=${membershipNotesMarkCursorTest(mem.notes || '')}`
+            : 'membership row missing',
+          results,
+        );
+      }
+    }
+
+    return { skipped: false, admin, lux, bad, luxMembershipNotes, badMembershipNotes, results };
   } finally {
     await prisma.$disconnect().catch(() => {});
   }
@@ -218,7 +273,7 @@ async function login(baseUrl, level, username, password, tenantId) {
   return res;
 }
 
-async function verifyLive() {
+async function verifyLive(only = 'all') {
   /** @type {Array<{ label: string, pass: boolean, detail: string }>} */
   const results = [];
   const adminUser =
@@ -226,6 +281,9 @@ async function verifyLive() {
   const adminPass = envTrim(CURSOR_TEST_RUNTIME_ENV.adminPassword);
   const luxUser = envTrim(CURSOR_TEST_RUNTIME_ENV.luxUsername) || CURSOR_TEST_IDENTITIES.lux.username;
   const luxPass = envTrim(CURSOR_TEST_RUNTIME_ENV.luxPassword);
+  const badUser =
+    envTrim(CURSOR_TEST_RUNTIME_ENV.badUsername) || CURSOR_TEST_IDENTITIES.bad.username;
+  const badPass = envTrim(CURSOR_TEST_RUNTIME_ENV.badPassword);
   const adminBase = (
     envTrim(CURSOR_TEST_RUNTIME_ENV.adminLoginBaseUrl) || 'https://core.corpflowai.com'
   ).replace(/\/+$/, '');
@@ -233,15 +291,37 @@ async function verifyLive() {
     /\/+$/,
     '',
   );
+  const badBase = (envTrim(CURSOR_TEST_RUNTIME_ENV.badBaseUrl) || 'https://businessadmindesk.co.za').replace(
+    /\/+$/,
+    '',
+  );
 
-  if (!adminPass && !luxPass) {
+  if (only === 'bad' && badUser !== CURSOR_TEST_IDENTITIES.bad.username) {
     console.log(
-      '[live] SKIP — set CURSOR_TEST_ADMIN_PASSWORD and/or LUX_SMOKE_PASSWORD in protected runtime (never commit).',
+      `[live] SKIP — ${CURSOR_TEST_RUNTIME_ENV.badUsername} must equal the approved BAD username; refusing to authenticate another identity.`,
+    );
+    return { skipped: true, results };
+  }
+  if (only === 'bad' && badBase !== 'https://businessadmindesk.co.za') {
+    console.log(
+      `[live] SKIP — ${CURSOR_TEST_RUNTIME_ENV.badBaseUrl} must resolve to https://businessadmindesk.co.za; refusing to probe another host.`,
     );
     return { skipped: true, results };
   }
 
-  if (adminPass) {
+  if (
+    (only === 'bad' && !badPass) ||
+    (only !== 'bad' && !adminPass && !luxPass)
+  ) {
+    console.log(
+      only === 'bad'
+        ? `[live] SKIP — set ${CURSOR_TEST_RUNTIME_ENV.badPassword} in the protected runtime (never commit).`
+        : '[live] SKIP — set CURSOR_TEST_ADMIN_PASSWORD and/or TENANT_SMOKE_PASSWORD in protected runtime (never commit).',
+    );
+    return { skipped: true, results };
+  }
+
+  if (only !== 'bad' && adminPass) {
     const loginRes = await login(adminBase, 'admin', adminUser, adminPass);
     record(
       'live.admin.login',
@@ -284,11 +364,11 @@ async function verifyLive() {
         body: {},
       }).catch(() => {});
     }
-  } else {
+  } else if (only !== 'bad') {
     record('live.admin.login', false, 'CURSOR_TEST_ADMIN_PASSWORD not set', results);
   }
 
-  if (luxPass) {
+  if (only !== 'bad' && luxPass) {
     const loginRes = await login(luxBase, 'tenant', luxUser, luxPass, 'luxe-maurice');
     record(
       'live.lux.login',
@@ -353,43 +433,95 @@ async function verifyLive() {
         body: {},
       }).catch(() => {});
     }
-  } else {
+  } else if (only !== 'bad') {
     record('live.lux.login', false, 'LUX_SMOKE_PASSWORD not set', results);
+  }
+
+  if (only === 'bad' && badPass) {
+    const loginRes = await login(badBase, 'tenant', badUser, badPass, 'cipc-desk');
+    record(
+      'live.bad.login',
+      loginRes.status === 200 &&
+        loginRes.json?.ok === true &&
+        loginRes.json?.level === 'tenant',
+      `status=${loginRes.status} level=${loginRes.json?.level || 'n/a'} has_cookie=${loginRes.hasSessionCookie}`,
+      results,
+    );
+    if (loginRes.hasSessionCookie && loginRes._cookie) {
+      const me = await httpJson(badBase, '/api/auth/me', { cookie: loginRes._cookie });
+      const meTenant =
+        me.json?.tenant_id || me.json?.tenantId || me.json?.payload?.tenant_id || 'n/a';
+      record(
+        'live.bad.me_home_tenant',
+        me.status === 200 && String(meTenant) === 'cipc-desk',
+        `status=${me.status} tenant_id=${meTenant}`,
+        results,
+      );
+      const factoryProbe = await httpJson(badBase, '/api/factory/operator-activity?limit=1', {
+        cookie: loginRes._cookie,
+      });
+      record(
+        'live.bad.factory_denied',
+        factoryProbe.status === 401 || factoryProbe.status === 403,
+        `status=${factoryProbe.status}`,
+        results,
+      );
+      record(
+        'live.bad.no_live_send_exercised',
+        true,
+        'verify script does not call payment, ERPNext, or outbound messaging endpoints',
+        results,
+      );
+      await httpJson(badBase, '/api/auth/logout', {
+        method: 'POST',
+        cookie: loginRes._cookie,
+        body: {},
+      }).catch(() => {});
+    }
   }
 
   return { skipped: false, results };
 }
 
 /**
+ * @param {string} only
  * @param {{
  *   db: Awaited<ReturnType<typeof verifyDbShape>>,
  *   live: Awaited<ReturnType<typeof verifyLive>> | null,
  * }} parts
  */
-function printPacket(parts) {
+function printPacket(only, parts) {
   const all = [...(parts.db.results || []), ...((parts.live && parts.live.results) || [])];
   const failed = all.filter((r) => !r.pass);
   const pendingHandoff = [];
   if (parts.db.skipped) {
     pendingHandoff.push(
-      'Operator: set POSTGRES_URL (Production Neon) and run `npm run provision:cursor-test-users -- --gen-password` on a secure machine; store wallet cards in the approved secret store / Cursor protected runtime.',
+      only === 'bad'
+        ? 'Operator: set POSTGRES_URL and BAD_TEST_BUYER_PASSWORD only through the approved secure channels, then run the explicit BAD provision and verification commands.'
+        : 'Operator: set POSTGRES_URL (Production Neon) and run `npm run provision:cursor-test-users -- --gen-password` on a secure machine; store wallet cards in the approved secret store / Cursor protected runtime.',
     );
-  } else if (!parts.db.admin || !parts.db.lux) {
+  } else if (
+    (only === 'bad' && (!parts.db.bad || !parts.db.badMembershipNotes)) ||
+    (only !== 'bad' && (!parts.db.admin || !parts.db.lux))
+  ) {
     pendingHandoff.push(
-      'Rows missing — run `npm run provision:cursor-test-users -- --gen-password` then re-verify with `--db-shape`.',
+      only === 'bad'
+        ? 'BAD row or membership missing — on a secure operator runtime set BAD_TEST_BUYER_PASSWORD and run `npm run provision:cursor-test-users -- --only=bad`, then re-verify with `--only=bad --db-shape`.'
+        : 'Rows missing — run `npm run provision:cursor-test-users -- --gen-password` then re-verify with `--db-shape`.',
     );
   }
   if (!parts.live || parts.live.skipped) {
     pendingHandoff.push(
-      'Secure handoff: place passwords into CURSOR_TEST_ADMIN_PASSWORD and LUX_SMOKE_PASSWORD (and matching USERNAME vars) in Cursor protected runtime / operator .env.local — never in git — then run `npm run verify:cursor-test-users -- --live`.',
+      only === 'bad'
+        ? 'Secure handoff: place BAD_TEST_BUYER_PASSWORD (and optional BAD_TEST_BUYER_USERNAME/BAD_TEST_BUYER_BASE_URL) in the protected runtime only, then run `npm run verify:cursor-test-users -- --only=bad --live`.'
+        : 'Secure handoff: place passwords into CURSOR_TEST_ADMIN_PASSWORD and TENANT_SMOKE_PASSWORD (and matching USERNAME vars) in Cursor protected runtime / operator .env.local — never in git — then run `npm run verify:cursor-test-users -- --live`.',
     );
   }
 
   const ready =
     pendingHandoff.length === 0 &&
     failed.length === 0 &&
-    parts.db.admin &&
-    parts.db.lux &&
+    (only === 'bad' ? parts.db.bad && parts.db.badMembershipNotes : parts.db.admin && parts.db.lux) &&
     parts.live &&
     !parts.live.skipped;
 
@@ -400,7 +532,9 @@ function printPacket(parts) {
   for (const line of formatCursorTestAccessIdentityLines({
     admin: parts.db.admin,
     lux: parts.db.lux,
+    bad: parts.db.bad,
     luxMembershipNotes: parts.db.luxMembershipNotes,
+    badMembershipNotes: parts.db.badMembershipNotes,
   })) {
     console.log(`  ${line}`);
   }
@@ -408,6 +542,9 @@ function printPacket(parts) {
   console.log('Assigned roles / memberships:');
   console.log(`  admin: level=admin, factory_master=false (no membership matrix grant)`);
   console.log(`  lux: level=tenant, tenant_id=luxe-maurice, membership.role=member`);
+  if (only === 'bad') {
+    console.log(`  bad: level=tenant, tenant_id=cipc-desk, membership.role=member`);
+  }
   console.log('');
   console.log('Checks:');
   for (const r of all) {
@@ -445,7 +582,8 @@ async function main() {
     console.log(`
 verify-cursor-test-users.mjs  (#696)
 
-  --db-shape   Check auth_users + lux membership (needs POSTGRES_URL)
+  --only=admin|lux|bad|all  Select one identity; default all (BAD is explicit-only)
+  --db-shape   Check auth_users + membership (needs POSTGRES_URL)
   --live       Login + authorization boundary probes (needs password env vars)
   --packet     Print CURSOR TEST ACCESS READY packet (default with --db-shape)
 
@@ -459,7 +597,9 @@ Default: --db-shape --packet
     skipped: true,
     admin: null,
     lux: null,
+    bad: null,
     luxMembershipNotes: null,
+    badMembershipNotes: null,
     results: [],
   };
   /** @type {Awaited<ReturnType<typeof verifyLive>> | null} */
@@ -467,14 +607,14 @@ Default: --db-shape --packet
 
   if (args.dbShape) {
     console.log('[verify] db-shape…');
-    db = await verifyDbShape();
+    db = await verifyDbShape(args.only);
   }
   if (args.live) {
     console.log('[verify] live…');
-    live = await verifyLive();
+    live = await verifyLive(args.only);
   }
 
-  const ready = args.packet || args.dbShape || args.live ? printPacket({ db, live }) : false;
+  const ready = args.packet || args.dbShape || args.live ? printPacket(args.only, { db, live }) : false;
   if (!ready) process.exitCode = 2;
 }
 

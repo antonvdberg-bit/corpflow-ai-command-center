@@ -5,7 +5,7 @@
  * / protected agent runtime (see docs/runbooks/CURSOR_TEST_USERS_PROVISIONING.md).
  */
 
-/** @typedef {'admin' | 'lux'} CursorTestIdentityKey */
+/** @typedef {'admin' | 'lux' | 'bad'} CursorTestIdentityKey */
 
 export const CURSOR_TEST_METADATA_LABELS = Object.freeze([
   'TEST_ONLY',
@@ -25,6 +25,9 @@ export const CURSOR_TEST_RUNTIME_ENV = Object.freeze({
   tenantId: 'TENANT_SMOKE_TENANT_ID',
   tenantBaseUrl: 'TENANT_SMOKE_BASE_URL',
   adminLoginBaseUrl: 'CURSOR_TEST_ADMIN_LOGIN_BASE_URL',
+  badUsername: 'BAD_TEST_BUYER_USERNAME',
+  badPassword: 'BAD_TEST_BUYER_PASSWORD',
+  badBaseUrl: 'BAD_TEST_BUYER_BASE_URL',
   // Temporary backward-compatible property aliases for existing callers only.
   // They resolve to the generic TENANT_SMOKE_* variables and never imply a Lux-only user.
   luxUsername: 'TENANT_SMOKE_USERNAME',
@@ -66,6 +69,17 @@ export const CURSOR_TEST_IDENTITIES = Object.freeze({
       'Generic tenant smoke identity; membership is granted only to explicitly approved corpflow_test tenants. Initial approved membership: luxe-maurice.',
     loginHostHint: 'https://lux.corpflowai.com/login',
   }),
+  bad: Object.freeze({
+    key: 'bad',
+    username: 'cursor-test-bad@corpflowai.com',
+    level: /** @type {const} */ ('tenant'),
+    tenantId: 'cipc-desk',
+    factoryMaster: false,
+    role: 'member',
+    purpose:
+      'Dedicated BAD sandbox buyer identity; membership is limited to cipc-desk and must never retarget the generic Luxe smoke identity.',
+    loginHostHint: 'https://businessadmindesk.co.za/login',
+  }),
 });
 
 export function membershipNotesMarkCursorTest(notes) {
@@ -99,7 +113,9 @@ export function validateCursorTestUserRow(row, key) {
 export function formatCursorTestAccessIdentityLines(evidence) {
   const admin = evidence?.admin || null;
   const tenant = evidence?.lux || evidence?.tenant || null;
+  const bad = evidence?.bad || null;
   const membershipNotes = evidence?.luxMembershipNotes ?? evidence?.tenantMembershipNotes;
+  const badMembershipNotes = evidence?.badMembershipNotes;
   const lines = [];
   lines.push(`admin.username=${CURSOR_TEST_IDENTITIES.admin.username}`);
   lines.push(`admin.id=${admin?.id || '(pending_provision)'}`);
@@ -113,6 +129,14 @@ export function formatCursorTestAccessIdentityLines(evidence) {
   lines.push(`tenant.enabled=${tenant ? String(tenant.enabled !== false) : '(pending_provision)'}`);
   lines.push(`tenant.membership.notes_marked=${membershipNotes != null ? String(membershipNotesMarkCursorTest(membershipNotes)) : '(pending_provision)'}`);
   lines.push('tenant.membership_policy=approved_corpflow_test_tenants_only');
+  lines.push(`bad.username=${CURSOR_TEST_IDENTITIES.bad.username}`);
+  lines.push(`bad.id=${bad?.id || '(pending_provision)'}`);
+  lines.push(`bad.level=${bad?.level || CURSOR_TEST_IDENTITIES.bad.level}`);
+  lines.push(`bad.tenant_id=${bad?.tenantId || CURSOR_TEST_IDENTITIES.bad.tenantId}`);
+  lines.push(`bad.factory_master=${bad ? String(Boolean(bad.factoryMaster)) : String(CURSOR_TEST_IDENTITIES.bad.factoryMaster)}`);
+  lines.push(`bad.enabled=${bad ? String(bad.enabled !== false) : '(pending_provision)'}`);
+  lines.push(`bad.membership.notes_marked=${badMembershipNotes != null ? String(membershipNotesMarkCursorTest(badMembershipNotes)) : '(pending_provision)'}`);
+  lines.push('bad.membership_policy=cipc-desk_only');
   lines.push(`metadata_labels=${CURSOR_TEST_METADATA_LABELS.join(',')}`);
   return lines;
 }
