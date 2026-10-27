@@ -24,6 +24,10 @@ describe('cursor-test-users-spec (#696)', () => {
     assert.equal(CURSOR_TEST_IDENTITIES.lux.tenantId, 'luxe-maurice');
     assert.equal(CURSOR_TEST_IDENTITIES.lux.factoryMaster, false);
     assert.match(CURSOR_TEST_IDENTITIES.lux.purpose, /approved corpflow_test tenants/i);
+    assert.equal(CURSOR_TEST_IDENTITIES.bad.username, 'cursor-test-bad@corpflowai.com');
+    assert.equal(CURSOR_TEST_IDENTITIES.bad.level, 'tenant');
+    assert.equal(CURSOR_TEST_IDENTITIES.bad.tenantId, 'cipc-desk');
+    assert.equal(CURSOR_TEST_IDENTITIES.bad.factoryMaster, false);
   });
 
   it('prefers generic tenant runtime env names and exposes Lux aliases as deprecated only', () => {
@@ -33,6 +37,9 @@ describe('cursor-test-users-spec (#696)', () => {
     assert.equal(CURSOR_TEST_RUNTIME_ENV.tenantPassword, 'TENANT_SMOKE_PASSWORD');
     assert.equal(CURSOR_TEST_RUNTIME_ENV.luxUsername, 'TENANT_SMOKE_USERNAME');
     assert.equal(CURSOR_TEST_RUNTIME_ENV.luxPassword, 'TENANT_SMOKE_PASSWORD');
+    assert.equal(CURSOR_TEST_RUNTIME_ENV.badUsername, 'BAD_TEST_BUYER_USERNAME');
+    assert.equal(CURSOR_TEST_RUNTIME_ENV.badPassword, 'BAD_TEST_BUYER_PASSWORD');
+    assert.equal(CURSOR_TEST_RUNTIME_ENV.badBaseUrl, 'BAD_TEST_BUYER_BASE_URL');
     assert.equal(CURSOR_TEST_DEPRECATED_RUNTIME_ALIASES.LUX_SMOKE_USERNAME, 'TENANT_SMOKE_USERNAME');
     assert.equal(CURSOR_TEST_DEPRECATED_RUNTIME_ALIASES.LUX_SMOKE_PASSWORD, 'TENANT_SMOKE_PASSWORD');
   });
@@ -88,6 +95,20 @@ describe('cursor-test-users-spec (#696)', () => {
     assert.ok(adminBad.errors.some((e) => e.includes('factory_master')));
   });
 
+  it('accepts only the least-privilege BAD home-tenant shape', () => {
+    const bad = validateCursorTestUserRow(
+      {
+        username: 'cursor-test-bad@corpflowai.com',
+        level: 'tenant',
+        tenantId: 'cipc-desk',
+        factoryMaster: false,
+        enabled: true,
+      },
+      'bad',
+    );
+    assert.equal(bad.ok, true);
+  });
+
   it('formats a non-secret generic tenant handoff packet', () => {
     const lines = formatCursorTestAccessIdentityLines({
       admin: {
@@ -105,11 +126,22 @@ describe('cursor-test-users-spec (#696)', () => {
         enabled: true,
       },
       tenantMembershipNotes: CURSOR_TEST_MEMBERSHIP_NOTES,
+      bad: {
+        id: 'cuid_bad',
+        username: 'cursor-test-bad@corpflowai.com',
+        level: 'tenant',
+        tenantId: 'cipc-desk',
+        factoryMaster: false,
+        enabled: true,
+      },
+      badMembershipNotes: CURSOR_TEST_MEMBERSHIP_NOTES,
     }).join('\n');
     assert.match(lines, /admin\.id=cuid_admin/);
     assert.match(lines, /tenant\.username=cursor-test-tenant@corpflowai\.com/);
     assert.match(lines, /tenant\.membership\.notes_marked=true/);
     assert.match(lines, /approved_corpflow_test_tenants_only/);
+    assert.match(lines, /bad\.tenant_id=cipc-desk/);
+    assert.match(lines, /bad\.membership\.notes_marked=true/);
     assert.doesNotMatch(lines, /cursor-test-lux@corpflowai\.com/);
     assert.doesNotMatch(lines, /password/i);
     assert.doesNotMatch(lines, /secret/i);

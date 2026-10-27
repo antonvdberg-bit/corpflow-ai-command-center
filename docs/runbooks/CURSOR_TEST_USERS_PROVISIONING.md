@@ -1,8 +1,8 @@
-# Cursor test users — admin + generic tenant smoke (#696)
+# Cursor test users — admin, generic tenant smoke, and BAD buyer
 
-**Goal:** prepare the existing Cursor provision/verify tooling for two dedicated non-human test identities without creating credentials, writing secrets, or mutating a database.
+**Goal:** prepare the existing Cursor provision/verify tooling for approved dedicated non-human test identities without creating credentials, writing secrets, or mutating a database.
 
-**Environment:** `corpflow_test` only. Not `client_production`.
+**Environment:** the generic identities remain `corpflow_test`; the separately approved BAD buyer follows its existing `cipc-desk` host and is not a client-production launch.
 
 ## Approved identities
 
@@ -11,7 +11,17 @@
 | Admin/operator smoke | `cursor-test-admin@corpflowai.com` | `admin`, `factory_master=false` | none |
 | Generic tenant smoke | `cursor-test-tenant@corpflowai.com` | `tenant` | only explicitly approved `corpflow_test` tenants |
 
-The former live target `cursor-test-lux@corpflowai.com` must not be created. The generic tenant smoke identity may initially receive membership to `luxe-maurice` for Lux verification. Additional memberships, including a future CIPC Desk test tenant, require explicit approval. It must never receive automatic access to every tenant.
+The former live target `cursor-test-lux@corpflowai.com` must not be created. The generic tenant smoke identity may initially receive membership to `luxe-maurice` for Lux verification. Additional memberships require explicit approval. It must never receive automatic access to every tenant.
+
+## Dedicated BAD sandbox buyer
+
+The separately approved BAD buyer is a third identity, not a retarget of the generic Luxe user:
+
+| Purpose | Username | Home tenant | Membership |
+|---|---|---|---|
+| BAD sandbox buyer | `cursor-test-bad@corpflowai.com` | `cipc-desk` | `member` on `cipc-desk` only |
+
+Use the existing scripts with `--only=bad`. The protected runtime must provide `BAD_TEST_BUYER_PASSWORD`; the provisioner never generates or prints this credential. If `BAD_TEST_BUYER_USERNAME` is supplied to verification, it must equal the approved username; `BAD_TEST_BUYER_BASE_URL` may point at the approved host only. The script refuses to create the `cipc-desk` tenant and only upserts the approved auth user plus its active membership.
 
 The current scripts retain the internal key `lux` temporarily to avoid a broad refactor of already-merged tooling. That key is an implementation compatibility detail only; the canonical username is `cursor-test-tenant@corpflowai.com`.
 
@@ -27,6 +37,9 @@ TENANT_SMOKE_PASSWORD
 TENANT_SMOKE_TENANT_ID
 TENANT_SMOKE_BASE_URL
 CURSOR_TEST_ADMIN_LOGIN_BASE_URL
+BAD_TEST_BUYER_USERNAME
+BAD_TEST_BUYER_PASSWORD
+BAD_TEST_BUYER_BASE_URL
 ```
 
 Temporary deprecated aliases, only where an older caller still requires them:
@@ -55,6 +68,7 @@ The provisioning plan now resolves to:
 ```text
 cursor-test-admin@corpflowai.com
 cursor-test-tenant@corpflowai.com
+cursor-test-bad@corpflowai.com
 ```
 
 For the initial Lux test, the generic tenant identity may be granted only the approved `luxe-maurice` membership. Membership notes remain marked `TEST_ONLY | NON_HUMAN | CURSOR_AUTOMATION`.
@@ -86,6 +100,20 @@ tenant.membership_policy=approved_corpflow_test_tenants_only
 ```
 
 The unit test deliberately rejects `cursor-test-lux@corpflowai.com` as the canonical live target.
+
+BAD-only verification:
+
+```powershell
+npm run verify:cursor-test-users -- --only=bad --db-shape --live --packet
+```
+
+This proves the authenticated session home tenant from `/api/auth/me` and checks factory denial. It does not call checkout, payment, webhook, ERPNext, or outbound-message endpoints.
+
+Rollback is the existing protected disable path:
+
+```powershell
+npm run provision:cursor-test-users -- --only=bad --disable
+```
 
 ## Protected handoff — not authorised by this implementation slice
 

@@ -10,9 +10,9 @@
  *   - send email / WhatsApp / SMS
  *   - deploy
  *
- * Passwords are printed once as a wallet card when --gen-password is used.
- * Anton (or an approved operator) stores them in the secret vault / Cursor
- * protected runtime only.
+ * Existing admin/Luxe passwords are printed once as wallet cards when
+ * --gen-password is used. BAD credentials are never generated or printed:
+ * they must already be present in the protected runtime.
  *
  * Usage:
  *   # Preview only (no DB writes):
@@ -24,6 +24,7 @@
  *   # One identity:
  *   node scripts/provision-cursor-test-users.mjs --only=lux --gen-password
  *   node scripts/provision-cursor-test-users.mjs --only=admin --gen-password
+ *   node scripts/provision-cursor-test-users.mjs --only=bad
  *
  *   # Disable both (enabled=false; sessions stop working after cookie TTL / next login):
  *   node scripts/provision-cursor-test-users.mjs --disable
@@ -92,7 +93,7 @@ function parseArgs(argv) {
    *   genPassword: boolean,
    *   disable: boolean,
    *   enable: boolean,
-   *   only: 'all' | 'admin' | 'lux',
+   *   only: 'all' | 'admin' | 'lux' | 'bad',
    *   adminPassword: string,
    *   luxPassword: string,
    * }} */
@@ -114,9 +115,9 @@ function parseArgs(argv) {
     else if (a === '--enable') out.enable = true;
     else if (a.startsWith('--only=')) {
       const v = a.slice('--only='.length).trim().toLowerCase();
-      if (v === 'admin' || v === 'lux' || v === 'all') out.only = v;
+      if (v === 'admin' || v === 'lux' || v === 'bad' || v === 'all') out.only = v;
       else {
-        console.error(`ERROR: --only must be admin|lux|all (got ${v})`);
+        console.error(`ERROR: --only must be admin|lux|bad|all (got ${v})`);
         process.exit(1);
       }
     } else if (a.startsWith('--admin-password=')) {
@@ -129,20 +130,22 @@ function parseArgs(argv) {
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'lux' | 'bad'} key
  * @returns {string}
  */
 function runtimeUsernameEnv(key) {
+  if (key === 'bad') return CURSOR_TEST_RUNTIME_ENV.badUsername;
   return key === 'admin'
     ? CURSOR_TEST_RUNTIME_ENV.adminUsername
     : CURSOR_TEST_RUNTIME_ENV.luxUsername;
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'lux' | 'bad'} key
  * @returns {string}
  */
 function runtimePasswordEnv(key) {
+  if (key === 'bad') return CURSOR_TEST_RUNTIME_ENV.badPassword;
   return key === 'admin'
     ? CURSOR_TEST_RUNTIME_ENV.adminPassword
     : CURSOR_TEST_RUNTIME_ENV.luxPassword;
@@ -150,7 +153,7 @@ function runtimePasswordEnv(key) {
 
 /**
  * @param {import('@prisma/client').PrismaClient} prisma
- * @param {typeof CURSOR_TEST_IDENTITIES.admin | typeof CURSOR_TEST_IDENTITIES.lux} spec
+ * @param {typeof CURSOR_TEST_IDENTITIES.admin | typeof CURSOR_TEST_IDENTITIES.lux | typeof CURSOR_TEST_IDENTITIES.bad} spec
  * @param {string} password
  * @param {boolean} dryRun
  */
@@ -222,7 +225,7 @@ async function upsertAuthUser(prisma, spec, password, dryRun) {
  * @param {string} tenantId
  * @param {boolean} dryRun
  */
-async function ensureLuxMembership(prisma, userId, tenantId, dryRun) {
+async function ensureMembership(prisma, userId, tenantId, dryRun) {
   const existing = await prisma.userTenantMembership.findFirst({
     where: { userId, tenantId, revokedAt: null },
     select: { id: true, notes: true, role: true, enabled: true },
@@ -291,7 +294,7 @@ async function setEnabled(prisma, username, enabled, dryRun) {
 }
 
 /**
- * @param {'admin' | 'lux'} key
+ * @param {'admin' | 'lux' | 'bad'} key
  * @param {string} password
  * @param {{ id?: string }} row
  */
@@ -322,7 +325,7 @@ provision-cursor-test-users.mjs  (#696)
 
   --dry-run                 Print intended writes; no DB mutation
   --gen-password            Generate strong unique passwords; print wallet cards once
-  --only=admin|lux|all      Default all
+  --only=admin|lux|bad|all  Default all; BAD is protected-runtime-password only
   --admin-password=...      Explicit admin password (avoid; prefer --gen-password)
   --lux-password=...        Explicit lux password (avoid; prefer --gen-password)
   --disable                 Set enabled=false on selected identities
@@ -333,10 +336,12 @@ Env: POSTGRES_URL required for non-dry-run (same Neon DB as Vercel Production).
 Canonical usernames:
   ${CURSOR_TEST_IDENTITIES.admin.username}
   ${CURSOR_TEST_IDENTITIES.lux.username}
+  ${CURSOR_TEST_IDENTITIES.bad.username}
 
 Runtime env names (values never committed):
   ${CURSOR_TEST_RUNTIME_ENV.adminUsername} / ${CURSOR_TEST_RUNTIME_ENV.adminPassword}
   ${CURSOR_TEST_RUNTIME_ENV.luxUsername} / ${CURSOR_TEST_RUNTIME_ENV.luxPassword}
+  ${CURSOR_TEST_RUNTIME_ENV.badUsername} / ${CURSOR_TEST_RUNTIME_ENV.badPassword}
 `);
     process.exit(0);
   }
@@ -347,7 +352,14 @@ Runtime env names (values never committed):
   }
 
   const mutatingPassword = !args.disable && !args.enable;
-  if (mutatingPassword && !args.dryRun && !args.genPassword && !args.adminPassword && !args.luxPassword) {
+  if (
+    mutatingPassword &&
+    !args.dryRun &&
+    !args.genPassword &&
+    !args.adminPassword &&
+    !args.luxPassword &&
+    !process.env[CURSOR_TEST_RUNTIME_ENV.badPassword]
+  ) {
     console.error('ERROR: use --gen-password (recommended) or explicit --*-password=...; or --dry-run');
     process.exit(1);
   }
@@ -360,7 +372,7 @@ Runtime env names (values never committed):
   const keys =
     args.only === 'all'
       ? /** @type {Array<'admin' | 'lux'>} */ (['admin', 'lux'])
-      : /** @type {Array<'admin' | 'lux'>} */ ([args.only]);
+      : /** @type {Array<'admin' | 'lux' | 'bad'>} */ ([args.only]);
 
   const pgUrl = normalizePostgresUrlForPrisma(process.env.POSTGRES_URL);
   const pgOk = Boolean(pgUrl && (pgUrl.startsWith('postgresql://') || pgUrl.startsWith('postgres://')));
@@ -402,8 +414,8 @@ Runtime env names (values never committed):
   }
 
   const prisma = new PrismaClient();
-  /** @type {{ admin: any, lux: any, luxMembershipNotes: string | null }} */
-  const evidence = { admin: null, lux: null, luxMembershipNotes: null };
+  /** @type {{ admin: any, lux: any, bad: any, luxMembershipNotes: string | null, badMembershipNotes: string | null }} */
+  const evidence = { admin: null, lux: null, bad: null, luxMembershipNotes: null, badMembershipNotes: null };
 
   try {
     if (args.disable || args.enable) {
@@ -434,15 +446,38 @@ Runtime env names (values never committed):
           `[dry-run] WOULD-UPSERT tenants.tenant_id=${CURSOR_TEST_IDENTITIES.lux.tenantId} (no-op if exists)`,
         );
       }
+      if (keys.includes('bad') && !args.dryRun) {
+        const tenant = await prisma.tenant.findUnique({
+          where: { tenantId: CURSOR_TEST_IDENTITIES.bad.tenantId },
+          select: { tenantId: true },
+        });
+        if (!tenant) {
+          console.error(
+            `ERROR: approved BAD home tenant is missing: ${CURSOR_TEST_IDENTITIES.bad.tenantId}; refusing to create tenant data`,
+          );
+          process.exit(1);
+        }
+      }
 
       for (const key of keys) {
         const spec = CURSOR_TEST_IDENTITIES[key];
-        let password = key === 'admin' ? args.adminPassword : args.luxPassword;
-        if (args.genPassword || args.dryRun) {
+        let password =
+          key === 'bad'
+            ? args.dryRun
+              ? 'dry-run-placeholder'
+              : process.env[CURSOR_TEST_RUNTIME_ENV.badPassword] || ''
+            : key === 'admin'
+              ? args.adminPassword
+              : args.luxPassword;
+        if (key !== 'bad' && (args.genPassword || args.dryRun)) {
           password = password || generateRandomLoginPassword();
         }
         if (!password) {
-          console.error(`ERROR: missing password for ${key}; use --gen-password`);
+          console.error(
+            key === 'bad'
+              ? `ERROR: ${CURSOR_TEST_RUNTIME_ENV.badPassword} must be set in the protected runtime; BAD credentials are never generated or printed`
+              : `ERROR: missing password for ${key}; use --gen-password`,
+          );
           process.exit(1);
         }
 
@@ -456,25 +491,27 @@ Runtime env names (values never committed):
           enabled: true,
         };
 
-        if (key === 'lux') {
-          const userId = evidence.lux?.id;
+        if (key === 'lux' || key === 'bad') {
+          const userId = evidence[key]?.id;
           if (userId && userId !== '(dry-run)') {
-            const mem = await ensureLuxMembership(
+            const mem = await ensureMembership(
               prisma,
               userId,
               /** @type {string} */ (spec.tenantId),
               args.dryRun,
             );
-            evidence.luxMembershipNotes = mem?.notes || CURSOR_TEST_MEMBERSHIP_NOTES;
+            evidence[key === 'bad' ? 'badMembershipNotes' : 'luxMembershipNotes'] =
+              mem?.notes || CURSOR_TEST_MEMBERSHIP_NOTES;
           } else {
             console.log(
               `[dry-run] WOULD-INSERT/UPDATE user_tenant_memberships tenant_id=${spec.tenantId} notes=${CURSOR_TEST_MEMBERSHIP_NOTES}`,
             );
-            evidence.luxMembershipNotes = CURSOR_TEST_MEMBERSHIP_NOTES;
+            evidence[key === 'bad' ? 'badMembershipNotes' : 'luxMembershipNotes'] =
+              CURSOR_TEST_MEMBERSHIP_NOTES;
           }
         }
 
-        if (!args.dryRun && args.genPassword) {
+        if (!args.dryRun && args.genPassword && key !== 'bad') {
           printWalletCard(key, password, evidence[key]);
         } else if (!args.dryRun && password) {
           console.log(
