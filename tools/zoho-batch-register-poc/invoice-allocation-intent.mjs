@@ -55,15 +55,26 @@ function asError(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
-function validateReceipt(receipt, organizationId, eventId) {
+function validateReceipt(receipt, organizationId) {
   if (!receipt || typeof receipt !== 'object') throw new TypeError('receipt must be an object');
   if (receipt.organizationId !== organizationId) throw new TypeError('receipt organization mismatch');
-  if (receipt.eventId !== eventId) return;
+  identity(receipt.receiptId, 'receipt.receiptId');
+  identity(receipt.eventId, 'receipt.eventId');
+  identity(receipt.invoiceId, 'receipt.invoiceId');
+  identity(String(receipt.invoiceVersion ?? ''), 'receipt.invoiceVersion');
   if (receipt.status !== 'accepted') throw new TypeError('prior receipt is not accepted');
-  if (receipt.payloadFingerprint === undefined) throw new TypeError('accepted receipt is missing payload fingerprint');
+  if (typeof receipt.payloadFingerprint !== 'string' || !receipt.payloadFingerprint) {
+    throw new TypeError('accepted receipt is missing payload fingerprint');
+  }
+  if (receipt.evidenceVerified !== true || !Array.isArray(receipt.allocations) || receipt.allocations.length === 0) {
+    throw new TypeError('accepted receipt is missing allocation evidence');
+  }
+  if (typeof receipt.snapshotFingerprint !== 'string' || !receipt.snapshotFingerprint) {
+    throw new TypeError('accepted receipt is missing snapshot evidence');
+  }
 }
 
-function snapshotFingerprint(snapshot) {
+export function snapshotFingerprint(snapshot) {
   return digest({
     batches: snapshot.batches,
     organizationId: snapshot.organizationId,
@@ -90,11 +101,30 @@ export function planInvoiceBatchIntent(input = {}) {
     if (!Array.isArray(snapshot.batches)) return blocked('missing_snapshot_batches');
     if (snapshot.asOfDate !== asOfDate) return blocked('inconsistent_snapshot');
     const computedSnapshotFingerprint = snapshotFingerprint(snapshot);
-    if (snapshot.fingerprint !== undefined && snapshot.fingerprint !== computedSnapshotFingerprint) return blocked('stale_snapshot_fingerprint');
+    const suppliedSnapshotFingerprint = input.expectedSnapshotFingerprint
+      ?? snapshot.expectedFingerprint
+      ?? snapshot.fingerprint;
+    const suppliedSnapshotVersion = input.expectedSnapshotVersion
+      ?? snapshot.expectedVersion
+      ?? snapshot.version;
+    if (typeof suppliedSnapshotFingerprint !== 'string' || !suppliedSnapshotFingerprint) {
+      return blocked('missing_snapshot_fingerprint');
+    }
+    if (suppliedSnapshotFingerprint !== computedSnapshotFingerprint) return blocked('stale_snapshot_fingerprint');
+    if (!Number.isInteger(suppliedSnapshotVersion) || suppliedSnapshotVersion < 1) {
+      return blocked('missing_snapshot_version');
+    }
     const inputSnapshotFingerprint = computedSnapshotFingerprint;
-    if (!EVENT_TYPES.has(event.type) && !BLOCKED_TYPES.has(event.type)) return blocked('unsupported_event_type');
-    if (BLOCKED_TYPES.has(event.type)) return blocked(event.type === 'revision' ? 'accepted_revision_requires_reconciliation' : 'physical_disposition_unverified');
-    if (event.status === 'draft' || event.status === 'unsent' || event.stockEffective !== true) return { outcome: 'blocked', reason: 'event_not_stock_effective', intents: [] };
+    if (!EVENT_TYPES.has(event.type)) {
+      return blocked(BLOCKED_TYPES.has(event.type) && event.type === 'revision'
+        ? 'accepted_revision_requires_reconciliation'
+        : BLOCKED_TYPES.has(event.type) ? 'physical_disposition_unverified' : 'unsupported_event_type');
+    }
+    if (event.status === 'draft' || event.status === 'unsent') return { outcome: 'blocked', reason: 'event_not_stock_effective', intents: [] };
+    if (event.status !== 'sent' || event.stockEffective !== true ||
+      event.cancelled === true || event.voided === true || event.revised === true) {
+      return blocked('contradictory_invoice_lifecycle');
+    }
     if (!Array.isArray(event.lines) || event.lines.length === 0) return blocked('missing_invoice_lines');
 
     const payloadFingerprint = digest({
@@ -104,14 +134,27 @@ export function planInvoiceBatchIntent(input = {}) {
     });
     const receipts = input.acceptedReceipts ?? [];
     if (!Array.isArray(receipts)) return blocked('invalid_receipts');
-    const matching = receipts.filter((receipt) => receipt?.organizationId === organizationId && receipt?.eventId === eventId);
-    for (const receipt of receipts) validateReceipt(receipt, organizationId, eventId);
+    try {
+      for (const receipt of receipts) validateReceipt(receipt, organizationId);
+    } catch (error) {
+      return blocked('invalid_accepted_receipt', asError(error));
+    }
+    const matching = receipts.filter((receipt) =>
+      receipt.organizationId === organizationId &&
+      receipt.eventId === eventId &&
+      receipt.invoiceId === invoiceId &&
+      String(receipt.invoiceVersion) === invoiceVersion);
+    const invoiceHistory = receipts.filter((receipt) =>
+      receipt.organizationId === organizationId && receipt.invoiceId === invoiceId);
     if (matching.length > 1) return blocked('ambiguous_prior_receipts');
     if (matching.length === 1) {
-      return matching[0].payloadFingerprint === payloadFingerprint
+      return matching[0].payloadFingerprint === payloadFingerprint &&
+        matching[0].snapshotFingerprint === inputSnapshotFingerprint &&
+        matching[0].eventId === eventId
         ? { outcome: 'no_op', eventId, invoiceId, invoiceVersion, receiptId: matching[0].receiptId }
         : blocked('event_identity_reused_with_changed_payload');
     }
+    if (invoiceHistory.length > 0) return blocked('invoice_already_accepted_requires_reconciliation');
 
     const seenLines = new Set();
     const seenItems = new Set();
@@ -132,6 +175,13 @@ export function planInvoiceBatchIntent(input = {}) {
       if (seenItems.has(`${itemId}\u0000${unit}`) === false) seenItems.add(`${itemId}\u0000${unit}`);
       const policies = input.itemPolicies ?? input.itemPolicyContext;
       if (!policies) return blocked('missing_canonical_policy');
+      const policy = Array.isArray(policies) ? policies.find((candidate) => candidate?.itemId === itemId) : undefined;
+      if (!policy || policy.organizationId !== organizationId ||
+        policy.provenance?.organizationId !== organizationId ||
+        policy.provenance?.snapshotFingerprint !== inputSnapshotFingerprint ||
+        !Number.isInteger(policy.provenance?.version) || policy.provenance.version < 1) {
+        return blocked('contradictory_policy_provenance');
+      }
       const plan = planAllocation({ itemId, quantity: quantity(requested).exact, unit, asOfDate, batches, itemPolicies: policies });
       if (!plan.ok) return blocked('line_unsatisfied', plan.message);
       const lineSlices = plan.allocations.map((allocation) => {

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planInvoiceBatchIntent } from '../tools/zoho-batch-register-poc/invoice-allocation-intent.mjs';
+import { planInvoiceBatchIntent, snapshotFingerprint } from '../tools/zoho-batch-register-poc/invoice-allocation-intent.mjs';
 
 const baseSnapshot = {
   organizationId: 'org-synthetic',
@@ -16,11 +16,17 @@ const baseSnapshot = {
 
 function input(lines, overrides = {}) {
   const snapshot = structuredClone(baseSnapshot);
-  snapshot.fingerprint = undefined;
+  snapshot.version = 1;
+  snapshot.fingerprint = snapshotFingerprint(snapshot);
   return {
     organizationId: 'org-synthetic',
     asOfDate: '2026-10-27',
-    itemPolicies: [{ itemId: 'item-a', policy: 'required' }],
+    itemPolicies: [{
+      itemId: 'item-a',
+      policy: 'required',
+      organizationId: 'org-synthetic',
+      provenance: { organizationId: 'org-synthetic', snapshotFingerprint: snapshot.fingerprint, version: 1 },
+    }],
     snapshot,
     event: { eventId: 'event-1', type: 'invoice', status: 'sent', stockEffective: true, invoiceId: 'invoice-1', invoiceVersion: '1', lines },
     ...overrides,
@@ -48,13 +54,66 @@ test('plans multiple lines together and blocks later shortage without partial in
 test('returns no-op for matching receipt and blocks reused identity conflicts', () => {
   const first = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }]));
   const noop = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }], {
-    acceptedReceipts: [{ organizationId: 'org-synthetic', eventId: 'event-1', status: 'accepted', receiptId: 'receipt-1', payloadFingerprint: first.payloadFingerprint }],
+    acceptedReceipts: [{
+      organizationId: 'org-synthetic', eventId: 'event-1', invoiceId: 'invoice-1', invoiceVersion: '1',
+      status: 'accepted', receiptId: 'receipt-1', payloadFingerprint: first.payloadFingerprint,
+      snapshotFingerprint: first.snapshotFingerprint, evidenceVerified: true, allocations: first.intents,
+    }],
   }));
   assert.equal(noop.outcome, 'no_op');
   const conflict = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '2' }], {
-    acceptedReceipts: [{ organizationId: 'org-synthetic', eventId: 'event-1', status: 'accepted', receiptId: 'receipt-1', payloadFingerprint: first.payloadFingerprint }],
+    acceptedReceipts: [{
+      organizationId: 'org-synthetic', eventId: 'event-1', invoiceId: 'invoice-1', invoiceVersion: '1',
+      status: 'accepted', receiptId: 'receipt-1', payloadFingerprint: first.payloadFingerprint,
+      snapshotFingerprint: first.snapshotFingerprint, evidenceVerified: true, allocations: first.intents,
+    }],
   }));
   assert.equal(conflict.reason, 'event_identity_reused_with_changed_payload');
+});
+
+test('blocks an accepted invoice replay under a new event identity', () => {
+  const first = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }]));
+  const receipt = {
+    organizationId: 'org-synthetic', eventId: 'event-1', invoiceId: 'invoice-1', invoiceVersion: '1',
+    status: 'accepted', receiptId: 'receipt-1', payloadFingerprint: first.payloadFingerprint,
+    snapshotFingerprint: first.snapshotFingerprint, evidenceVerified: true, allocations: first.intents,
+  };
+  const replay = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }], {
+    event: { ...input([]).event, eventId: 'event-2', lines: [{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }] },
+    acceptedReceipts: [receipt],
+  }));
+  assert.equal(replay.reason, 'invoice_already_accepted_requires_reconciliation');
+});
+
+test('blocks lifecycle contradictions even when stockEffective is true', () => {
+  for (const status of ['void', 'cancelled']) {
+    const result = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }], {
+      event: { ...input([]).event, status },
+    }));
+    assert.equal(result.reason, 'contradictory_invoice_lifecycle');
+  }
+  const draft = planInvoiceBatchIntent(input([], { event: { ...input([]).event, status: 'draft' } }));
+  assert.equal(draft.reason, 'event_not_stock_effective');
+});
+
+test('requires complete accepted receipt identity and allocation evidence', () => {
+  const result = planInvoiceBatchIntent(input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }], {
+    acceptedReceipts: [{
+      organizationId: 'org-synthetic', eventId: 'event-1', invoiceId: 'invoice-1', invoiceVersion: '1',
+      status: 'accepted', payloadFingerprint: 'anything',
+    }],
+  }));
+  assert.equal(result.reason, 'invalid_accepted_receipt');
+});
+
+test('requires supplied snapshot identity and policy provenance', () => {
+  const missingFingerprint = input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }]);
+  delete missingFingerprint.snapshot.fingerprint;
+  assert.equal(planInvoiceBatchIntent(missingFingerprint).reason, 'missing_snapshot_fingerprint');
+
+  const missingPolicyProvenance = input([{ lineId: 'line-1', itemId: 'item-a', unit: 'each', quantity: '1' }]);
+  missingPolicyProvenance.itemPolicies[0].provenance.snapshotFingerprint = 'stale';
+  assert.equal(planInvoiceBatchIntent(missingPolicyProvenance).reason, 'contradictory_policy_provenance');
 });
 
 test('fails closed for lifecycle, organization, evidence, policy and unit boundaries', () => {

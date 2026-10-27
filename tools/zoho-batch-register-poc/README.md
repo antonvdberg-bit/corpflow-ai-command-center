@@ -232,6 +232,15 @@ snapshot evidence. It returns complete per-line lot intents, a receipt-backed
 `no_op`, or a bounded `blocked` result. It never calls Zoho, persists data,
 posts stock, reserves quantities, or infers a physical reversal.
 
+The snapshot must include a supplied `fingerprint` and positive `version`; the
+adapter recomputes the fingerprint for comparison and never treats its own
+computed value as external evidence. Each policy must identify the same
+organization and carry provenance for that snapshot. Accepted receipts must
+include stable receipt/event/invoice/version identities, the matching payload
+and snapshot fingerprints, verified allocation evidence, and a non-empty
+allocation list. An accepted invoice cannot be allocated again under a new
+event ID; changed or contradictory lifecycle evidence is blocked.
+
 This milestone proves deterministic invoice-line-to-batch arithmetic only.
 It does not prove live lifecycle bindings, an approved stock baseline,
 persisted movement evidence, durable posting/concurrency/recovery, native
