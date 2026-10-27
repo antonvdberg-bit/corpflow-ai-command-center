@@ -222,3 +222,17 @@ only bounded category/stage/source/page details.
 Native execution remains separately protected: private binding review,
 authenticated execution, raw response encoding, and operator approval are
 required before any live run. The diagnostic is mock-verified only.
+
+## Synthetic invoice allocation intents
+
+`invoice-allocation-intent.mjs` is a disabled, unconnected, dependency-free
+adapter. `planInvoiceBatchIntent` accepts an explicitly supplied synthetic
+stock-effective invoice event, canonical item policies, and verified batch
+snapshot evidence. It returns complete per-line lot intents, a receipt-backed
+`no_op`, or a bounded `blocked` result. It never calls Zoho, persists data,
+posts stock, reserves quantities, or infers a physical reversal.
+
+This milestone proves deterministic invoice-line-to-batch arithmetic only.
+It does not prove live lifecycle bindings, an approved stock baseline,
+persisted movement evidence, durable posting/concurrency/recovery, native
+enforcement across all channels, operational readiness, or client completion.
