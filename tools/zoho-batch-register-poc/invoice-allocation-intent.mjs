@@ -89,7 +89,9 @@ export function planInvoiceBatchIntent(input = {}) {
     }
     if (!Array.isArray(snapshot.batches)) return blocked('missing_snapshot_batches');
     if (snapshot.asOfDate !== asOfDate) return blocked('inconsistent_snapshot');
-    if (snapshot.fingerprint !== undefined && snapshot.fingerprint !== snapshotFingerprint(snapshot)) return blocked('stale_snapshot_fingerprint');
+    const computedSnapshotFingerprint = snapshotFingerprint(snapshot);
+    if (snapshot.fingerprint !== undefined && snapshot.fingerprint !== computedSnapshotFingerprint) return blocked('stale_snapshot_fingerprint');
+    const inputSnapshotFingerprint = computedSnapshotFingerprint;
     if (!EVENT_TYPES.has(event.type) && !BLOCKED_TYPES.has(event.type)) return blocked('unsupported_event_type');
     if (BLOCKED_TYPES.has(event.type)) return blocked(event.type === 'revision' ? 'accepted_revision_requires_reconciliation' : 'physical_disposition_unverified');
     if (event.status === 'draft' || event.status === 'unsent' || event.stockEffective !== true) return { outcome: 'blocked', reason: 'event_not_stock_effective', intents: [] };
@@ -98,7 +100,7 @@ export function planInvoiceBatchIntent(input = {}) {
     const payloadFingerprint = digest({
       organizationId, eventId, invoiceId, invoiceVersion, eventType: event.type,
       lines: event.lines,
-      snapshotFingerprint: snapshot.fingerprint ?? snapshotFingerprint(snapshot),
+      snapshotFingerprint: inputSnapshotFingerprint,
     });
     const receipts = input.acceptedReceipts ?? [];
     if (!Array.isArray(receipts)) return blocked('invalid_receipts');
@@ -140,7 +142,7 @@ export function planInvoiceBatchIntent(input = {}) {
         return {
           organizationId, invoiceId, invoiceVersion, lineId, itemId, batchId: allocation.batchId,
           lotNumber: allocation.lotNumber, unit, quantity: displayed.number, quantityExact: displayed.exact,
-          expectedVersion: allocation.version, inputSnapshotFingerprint: plan.sourceFingerprint,
+          expectedVersion: allocation.version, inputSnapshotFingerprint,
         };
       });
       intents.push(...lineSlices);
@@ -148,7 +150,7 @@ export function planInvoiceBatchIntent(input = {}) {
     return clone({
       outcome: 'proposed', synthetic: true, connected: false, readOnly: true,
       organizationId, eventId, invoiceId, invoiceVersion,
-      payloadFingerprint, snapshotFingerprint: snapshot.fingerprint ?? snapshotFingerprint(snapshot),
+      payloadFingerprint, snapshotFingerprint: inputSnapshotFingerprint,
       intents, expectedVersions: Object.fromEntries(intents.map((intent) => [intent.batchId, intent.expectedVersion])),
       atomicCommit: false,
     });
