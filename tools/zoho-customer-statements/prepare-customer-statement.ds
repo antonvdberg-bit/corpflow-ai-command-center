@@ -1,0 +1,245 @@
+// DISABLED PREPARATION DRAFT — do not activate, schedule, or attach to a send action.
+// Expected Books inputs: customer (Books contact map), organization (Books organization map),
+// user (Books user map). Customer currency_code is the only native currency scope.
+// Replace only the connection name after native compile and read-only verification.
+
+connection_name = "REPLACE_WITH_BOOKS_CONNECTION";
+disabled = true;
+disabled_result = Map();
+disabled_result.put("result", "disabled");
+disabled_result.put("reason", "preparation draft; no live invoice read was executed");
+disabled_result.put("connection_configured", false);
+disabled_result.put("send_path", false);
+if(disabled)
+{
+	return disabled_result;
+}
+
+customer_id = customer.get("contact_id");
+organization_id = organization.get("organization_id");
+expected_currency = customer.get("currency_code");
+if(customer_id == null || organization_id == null || expected_currency == null || expected_currency.toString().trim() == "" || connection_name == "REPLACE_WITH_BOOKS_CONNECTION")
+{
+	fail_result = Map();
+	fail_result.put("result", "blocked");
+	fail_result.put("reason_code", "missing_customer_currency_scope");
+	return fail_result;
+}
+
+page = 1;
+page_cap = 10;
+per_page = 200;
+has_more = true;
+seen_ids = List();
+eligible_count = 0;
+earliest_date = null;
+as_of_date = zoho.currentdate;
+minimum_start_date = as_of_date.addDay(-90);
+page_numbers = {1,2,3,4,5,6,7,8,9,10};
+for each page_number in page_numbers
+{
+	if(has_more)
+	{
+		try
+		{
+			response = invokeurl
+			[
+				url :"https://www.zohoapis.com/books/v3/invoices?organization_id=" + organization_id + "&customer_id=" + customer_id + "&page=" + page_number + "&per_page=" + per_page + "&filter_by=Status.All"
+				type :GET
+				connection :connection_name
+			];
+		}
+		catch (transport_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "transport_or_conversion_error");
+			return blocked;
+		}
+		try
+		{
+			if(response == null)
+			{
+				blocked = Map();
+				blocked.put("result", "blocked");
+				blocked.put("reason_code", "malformed_response_root");
+				return blocked;
+			}
+			response_code = response.get("code");
+			context = response.get("page_context");
+			invoices = response.get("invoices");
+			invoice_shape = Map();
+			invoice_shape.put("value", invoices);
+			invoice_shape_text = invoice_shape.toString();
+			invoices_is_list = invoice_shape_text.startsWith("{\"value\":[") && invoice_shape_text.endsWith("]}");
+			if(response_code != 0 || context == null || invoices == null || invoices_is_list != true)
+			{
+				blocked = Map();
+				blocked.put("result", "blocked");
+				blocked.put("reason_code", "malformed_or_error_page");
+				return blocked;
+			}
+		}
+		catch (response_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "malformed_response_root");
+			return blocked;
+		}
+		try
+		{
+			context_page = context.get("page");
+			context_per_page = context.get("per_page");
+			context_has_more = context.get("has_more_page");
+			page_shape = Map();
+			page_shape.put("value", context_page);
+			page_shape_text = page_shape.toString();
+			page_token = page_shape_text.getSuffix(":").getPrefix("}");
+			per_page_shape = Map();
+			per_page_shape.put("value", context_per_page);
+			per_page_shape_text = per_page_shape.toString();
+			per_page_token = per_page_shape_text.getSuffix(":").getPrefix("}");
+			has_more_shape = Map();
+			has_more_shape.put("value", context_has_more);
+			has_more_shape_text = has_more_shape.toString();
+			page_is_positive_integer = page_shape_text.startsWith("{\"value\":") && page_shape_text.endsWith("}") && page_token.matches("[1-9][0-9]*");
+			per_page_is_positive_integer = per_page_shape_text.startsWith("{\"value\":") && per_page_shape_text.endsWith("}") && per_page_token.matches("[1-9][0-9]*");
+			has_more_is_boolean = has_more_shape_text == "{\"value\":true}" || has_more_shape_text == "{\"value\":false}";
+			if(page_is_positive_integer != true || per_page_is_positive_integer != true || has_more_is_boolean != true || context_page != page_number || context_per_page < 1 || context_per_page > per_page || invoices.size() > context_per_page || invoices.size() > per_page)
+			{
+				blocked = Map();
+				blocked.put("result", "blocked");
+				blocked.put("reason_code", "unattested_page_context");
+				return blocked;
+			}
+			if(invoices.isEmpty() && (page_number > 1 || context_has_more == true))
+			{
+				blocked = Map();
+				blocked.put("result", "blocked");
+				blocked.put("reason_code", "empty_continuing_page");
+				return blocked;
+			}
+		}
+		catch (context_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "malformed_page_context");
+			return blocked;
+		}
+		try
+		{
+			for each invoice in invoices
+			{
+				try
+				{
+					invoice_id = invoice.get("invoice_id");
+					invoice_customer_id = invoice.get("customer_id");
+					status = invoice.get("status");
+					invoice_date = invoice.get("date");
+					balance = invoice.get("balance");
+					invoice_currency = invoice.get("currency_code");
+					if(invoice_id == null || seen_ids.contains(invoice_id.toString()) || invoice_customer_id == null || invoice_customer_id.toString() != customer_id.toString())
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "duplicate_or_customer_mismatch");
+						return blocked;
+					}
+					seen_ids.add(invoice_id.toString());
+					if(status == null || invoice_date == null || balance == null || invoice_currency == null || invoice_currency != expected_currency)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice");
+						return blocked;
+					}
+					invoice_date_text = invoice_date.toString();
+					if(invoice_date_text.length() != 10 || invoice_date_text.subString(4,5) != "-" || invoice_date_text.subString(7,8) != "-")
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice_date");
+						return blocked;
+					}
+					invoice_date_value = invoice_date_text.toDate("yyyy-MM-dd");
+					if(invoice_date_value.toString("yyyy-MM-dd") != invoice_date_text)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice_date");
+						return blocked;
+					}
+					balance_value = balance.toDecimal();
+					if(balance_value < 0)
+					{
+						blocked = Map();
+						blocked.put("result", "blocked");
+						blocked.put("reason_code", "malformed_invoice");
+						return blocked;
+					}
+					if(invoice_date_value <= as_of_date && (status == "sent" || status == "overdue" || status == "partially_paid") && balance_value > 0)
+					{
+						eligible_count = eligible_count + 1;
+						if(earliest_date == null || invoice_date_value < earliest_date)
+						{
+							earliest_date = invoice_date_value;
+						}
+					}
+				}
+				catch (invoice_error)
+				{
+					blocked = Map();
+					blocked.put("result", "blocked");
+					blocked.put("reason_code", "malformed_invoice");
+					return blocked;
+				}
+			}
+		}
+		catch (invoice_collection_error)
+		{
+			blocked = Map();
+			blocked.put("result", "blocked");
+			blocked.put("reason_code", "malformed_invoice_collection");
+			return blocked;
+		}
+		has_more = context_has_more;
+		page = page_number + 1;
+	}
+}
+if(has_more)
+{
+	blocked = Map();
+	blocked.put("result", "blocked");
+	blocked.put("reason_code", "page_cap_reached");
+	return blocked;
+}
+
+prepared = Map();
+prepared_result = "no_statement";
+if(eligible_count > 0)
+{
+	prepared_result = "prepare_statement";
+}
+statement_start = null;
+statement_end = null;
+if(eligible_count > 0)
+{
+	statement_start = minimum_start_date;
+	if(earliest_date != null && earliest_date < statement_start)
+	{
+		statement_start = earliest_date;
+	}
+	statement_end = as_of_date;
+}
+prepared.put("result", prepared_result);
+prepared.put("statement_start", statement_start);
+prepared.put("statement_end", statement_end);
+prepared.put("eligible_invoice_count", eligible_count);
+prepared.put("currency_code", expected_currency);
+prepared.put("earliest_eligible_invoice_date", earliest_date);
+prepared.put("pages_read", page - 1);
+prepared.put("reconciliation_required", true);
+prepared.put("send_path", false);
+return prepared;
