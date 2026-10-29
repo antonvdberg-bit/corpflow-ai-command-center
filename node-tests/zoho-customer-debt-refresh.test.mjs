@@ -69,6 +69,14 @@ test('complete empty and all-settled sources clear, incomplete sources do not', 
   assert.equal(plan(base()).action, 'clear');
   assert.equal(plan(withInvoices(invoice({ remainingBalance: '0' }))).action, 'clear');
   assert.equal(plan(base({ pages: [{ page: 1, records: [] }] })).action, 'blocked');
+  assert.equal(plan(base({ pages: [
+    { page: 1, last: false, records: [invoice({ dueDate: '2026-10-02' })] },
+    { page: 2, last: true, records: [] }
+  ] })).action, 'blocked');
+  assert.equal(plan(base({ pages: [
+    { page: 1, last: false, records: [invoice({ remainingBalance: '0' })] },
+    { page: 2, last: true, records: [] }
+  ] })).action, 'blocked');
 });
 
 test('duplicate and cross-scope records are blocked', () => {
@@ -111,6 +119,32 @@ test('independent expected source and every page attestation are mandatory', () 
 
 test('observation timestamps, continuation flags and multipage evidence are strict', () => {
   assert.equal(plan(base({ source: { ...source, observedAt: 'not-a-date' } })).reason, 'INVALID_OBSERVED_AT');
+  for (const invalidObservedAt of [
+    '2026-02-29T00:00:00Z',
+    '2026-02-30T00:00:00Z',
+    '2026-04-31T00:00:00Z',
+    '2026-01-01T24:00:00Z'
+  ]) {
+    const invalid = base({
+      source: { ...source, observedAt: invalidObservedAt },
+      expectedSource: { ...source, observedAt: invalidObservedAt },
+      pages: [{ page: 1, last: true, records: [],
+        source: { ...source, observedAt: invalidObservedAt } }]
+    });
+    assert.equal(plan(invalid).reason, 'INVALID_OBSERVED_AT');
+  }
+  assert.equal(plan(base({
+    source: { ...source, observedAt: '2024-02-29T00:00:00Z' },
+    expectedSource: { ...source, observedAt: '2024-02-29T00:00:00Z' },
+    pages: [{ page: 1, last: true, records: [],
+      source: { ...source, observedAt: '2024-02-29T00:00:00Z' } }]
+  })).action, 'clear');
+  assert.equal(plan(base({
+    source: { ...source, observedAt: '2026-10-29T00:00:00.123Z' },
+    expectedSource: { ...source, observedAt: '2026-10-29T00:00:00.123Z' },
+    pages: [{ page: 1, last: true, records: [],
+      source: { ...source, observedAt: '2026-10-29T00:00:00.123Z' } }]
+  })).action, 'clear');
   assert.equal(plan(base({ pages: [{ page: 1, last: 'false', records: [] }] })).reason, 'INCOMPLETE_SOURCE');
   assert.equal(plan(base({ pages: [{ page: 1, last: null, records: [] }] })).reason, 'INCOMPLETE_SOURCE');
   assert.equal(plan(base({ pages: [{ page: 1, last: false, records: [] }, { page: 2, last: true, records: [] }] })).reason, 'INCOMPLETE_SOURCE');
@@ -118,8 +152,7 @@ test('observation timestamps, continuation flags and multipage evidence are stri
     { page: 1, last: false, records: [invoice({ id: 'old' })] },
     { page: 2, last: true, records: [] }
   ], expectedHelper: { value: '2026-09-01', version: 'helper-3' } }));
-  assert.equal(result.action, 'set');
-  assert.equal(result.helperValue, '2026-10-01');
+  assert.equal(result.action, 'blocked');
 });
 
 test('unknown status blocks while native sent and overdue statuses qualify', () => {
@@ -164,6 +197,31 @@ test('duplicate customer scopes are conservatively blocked in planMany', () => {
   assert.equal(result.complete, false);
   assert.equal(result.results[0].reason, 'DUPLICATE_SCOPE');
   assert.equal(result.results[1].reason, 'DUPLICATE_SCOPE');
+});
+
+test('duplicate planMany scopes use canonical currency and isolate other inputs', () => {
+  const empty = base({ scope: { ...base().scope, currency: 'USD' } });
+  const positive = base({
+    scope: { ...base().scope, currency: 'usd' },
+    pages: [{ page: 1, last: true, records: [invoice({ dueDate: '2026-10-02' })] }]
+  });
+  const third = base({
+    scope: { ...base().scope, currency: 'USD' },
+    pages: [{ page: 1, last: true, records: [invoice({ id: 'inv-3' })] }]
+  });
+  const independent = base({
+    scope: { ...base().scope, customerId: 'cust-2' },
+    expectedHelper: { value: '2026-09-01', version: 'helper-3' },
+    pages: [{ page: 1, last: true, records: [invoice({ customerId: 'cust-2' })],
+      scope: { ...pageEvidence().scope, customerId: 'cust-2' } }]
+  });
+  const malformed = base({ scope: { ...base().scope, currency: '' } });
+  const result = planMany([positive, malformed, independent, third, empty]);
+  assert.equal(result.complete, false);
+  assert.deepEqual(result.results.map((item) => item.reason), [
+    'DUPLICATE_SCOPE', 'INVALID_INPUT', undefined, 'DUPLICATE_SCOPE', 'DUPLICATE_SCOPE'
+  ]);
+  assert.equal(result.results[2].action, 'set');
 });
 
 test('terminal statuses with positive balances are contradictory and cannot retain stale dates', () => {

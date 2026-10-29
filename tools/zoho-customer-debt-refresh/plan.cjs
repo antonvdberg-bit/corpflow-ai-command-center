@@ -32,7 +32,15 @@ function validDate(value, name) {
 
 function validInstant(value, name) {
   requiredString(value, name);
-  if (!ISO_INSTANT_RE.test(value) || Number.isNaN(Date.parse(value))) {
+  if (!ISO_INSTANT_RE.test(value)) {
+    fail('INVALID_OBSERVED_AT', `${name} must be a real UTC ISO timestamp`);
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    fail('INVALID_OBSERVED_AT', `${name} must be a real UTC ISO timestamp`);
+  }
+  const canonical = value.includes('.') ? date.toISOString() : date.toISOString().replace('.000Z', 'Z');
+  if (canonical !== value) {
     fail('INVALID_OBSERVED_AT', `${name} must be a real UTC ISO timestamp`);
   }
   return value;
@@ -149,8 +157,8 @@ function invoicesFromPages(input, scope) {
     if (page.records.length > MAX_RECORDS || invoices.length + page.records.length > MAX_RECORDS) {
       fail('CAP_EXCEEDED', 'invoice record cap exceeded');
     }
-    if (index < pages.length - 1 && page.records.length === 0) {
-      fail('INCOMPLETE_SOURCE', 'continuing pages must contain records');
+    if (page.records.length === 0 && (index > 0 || index < pages.length - 1)) {
+      fail('INCOMPLETE_SOURCE', 'empty pages cannot establish complete coverage');
     }
     for (const invoice of page.records) invoices.push(validateInvoice(invoice, scope, seen));
     if (index < pages.length - 1 && page.last !== false) fail('INCOMPLETE_SOURCE', 'non-final pages must have last=false');
@@ -210,23 +218,25 @@ function planMany(inputs) {
   if (!Array.isArray(inputs) || inputs.length === 0 || inputs.length > MAX_RECORDS) {
     fail('INVALID_INPUT', 'customers must be a bounded non-empty array');
   }
-  const scopes = new Map();
-  const results = inputs.map((input) => {
-    const scope = input && input.scope;
-    const key = scope && [scope.organizationId, scope.customerId, scope.currency, scope.asOf].join('\u0000');
-    if (key && scopes.has(key)) return blockedResult(input, Object.assign(new Error('duplicate customer scope'), { code: 'DUPLICATE_SCOPE' }));
-    if (key) scopes.set(key, true);
+  const scopeKeys = inputs.map((input) => {
+    try {
+      const scope = scopeOf(input);
+      return [scope.organizationId, scope.customerId, scope.currency, scope.asOf].join('\u0000');
+    } catch {
+      return null;
+    }
+  });
+  const scopeCounts = new Map();
+  for (const key of scopeKeys) {
+    if (key) scopeCounts.set(key, (scopeCounts.get(key) || 0) + 1);
+  }
+  const results = inputs.map((input, index) => {
+    const key = scopeKeys[index];
+    if (key && scopeCounts.get(key) > 1) {
+      return blockedResult(input, Object.assign(new Error('duplicate customer scope'), { code: 'DUPLICATE_SCOPE' }));
+    }
     return plan(input);
   });
-  for (let index = 0; index < inputs.length; index += 1) {
-    const scope = inputs[index] && inputs[index].scope;
-    const key = scope && [scope.organizationId, scope.customerId, scope.currency, scope.asOf].join('\u0000');
-    if (key && results[index].reason === 'DUPLICATE_SCOPE') {
-      const first = results.findIndex((result) => result.organizationId === scope.organizationId
-        && result.customerId === scope.customerId && result.currency === scope.currency && result.asOf === scope.asOf);
-      if (first !== index) results[first] = blockedResult(inputs[first], Object.assign(new Error('duplicate customer scope'), { code: 'DUPLICATE_SCOPE' }));
-    }
-  }
   return { complete: results.every((result) => result.action !== 'blocked'), results };
 }
 

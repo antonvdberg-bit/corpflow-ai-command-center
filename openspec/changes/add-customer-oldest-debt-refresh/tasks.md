@@ -16,5 +16,5 @@
 - [x] 3.4 Test cross-scope, duplicate IDs, malformed/reordered pages and caps.
 - [x] 3.5 Test unchanged result, immutable deterministic inputs and independent per-customer failure reporting.
 - [x] 3.6 Test independent expected/page attestations, native and unknown statuses, strict observation times, continuation, evidence-preserving output and duplicate scopes.
-- [ ] 3.7 Verify no transport/write/send/schedule and run affected CI once.
+- [x] 3.7 Verify no transport/write/send/schedule and run affected CI once.
 - [x] 3.8 Keep native field mapping, actual refresh frequency, concurrent change/recovery and activation unverified.
