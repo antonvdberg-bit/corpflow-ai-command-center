@@ -69,6 +69,44 @@ test('blocks incomplete, mismatched, uncertain, and tampered evidence', () => {
   }
 });
 
+test('fails closed for every malformed required source field on both attestations', () => {
+  for (const field of ['snapshotId', 'version', 'fingerprint', 'observedAt']) {
+    for (const value of [undefined, null, true, {}, '   ', 'x'.repeat(257)]) {
+      const left = { ...evidence, [field]: value };
+      const right = { ...evidence, [field]: value };
+      const result = planExpiryReminderPlan({
+        ...source, sourceEvidence: left, expectedSourceEvidence: right,
+      });
+      assert.equal(result.status, 'blocked');
+      assert.equal(result.blockedReason, 'invalid_source');
+      assert.deepEqual(result.sourceEvidence, {});
+    }
+  }
+});
+
+test('fails closed for malformed roots, scope, and identities without echoing input', () => {
+  for (const input of [null, [], 'text', 42, true]) {
+    const result = planExpiryReminderPlan(input);
+    assert.deepEqual(result.scope, {});
+    assert.equal(result.blockedReason, 'invalid_input');
+  }
+  for (const change of [
+    { organizationId: {}, recipientSetId: 'ops' },
+    { organizationId: 'org-1', recipientSetId: ' '.repeat(3) },
+    { organizationId: 'x'.repeat(257), recipientSetId: 'ops' },
+    { batches: [{ ...source.batches[0], batchId: {} }] },
+    { items: [{ itemId: 'x'.repeat(257), policy: 'required' }] },
+  ]) {
+    const result = planExpiryReminderPlan({ ...source, ...change });
+    assert.equal(result.status, 'blocked');
+    assert.equal(result.blockedReason, 'invalid_input');
+    assert.ok(result.scope.organizationId === null || typeof result.scope.organizationId === 'string');
+    assert.ok(result.scope.recipientSetId === null || typeof result.scope.recipientSetId === 'string');
+    assert.ok(!Object.values(result.scope).some((value) => value && typeof value === 'object'));
+    assert.deepEqual(result.sourceEvidence, {});
+  }
+});
+
 test('blocks malformed dates and unknown classification, while quarantine remains a warning status', () => {
   const malformed = planExpiryReminderPlan({
     ...source,
@@ -86,4 +124,18 @@ test('blocks malformed dates and unknown classification, while quarantine remain
   });
   assert.equal(quarantined.intents[0].status, 'quarantined');
   assert.equal(quarantined.intents[0].allocationPermitted, false);
+});
+
+test('returns the same ordered result for shuffled today, expired, and candidate lots', () => {
+  const extra = [
+    { ...source.batches[0], batchId: 'today', expiryDate: source.asOfDate },
+    { ...source.batches[1], batchId: 'expired', expiryDate: '2026-10-17' },
+  ];
+  const left = { ...source, batches: [...source.batches, ...extra] };
+  const right = { ...source, batches: [extra[1], ...source.batches.slice(3), extra[0], ...source.batches.slice(0, 3)] };
+  const leftBefore = structuredClone(left);
+  const rightBefore = structuredClone(right);
+  assert.deepEqual(planExpiryReminderPlan(left), planExpiryReminderPlan(right));
+  assert.deepEqual(left, leftBefore);
+  assert.deepEqual(right, rightBefore);
 });

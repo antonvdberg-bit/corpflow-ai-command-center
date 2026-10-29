@@ -16,7 +16,20 @@ const REASONS = Object.freeze({
 });
 
 function bounded(value) {
-  return typeof value === 'string' && value.length > 0 && value.length <= MAX_TEXT;
+  return typeof value === 'string' && value.trim().length > 0 && value.length <= MAX_TEXT;
+}
+
+function canonical(value) {
+  return bounded(value) ? value.trim() : null;
+}
+
+function record(value) {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
+}
+
+function boundedScalar(value) {
+  return (typeof value === 'number' && Number.isFinite(value)) ||
+    (typeof value === 'string' && value.length <= MAX_TEXT && value.trim().length > 0);
 }
 
 function realDate(value, field) {
@@ -84,14 +97,17 @@ function blocked(reason, scope = {}, sourceEvidence = {}) {
 }
 
 function sourceAttestation(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  if (!bounded(value.snapshotId) || !bounded(String(value.version)) ||
-      !bounded(value.fingerprint) || !realUtcTimestamp(value.observedAt) || value.complete !== true) return null;
+  if (!record(value)) return null;
+  const snapshotId = canonical(value.snapshotId);
+  const version = canonical(value.version);
+  const fingerprint = canonical(value.fingerprint);
+  const observedAt = canonical(value.observedAt);
+  if (!snapshotId || !version || !fingerprint || !realUtcTimestamp(observedAt) || value.complete !== true) return null;
   return {
-    snapshotId: value.snapshotId,
-    version: value.version,
-    fingerprint: value.fingerprint,
-    observedAt: value.observedAt,
+    snapshotId,
+    version,
+    fingerprint,
+    observedAt,
     complete: true,
   };
 }
@@ -101,14 +117,14 @@ function sameAttestation(left, right) {
 }
 
 function validateReceipts(history, scope) {
-  if (!history || typeof history !== 'object' || history.complete !== true || !Array.isArray(history.receipts)) {
+  if (!record(history) || history.complete !== true || !Array.isArray(history.receipts)) {
     return { reason: REASONS.incomplete_receipts };
   }
   if (history.receipts.length > MAX_RECEIPTS) return { reason: REASONS.invalid_receipts };
   const seen = new Set();
   const seenReceiptIds = new Set();
   for (const receipt of history.receipts) {
-    if (!receipt || typeof receipt !== 'object' || receipt.status !== 'sent' ||
+    if (!record(receipt) || receipt.status !== 'sent' ||
         !bounded(receipt.receiptId) || !realUtcTimestamp(receipt.sentAt)) {
       return { reason: REASONS.invalid_receipts };
     }
@@ -119,7 +135,7 @@ function validateReceipts(history, scope) {
     }
     seenReceiptIds.add(receipt.receiptId);
     const identity = receipt.warningIdentity;
-    if (!identity || typeof identity !== 'object' || Array.isArray(identity) ||
+    if (!record(identity) ||
         identity.organizationId !== scope.organizationId ||
         identity.recipientSetId !== scope.recipientSetId ||
         !bounded(identity.itemId) || !bounded(identity.batchId) ||
@@ -164,20 +180,35 @@ function candidateFor(lot, thresholdDays, scope) {
   };
 }
 
-export function planExpiryReminderPlan(input = {}) {
+function validInputRecords(input) {
+  if (!Array.isArray(input.items) || !Array.isArray(input.batches) ||
+      input.items.length > MAX_ITEMS || input.batches.length > MAX_BATCHES) return false;
+  for (const item of input.items) {
+    if (!record(item) || !bounded(item.itemId) ||
+        (item.policy !== undefined && !bounded(item.policy))) return false;
+  }
+  for (const batch of input.batches) {
+    if (!record(batch) || !bounded(batch.batchId) || !bounded(batch.itemId) ||
+        !bounded(batch.lotNumber) || !bounded(batch.unit) || !bounded(batch.status) ||
+        !boundedScalar(batch.balanceQuantity)) return false;
+    if (batch.expiryDate !== undefined && !bounded(batch.expiryDate)) return false;
+  }
+  return true;
+}
+
+function planExpiryReminderPlanUnsafe(input) {
   const scope = {
-    organizationId: input.organizationId,
-    asOfDate: input.asOfDate,
-    recipientSetId: input.recipientSetId,
+    organizationId: canonical(input.organizationId),
+    asOfDate: canonical(input.asOfDate),
+    recipientSetId: canonical(input.recipientSetId),
   };
-  if (!bounded(scope.organizationId) || !bounded(scope.recipientSetId)) return blocked(REASONS.invalid_input, scope);
+  if (!scope.organizationId || !scope.recipientSetId) return blocked(REASONS.invalid_input, scope);
   try {
     realDate(scope.asOfDate, 'asOfDate');
   } catch {
     return blocked(REASONS.invalid_input, scope);
   }
-  if (!Array.isArray(input.items) || !Array.isArray(input.batches) ||
-      input.items.length > MAX_ITEMS || input.batches.length > MAX_BATCHES) {
+  if (!validInputRecords(input)) {
     return blocked(REASONS.invalid_input, scope);
   }
   const source = sourceAttestation(input.sourceEvidence);
@@ -210,6 +241,8 @@ export function planExpiryReminderPlan(input = {}) {
   }
   for (const lot of report.today.lots) result.review.push({ code: 'today', batchId: lot.batchId, status: lot.status });
   for (const lot of report.expired.lots) result.review.push({ code: 'expired', batchId: lot.batchId, status: lot.status });
+  result.review.sort((a, b) => a.code.localeCompare(b.code) ||
+    a.batchId.localeCompare(b.batchId) || a.status.localeCompare(b.status));
   candidates.sort((a, b) => a.warningId.localeCompare(b.warningId));
   for (const candidate of candidates) {
     if (receipts.sent.has(candidate.warningId)) result.suppressed.push(candidate);
@@ -219,6 +252,15 @@ export function planExpiryReminderPlan(input = {}) {
   result.outcome = result.status;
   result.orderedIntents = result.intents;
   return result;
+}
+
+export function planExpiryReminderPlan(input = {}) {
+  if (!record(input)) return blocked(REASONS.invalid_input);
+  try {
+    return planExpiryReminderPlanUnsafe(input);
+  } catch {
+    return blocked(REASONS.invalid_input);
+  }
 }
 
 export const planExpiryReminder = planExpiryReminderPlan;
