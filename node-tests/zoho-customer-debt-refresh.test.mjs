@@ -1,0 +1,98 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { plan, planMany } = require('../tools/zoho-customer-debt-refresh/plan.cjs');
+
+const source = { snapshotId: 'snap-1', snapshotVersion: '7', fingerprint: 'sha256-fixture', observedAt: '2026-10-29T00:00:00Z' };
+const base = (overrides = {}) => ({
+  scope: { organizationId: 'org-1', customerId: 'cust-1', currency: 'USD', asOf: '2026-10-29' },
+  source, expectedHelper: { value: '2026-10-01', version: 'helper-3' },
+  pages: [{ page: 1, last: true, records: [] }],
+  ...overrides
+});
+const invoice = (overrides = {}) => ({
+  id: 'inv-1', organizationId: 'org-1', customerId: 'cust-1', currency: 'USD',
+  status: 'unpaid', remainingBalance: '10.00', invoiceDate: '2026-09-01', dueDate: '2026-10-01',
+  ...overrides
+});
+const withInvoices = (...records) => base({ pages: [{ page: 1, last: true, records }] });
+
+test('partial payment preserves the oldest positive-balance invoice', () => {
+  const result = plan(base({ expectedHelper: { value: '2026-09-01', version: 'helper-3' },
+    pages: [{ page: 1, last: true, records: [invoice({ id: 'old', remainingBalance: '0.01' }), invoice({ id: 'new', dueDate: '2026-10-10' })] }] }));
+  assert.equal(result.action, 'set');
+  assert.equal(result.helperValue, '2026-10-01');
+});
+
+test('fully settled oldest invoice is excluded', () => {
+  const result = plan(withInvoices(invoice({ id: 'old', remainingBalance: '0.00' }), invoice({ id: 'new', dueDate: '2026-10-10' })));
+  assert.equal(result.helperValue, '2026-10-10');
+});
+
+test('allocated credit is represented by remaining balance and unallocated credit is ignored', () => {
+  const result = plan(withInvoices(invoice({ remainingBalance: '0.00' }), invoice({ id: 'credit', remainingBalance: '2.00', dueDate: '2026-10-12' })));
+  assert.equal(result.helperValue, '2026-10-12');
+});
+
+test('changed due dates recalculate and future due dates remain eligible', () => {
+  const result = plan(withInvoices(invoice({ dueDate: '2027-01-01' })));
+  assert.equal(result.helperValue, '2027-01-01');
+});
+
+test('exact small positive decimals are not rounded away', () => {
+  const result = plan(base({ expectedHelper: { value: '2026-09-01', version: 'helper-3' },
+    pages: [{ page: 1, last: true, records: [invoice({ remainingBalance: '0.00000001' })] }] }));
+  assert.equal(result.action, 'set');
+});
+
+test('invalid qualifying due dates block', () => {
+  assert.equal(plan(withInvoices(invoice({ dueDate: '2026-02-30' }))).action, 'blocked');
+});
+
+test('future invoice dates are excluded while future due dates are included', () => {
+  const result = plan(withInvoices(invoice({ id: 'future', invoiceDate: '2026-11-01', dueDate: '2026-11-02' }), invoice({ id: 'issued', dueDate: '2027-01-01' })));
+  assert.equal(result.helperValue, '2027-01-01');
+});
+
+test('complete empty and all-settled sources clear, incomplete sources do not', () => {
+  assert.equal(plan(base()).action, 'clear');
+  assert.equal(plan(withInvoices(invoice({ remainingBalance: '0' }))).action, 'clear');
+  assert.equal(plan(base({ pages: [{ page: 1, records: [] }] })).action, 'blocked');
+});
+
+test('duplicate and cross-scope records are blocked', () => {
+  assert.equal(plan(withInvoices(invoice(), invoice({ id: 'inv-1' }))).reason, 'DUPLICATE_ID');
+  assert.equal(plan(withInvoices(invoice({ organizationId: 'org-2' }))).reason, 'CROSS_SCOPE');
+});
+
+test('caps and malformed or reordered pages are blocked', () => {
+  assert.equal(plan(base({ pages: [{ page: 2, last: true, records: [] }] })).reason, 'INCOMPLETE_SOURCE');
+  assert.equal(plan(base({ pages: [{ page: 1, last: false, records: [] }] })).reason, 'INCOMPLETE_SOURCE');
+  assert.equal(plan(base({ pages: Array.from({ length: 1001 }, (_, index) => ({ page: index + 1, last: index === 1000, records: [] })) })).reason, 'INCOMPLETE_SOURCE');
+});
+
+test('unchanged results are deterministic and inputs are immutable', () => {
+  const input = withInvoices(invoice({ dueDate: '2026-10-01' }));
+  const before = structuredClone(input);
+  input.expectedHelper.value = '2026-10-01';
+  const first = plan(input);
+  const second = plan(input);
+  assert.equal(first.action, 'unchanged');
+  assert.deepEqual(first, second);
+  assert.deepEqual(input, { ...before, expectedHelper: { value: '2026-10-01', version: 'helper-3' } });
+});
+
+test('customer failures are isolated and aggregate coverage is incomplete', () => {
+  const result = planMany([base({ expectedHelper: { value: '2026-09-01', version: 'helper-3' },
+    pages: [{ page: 1, last: true, records: [invoice()] }] }),
+  base({ scope: { ...base().scope, customerId: 'cust-2' }, pages: [{ page: 1, last: true, records: [invoice({ customerId: 'cust-1' })] }] })]);
+  assert.equal(result.complete, false);
+  assert.equal(result.results[0].action, 'set');
+  assert.equal(result.results[1].action, 'blocked');
+});
+
+test('terminal statuses with positive balances are contradictory and cannot retain stale dates', () => {
+  assert.equal(plan(withInvoices(invoice({ status: 'paid', remainingBalance: '1.00' }))).action, 'blocked');
+});
