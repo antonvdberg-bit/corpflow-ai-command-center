@@ -20,8 +20,11 @@ verification, not a new CorpFlowAI runtime or an autonomous communication path.
   metadata and never creates, updates, sends, schedules, or logs sensitive records.
 - Use the organisation-local native date only in the draft; capture it once, derive the
   90-day minimum once, and use an explicit date in the planner for deterministic tests.
-- Establish currency from the Books customer context or an explicit custom-function
-  input. Never use the organisation base currency as a silent fallback.
+- Establish currency only from the Books-supplied customer context. The observed native
+  `Customers` signature is `void function(Map customer, Map organization, Map user)`;
+  absent or blank `customer.currency_code` returns the existing
+  `missing_customer_currency_scope` blocker. Never use the organisation base currency,
+  a hardcoded client currency, or an undeclared custom-function input as a fallback.
 - Use an explicit ten-item list in Deluge for bounded `for each` iteration instead of
   a numeric-range loop or JavaScript-style `while`. Guard the collection before
   iteration and wrap the whole `for each` boundary as well as each entry; native editor

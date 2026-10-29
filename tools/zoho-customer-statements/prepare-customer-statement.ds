@@ -1,6 +1,6 @@
 // DISABLED PREPARATION DRAFT — do not activate, schedule, or attach to a send action.
 // Expected Books inputs: customer (Books contact map), organization (Books organization map),
-// preparation_currency_code (explicit currency scope when customer context does not include it).
+// user (Books user map). Customer currency_code is the only native currency scope.
 // Replace only the connection name after native compile and read-only verification.
 
 connection_name = "REPLACE_WITH_BOOKS_CONNECTION";
@@ -18,11 +18,7 @@ if(disabled)
 customer_id = customer.get("contact_id");
 organization_id = organization.get("organization_id");
 expected_currency = customer.get("currency_code");
-if(expected_currency == null)
-{
-	expected_currency = preparation_currency_code;
-}
-if(customer_id == null || organization_id == null || expected_currency == null || expected_currency == "" || connection_name == "REPLACE_WITH_BOOKS_CONNECTION")
+if(customer_id == null || organization_id == null || expected_currency == null || expected_currency.toString().trim() == "" || connection_name == "REPLACE_WITH_BOOKS_CONNECTION")
 {
 	fail_result = Map();
 	fail_result.put("result", "blocked");

@@ -229,3 +229,29 @@ test('keeps synthetic native fixture guards aligned with the disabled draft', ()
   }
   assert.doesNotMatch(nativeFixture, /^\s*invokeurl\b|^\s*connection\s*:/im);
 });
+
+test('binds native currency only to the observed customer map', () => {
+  const observedNativeInputs = {
+    customer: { contact_id: 'c-1', currency_code: 'USD' },
+    organization: { organization_id: 'o-1' },
+    user: {},
+  };
+  const nativeCurrencyScope = ({ customer }) => {
+    const currency = customer.currency_code;
+    return currency == null || String(currency).trim() === ''
+      ? { result: 'blocked', reason_code: 'missing_customer_currency_scope' }
+      : { currency_code: currency };
+  };
+
+  assert.deepEqual(nativeCurrencyScope(observedNativeInputs), { currency_code: 'USD' });
+  assert.deepEqual(
+    nativeCurrencyScope({
+      ...observedNativeInputs,
+      customer: { contact_id: 'c-1', currency_code: '' },
+    }),
+    { result: 'blocked', reason_code: 'missing_customer_currency_scope' },
+  );
+  assert.match(nativeDraft, /Expected Books inputs: customer .* organization .* user/s);
+  assert.match(nativeDraft, /expected_currency = customer\.get\("currency_code"\);/);
+  assert.doesNotMatch(nativeDraft, /preparation_currency_code/);
+});

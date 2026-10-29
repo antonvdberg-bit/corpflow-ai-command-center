@@ -26,3 +26,6 @@
 - [x] 2.6 Replace coercive native collection/page-attestation checks with fixed-wrapper
   shape/token guards and add a pure synthetic Deluge fixture covering list/map/scalar
   and attestation spoof cases.
+- [x] 2.7 Bind native currency scope to the observed `customer.currency_code` input,
+  remove the undeclared currency fallback, and add a regression using only the observed
+  `customer`, `organization`, and `user` maps.

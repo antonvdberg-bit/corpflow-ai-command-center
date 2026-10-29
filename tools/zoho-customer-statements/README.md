@@ -65,10 +65,12 @@ An empty first final page is valid; an empty continuing or later page is rejecte
 
 ## Manual controller procedure
 
-1. Create a disabled Books custom function with the parameters `customer`,
-   `organization`, and `preparation_currency_code`, return type `map`, and no schedule
-   or send action. `preparation_currency_code` is required when the customer context
-   does not provide `currency_code`; the organisation base currency is never a fallback.
+1. Create a disabled Books custom function in the native `Customers` module with the
+   observed parameters `customer`, `organization`, and `user`, return type `map`, and
+   no schedule or send action. The draft uses only the Books-supplied
+   `customer.currency_code`; if it is absent or blank, it returns the existing
+   `missing_customer_currency_scope` blocker. The organisation base currency is never
+   a fallback.
 2. Paste `prepare-customer-statement.ds`; replace only
    `REPLACE_WITH_BOOKS_CONNECTION` with the reviewed named Books connection. Do not put
    credentials, customer IDs, organization IDs, names, addresses, invoice rows, or
