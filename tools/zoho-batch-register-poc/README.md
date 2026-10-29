@@ -28,6 +28,21 @@ The planner is also directly usable:
 import { BatchLedger, planAllocation } from './core.mjs';
 ```
 
+## Synthetic expiry reminder preparation
+
+`planExpiryReminderPlan` in `expiry-reminder-plan.mjs` reuses
+`buildExpiryReview` to produce deterministic, read-only 90/60/30-day warning
+intents. It requires explicit organization/as-of/recipient scope, matching
+complete source attestations, and complete sent-receipt history. Matching
+SHA-256 warning identities are suppressed; incomplete, uncertain, conflicting,
+or tampered evidence blocks the whole plan.
+
+The result is always `synthetic: true`, `readOnly: true`, `operational: false`,
+and `sendPath: false`. It has no persistence, network, scheduler, or message
+sender and grants no stock allocation or disposal authority, including for
+quarantined lots. This is preparation evidence only, not an activated reminder
+workflow.
+
 ## Synthetic Books-record adapter
 
 `previewBooksRecords({ transport, orgId, asOfDate, itemId, unit, quantity, map })`
