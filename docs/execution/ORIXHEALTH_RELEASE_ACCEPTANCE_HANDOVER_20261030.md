@@ -1,6 +1,6 @@
 # OrixHealth — consolidated release, acceptance and operator handover packet
 
-**Date:** 30 October 2026. **Owner:** CHAT/controller. **Status:** Prepared, not deployed or client-accepted.  
+**Date:** 30 October 2026. **Owner:** CHAT/controller. **Status:** Prepared, not deployed or client-accepted.
 **Scope:** Non-client-private, non-executable readiness material. Parent #1304. Verified GitHub heads below; authenticated tenant observations come from WORK issue receipts, **not** this document.
 
 ## 1. Release readiness — the five components
