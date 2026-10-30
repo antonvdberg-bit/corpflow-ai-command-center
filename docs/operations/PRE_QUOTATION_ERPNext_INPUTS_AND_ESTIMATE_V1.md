@@ -1,9 +1,13 @@
-# ERPNext pre-quotation estimation input and implementation checklist v1
+# Core pre-quotation estimation: ERPNext adapter input and implementation checklist v1
 
-**Decision:** Support CEO pre-quote planning/cost gate in PR #1543. **Status:** researched ERPNext standard capability; live CorpFlowAI DocType/permissions NOT YET verified. No production data was modified.
+**Decision:** Core owns reusable pre-quote project costing and approval; ERPNext is a commercial-record/finance adapter, not the sole owner. CorpFlowAI, Business Admin Desk and other authorised subsidiaries/products reuse the same gate under tenant and brand separation. Support CEO pre-quote planning/cost gate merged via PR #1543. **Status:** researched ERPNext standard capability; live CorpFlowAI DocType/permissions NOT YET verified. No production data was modified.
 
 ## Bottom line
 ERPNext standard Project/Task/Project Template is useful for planning and tracking; **actual** project labour cost is generated principally from submitted Timesheets with Activity Type and Activity Cost rates. A Project Estimated Cost is available, but ERPNext does not automatically create a complete defensible fixed-price quotation just by creating a Project. Estimate direct supplier/API/hosting, overhead allocation, contingency and profit **before** quotation in a linked cost worksheet or approved costed template. Do not confuse billing rates with labour cost.
+
+## Shared test and rollout rule
+
+Use #1504 as the **existing synthetic customer / transaction test programme**. Test Core-native reusable costing validation without real ERPNext postings; verify CorpFlowAI and BAD variants, incomplete-cost rejection and approved fixed-price templates, tenant isolation, and draft document rendering. A test Customer in the shared hosted ERPNext is not an accounting sandbox, even if marked TEST. **Exclusion from real customer, debtor, revenue, tax and project profitability reporting must be proven**, not assumed. The current safe default is deterministic fixtures / synthetic adapter; the next gate is read-only inspection of existing isolated test resources and report filters. Never create a synthetic production Journal Entry, Sales Invoice or Payment Entry to demonstrate the feature without precise data/config authorisation and accounting isolation assurance.
 
 ## Minimum input form (one record per contemplated quote)
 
