@@ -18,7 +18,16 @@ test('unattested input blocks',()=>assert.equal(run([bank()],[ledger()],{...sour
 test('incomplete input blocks',()=>assert.equal(run([bank()],[ledger()],{...source,complete:false}).status,'BLOCKED_SOURCE'));
 test('duplicate bank id blocks',()=>assert.equal(run([bank(),bank()],[ledger()]).status,'BLOCKED_SOURCE'));
 test('impossible date blocks',()=>assert.equal(run([bank('b1',{date:'2026-02-30'})],[ledger()]).status,'BLOCKED_SOURCE'));
-test('invalid fixed precision blocks',()=>assert.throws(()=>run([bank('b1',{amount:'100.001'})],[ledger()]),/fixed-2/));
+test('invalid fixed precision blocks',()=>assert.equal(run([bank('b1',{amount:'100.001'})],[ledger()]).status,'BLOCKED_SOURCE'));
 test('weak identity demands review',()=>assert.equal(run([bank('b1',{reference:'other',party:'unknown'})],[ledger()]).recommendations[0].state,'NEEDS_REVIEW'));
 test('wrong source account excludes',()=>assert.equal(run([bank('b1',{accountId:'OTHER'})],[ledger()]).recommendations[0].state,'NO_MATCH'));
 test('same source id across kinds is permitted',()=>assert.equal(run([bank('same')],[ledger('same')]).status,'EVALUATION_ONLY'));
+
+test('unknown ledger type fails closed',()=>assert.equal(run([bank()],[ledger('l1',{type:'unsupported'})]).status,'BLOCKED_SOURCE'));
+test('wrong row collection fails closed',()=>assert.equal(run([ledger()],[bank()]).status,'BLOCKED_SOURCE'));
+test('malformed source collection fails closed',()=>assert.equal(run(null,[ledger()]).status,'BLOCKED_SOURCE'));
+test('candidate reused even when not highest ranked blocks both bank entries',()=>{
+ const b2=bank('b2',{reference:'different',party:'another'});
+ const r=run([bank('b1'),b2],[ledger('l1'),ledger('l2',{reference:'different',party:'another'})]);
+ assert.deepEqual(r.recommendations.map(x=>x.state),['CONFLICT_REVIEW','CONFLICT_REVIEW']);
+});
