@@ -31,3 +31,13 @@ test('candidate reused even when not highest ranked blocks both bank entries',()
  const r=run([bank('b1'),b2],[ledger('l1'),ledger('l2',{reference:'different',party:'another'})]);
  assert.deepEqual(r.recommendations.map(x=>x.state),['CONFLICT_REVIEW','CONFLICT_REVIEW']);
 });
+
+test('candidate conflict beyond display limit is still detected',()=>{
+ const decoys=Array.from({length:6},(_,i)=>ledger('decoy'+i,{reference:'REF'+i,party:'OTHER'+i}));
+ const shared=ledger('shared',{reference:'SHARED',party:'SAME'});
+ const r=run([bank('b1',{reference:'SHARED',party:'SAME'}),bank('b2',{reference:'SECOND',party:'TWO'})],[...decoys,shared]);
+ assert.equal(r.recommendations[0].state,'CONFLICT_REVIEW');
+ assert.equal(r.recommendations[1].state,'CONFLICT_REVIEW');
+ assert.ok(r.recommendations.every(x=>x.candidates.length<=5));
+ assert.ok(r.recommendations.every(x=>!('allCandidateIds' in x)));
+});
