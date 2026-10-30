@@ -1,10 +1,12 @@
-# Pre-quotation project plan and costing gate — CorpFlowAI v1
+# Pre-quotation project plan and costing gate — Core shared capability v1
 
-**Decision owner:** Anton (CEO) · **Decision date:** 30 October 2026 · **Status:** CEO-approved policy, pending PR merge for canonical adoption.
+**Decision owner:** Anton (CEO) · **Decision date:** 30 October 2026 · **Status:** CEO-approved shared Core policy. Documentation merger does not certify runtime enforcement.
 
 ## Mandatory question before every external client quotation
 
 > **STOP — BEFORE WE QUOTE:** Have we prepared and reviewed a sufficiently detailed delivery plan, schedule, resource estimate, direct and recurring cost model, risk/contingency allowance, proposed margin and payment milestones? If not, the formal external quotation is **NOT READY TO RELEASE**.
+
+**Ownership and reach:** This is a **Core-owned reusable commercial-delivery capability**, available to CorpFlowAI and subsidiary/product businesses including Business Admin Desk (BAD), with tenant/brand, data and access boundaries respected. ERPNext is the authoritative commercial/accounting system where applicable; it is not the owner of Core's reusable gate. The gate must not be implemented as a CorpFlowAI-only or BAD-only parallel system.
 
 This is a **commercial readiness gate**, not a requirement to build a heavyweight project-management system. Applies to bespoke client builds and implementation work **before setting or communicating a binding external price**. Internal estimates may be drafted earlier. Standardised fixed-price catalogue items may use a previously approved and currently reviewed reusable costed delivery template rather than a new detailed plan for every identical sale.
 
@@ -31,6 +33,10 @@ A pre-quote reviewer (Anton or an explicitly delegated commercial approver) reco
 - **Quote:** link the reviewed estimate to the draft ERPNext quotation and record gate outcome **before external release**.
 - **Accepted work:** carry planned effort/cost baseline into delivery work; compare actuals against baseline and capture estimating errors for the next quote.
 - **Catalogue items:** maintain one approved pricing and delivery-cost model per product/version and revalidate when supplier/API costs, scope or FX materially change.
+
+## Core synthetic testing and reporting separation
+
+Reuse the existing controlled synthetic party and end-to-end acceptance programme in **GitHub #1504**, rather than creating new test identities or a second test system. Test the shared pre-quote decision rule across CorpFlowAI and BAD branded paths: valid bespoke quotation, invalid incomplete estimate (fail closed), approved repeatable catalogue offer, 50/50 milestones, client/tenant separation and correct quote document. Use deterministic fixtures and synthetic adapters first, then an authorised isolated/nonposting integration environment when available. A record named TEST in the current shared ERPNext production estate is **not** isolated: it may contaminate accounts, VAT, debtor balances or reports. Do not post a real GL entry or create shared production test parties solely for testing. Before any production-like synthetic transaction, verify independent test isolation, accounting nonposting behaviour, stable tags, report exclusion and cleanup/audit evidence. Current desired exclusion is an **acceptance criterion, not proven behaviour**. Follow #1504 gates and obtain exact scoped approval for any protected data/config changes.
 
 ## Verification and implementation boundary
 
