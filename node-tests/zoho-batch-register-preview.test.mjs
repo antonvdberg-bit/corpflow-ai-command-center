@@ -307,4 +307,3 @@ test('sources policy from the canonical item record, not caller overrides', asyn
   assert.equal(result.proposedSplit.length, 0);
   assert.match(result.blockers.join('\n'), /Classification required|review/);
 });
-
