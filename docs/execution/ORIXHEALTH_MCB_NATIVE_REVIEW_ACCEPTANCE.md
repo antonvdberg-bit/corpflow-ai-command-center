@@ -1,7 +1,7 @@
 # OrixHealth MCB native review acceptance — v1 (read only)
 
-**Status:** Operator pilot procedure, **not** financial authorisation, live integration, or proof of completed reconciliation.  
-**Owner:** WORK for authenticated Zoho inspection and guided pilot; CHAT for technical acceptance.  
+**Status:** Operator pilot procedure, **not** financial authorisation, live integration, or proof of completed reconciliation.
+**Owner:** WORK for authenticated Zoho inspection and guided pilot; CHAT for technical acceptance.
 **Lineage:** parent #1304; reconciliation issue #1538; draft review helper PR #1539.
 
 ## Scope and current evidence
@@ -51,8 +51,8 @@ No authorised general banking API execution surface was found (#1538 receipt 651
 
 ## Next ownership
 
-WORK: inspect a different bank-side exception and privately trace the source read-only; report classification and concrete blockers in #1538.  
-CHAT: maintain PR #1539 integration contract and review software only for evidenced native gaps.  
-ANTON: approve only the eventual protected action presented with its exact scope.  
+WORK: inspect a different bank-side exception and privately trace the source read-only; report classification and concrete blockers in #1538.
+CHAT: maintain PR #1539 integration contract and review software only for evidenced native gaps.
+ANTON: approve only the eventual protected action presented with its exact scope.
 
 **No client outreach or tenant change was performed in preparing this procedure.**
