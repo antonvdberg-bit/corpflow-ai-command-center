@@ -9,7 +9,7 @@
 
 <!-- CIPC_SERVICE_FACTORY_READINESS_V1 -->
 
-**Machine contract:** `config/cipc-service-factory.v1.json` · `lib/cipc-desk/service-factory.js`
+**Machine contract:** `config/cipc-service-factory.v1.json` · `lib/server/core-service-workflow.js` · `lib/cipc-desk/service-factory.js`
 
 **ANTON ACTION: NONE** for this overlay. Anton is needed only for the exact later consequential actions listed in §8 (merge of this PR if required, live CIPC submit, payment, live send, schema, secrets, or `client_production`).
 
@@ -57,6 +57,13 @@ That path is now an overlay on **existing** rows. It does not create a second pr
 ## 2. Common service template
 
 Annual Returns, Director Changes, and Beneficial Ownership share one template. Only the service-specific flags change.
+
+The reusable catalogue lookup, explicit tenant opt-in, fail-closed access decision,
+safe transition helper, and draft/idempotency primitives live in
+`lib/server/core-service-workflow.js`. BAD is the first adapter and is enabled only
+for `cipc-desk` in `config/cipc-service-factory.v1.json`. BAD-specific host binding,
+CIPC legal/OTP rules, partner handling, pricing, brand, and payment boundaries remain
+in the BAD/CIPC modules.
 
 Each first service records:
 
@@ -219,6 +226,9 @@ node --test node-tests/cipc-service-factory-readiness.test.mjs
 **Closed by this packet (readiness, not live factory):**
 
 - common template for the three first services;
+- reusable Core service-workflow primitives with explicit tenant opt-in;
+- fail-closed synthetic access coverage for unauthenticated, cross-tenant-host, and insufficient-privilege requests;
+- approval-gated transitions plus idempotent, allowlisted draft updates;
 - map from existing CMP / email-intake / attachment / audit primitives;
 - deterministic vs human-gate split;
 - evidence rules that keep sensitive documents out of GitHub;

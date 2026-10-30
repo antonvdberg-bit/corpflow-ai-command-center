@@ -23,6 +23,18 @@
   "tenant_id": "cipc-desk",
   "environment": "corpflow_test",
   "public_launch": false,
+  "core_workflow": {
+    "enabled_tenants": ["cipc-desk"],
+    "transitions": {
+      "ready_to_file": {
+        "mark_information_incomplete": "information_incomplete"
+      },
+      "information_incomplete": {
+        "ready_to_file": "ready_to_file",
+        "mark_information_incomplete": "information_incomplete"
+      }
+    }
+  },
 
   "factory_pipeline": [
     "qualified_lead",
